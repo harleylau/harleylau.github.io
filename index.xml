@@ -6,9 +6,20 @@
     <description>Recent content on Harley</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
+    <lastBuildDate>Thu, 27 Dec 2018 09:08:09 +0800</lastBuildDate>
     
 	<atom:link href="https://harleylau.github.io/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>从hexo转到hugo</title>
+      <link>https://harleylau.github.io/%E4%BB%8Ehexo%E8%BD%AC%E5%88%B0hugo/</link>
+      <pubDate>Thu, 27 Dec 2018 09:08:09 +0800</pubDate>
+      
+      <guid>https://harleylau.github.io/%E4%BB%8Ehexo%E8%BD%AC%E5%88%B0hugo/</guid>
+      <description>之前的博客都是用hexo生成的，也不是不好用， 只是对于js并不是很熟悉。正好最近一直在用golang，也顺便把原来的博客从hexo转到hugo上来。
+接下去会慢慢的把之前的文章都重新部署一下。</description>
+    </item>
     
   </channel>
 </rss>

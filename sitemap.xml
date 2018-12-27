@@ -3,6 +3,11 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
+    <loc>https://harleylau.github.io/%E4%BB%8Ehexo%E8%BD%AC%E5%88%B0hugo/</loc>
+    <lastmod>2018-12-27T09:08:09+08:00</lastmod>
+  </url>
+  
+  <url>
     <loc>https://harleylau.github.io/archives/</loc>
     <priority>0</priority>
   </url>
@@ -14,6 +19,7 @@
   
   <url>
     <loc>https://harleylau.github.io/</loc>
+    <lastmod>2018-12-27T09:08:09+08:00</lastmod>
     <priority>0</priority>
   </url>
   
