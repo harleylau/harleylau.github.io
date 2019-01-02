@@ -3,7 +3,17 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
-    <loc>https://harleylau.github.io/%E4%BB%8Ehexo%E8%BD%AC%E5%88%B0hugo/</loc>
+    <loc>https://harleylau.github.io/2019/01/%E4%BD%BF%E7%94%A8redis-setnx-%E5%91%BD%E4%BB%A4%E5%AE%9E%E7%8E%B0%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/</loc>
+    <lastmod>2019-01-01T16:46:31+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://harleylau.github.io/2019/01/hbase-rowkey-%E8%AE%BE%E8%AE%A1/</loc>
+    <lastmod>2019-01-01T15:39:35+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://harleylau.github.io/2018/12/%E4%BB%8Ehexo%E8%BD%AC%E5%88%B0hugo/</loc>
     <lastmod>2018-12-27T09:08:09+08:00</lastmod>
   </url>
   
@@ -19,12 +29,61 @@
   
   <url>
     <loc>https://harleylau.github.io/</loc>
-    <lastmod>2018-12-27T09:08:09+08:00</lastmod>
+    <lastmod>2019-01-01T16:46:31+08:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://harleylau.github.io/categories/hbase/</loc>
+    <lastmod>2019-01-01T15:39:35+08:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://harleylau.github.io/tags/hbase/</loc>
+    <lastmod>2019-01-01T15:39:35+08:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://harleylau.github.io/post/</loc>
+    <lastmod>2019-01-01T16:46:31+08:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://harleylau.github.io/categories/redis/</loc>
+    <lastmod>2019-01-01T16:46:31+08:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://harleylau.github.io/tags/redis/</loc>
+    <lastmod>2019-01-01T16:46:31+08:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://harleylau.github.io/categories/rowkey/</loc>
+    <lastmod>2019-01-01T15:39:35+08:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://harleylau.github.io/tags/</loc>
+    <lastmod>2019-01-01T15:39:35+08:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://harleylau.github.io/categories/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/</loc>
+    <lastmod>2019-01-01T16:46:31+08:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://harleylau.github.io/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/</loc>
+    <lastmod>2019-01-01T16:46:31+08:00</lastmod>
     <priority>0</priority>
   </url>
   
