@@ -6,10 +6,19 @@
     <description>Recent content in Tornado on Harley</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 12 Feb 2018 11:29:39 +0800</lastBuildDate>
+    <lastBuildDate>Mon, 12 Feb 2018 12:17:11 +0800</lastBuildDate>
     
 	<atom:link href="https://harleylau.github.io/tags/tornado/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Tornado Websocket实现二维码扫描</title>
+      <link>https://harleylau.github.io/2018/02/tornado-websocket%E5%AE%9E%E7%8E%B0%E4%BA%8C%E7%BB%B4%E7%A0%81%E6%89%AB%E6%8F%8F/</link>
+      <pubDate>Mon, 12 Feb 2018 12:17:11 +0800</pubDate>
+      
+      <guid>https://harleylau.github.io/2018/02/tornado-websocket%E5%AE%9E%E7%8E%B0%E4%BA%8C%E7%BB%B4%E7%A0%81%E6%89%AB%E6%8F%8F/</guid>
+      <description>&lt;!--toc--&gt;</description>
+    </item>
     
     <item>
       <title>Tornado之WebSocket</title>
