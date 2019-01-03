@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Tornado on Harley</title>
+    <link>https://harleylau.github.io/tags/tornado/</link>
+    <description>Recent content in Tornado on Harley</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Tue, 25 Jul 2017 08:54:31 +0800</lastBuildDate>
+    
+	<atom:link href="https://harleylau.github.io/tags/tornado/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Tornado 线程池应用</title>
+      <link>https://harleylau.github.io/2017/07/tornado-%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%BA%94%E7%94%A8/</link>
+      <pubDate>Tue, 25 Jul 2017 08:54:31 +0800</pubDate>
+      
+      <guid>https://harleylau.github.io/2017/07/tornado-%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%BA%94%E7%94%A8/</guid>
+      <description>&lt;p&gt;Tornado是一个异步框架，在异步操作的时候能提升程序的处理性能。但是如果在程序中碰到同步的逻辑，由于GIL的关系，会直接卡死，导致性能急剧下降。&lt;/p&gt;</description>
+    </item>
+    
+  </channel>
+</rss>
