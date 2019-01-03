@@ -42,6 +42,17 @@
     </item>
     
     <item>
+      <title>Redis源码剖析–对象Object</title>
+      <link>https://harleylau.github.io/2017/09/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%AF%B9%E8%B1%A1object/</link>
+      <pubDate>Thu, 07 Sep 2017 18:20:21 +0800</pubDate>
+      
+      <guid>https://harleylau.github.io/2017/09/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%AF%B9%E8%B1%A1object/</guid>
+      <description>&lt;!--toc--&gt;
+
+&lt;p&gt;之前介绍的都是Redis的基础数据结构，比如简单动态字符串（SDS）、双端链表、字典、压缩列表、整数集合， 等等，不过Redis并没有直接用这些结构来实现键值对的数据库，而是对其进行了封装， 所有的键和值都是用对象Object来表示的。&lt;/p&gt;</description>
+    </item>
+    
+    <item>
       <title>Tornado–打印block日志</title>
       <link>https://harleylau.github.io/2017/09/tornado%E6%89%93%E5%8D%B0block%E6%97%A5%E5%BF%97/</link>
       <pubDate>Thu, 07 Sep 2017 11:21:02 +0800</pubDate>
