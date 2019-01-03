@@ -8,25 +8,25 @@
 <meta name="generator" content="Hugo 0.52 with theme Tranquilpeak 0.4.3-SNAPSHOT">
 <meta name="author" content="Harley">
 <meta name="keywords" content="redis">
-<meta name="description" content="Redis 没有直接使用 C 语言传统的字符串表示， 而是自己构建了一种名为简单动态字符串（simple dynamic string，SDS）的抽象类型， 并将 SDS 用作 Redis 的默认字符串表示。">
+<meta name="description" content="改换一下策略，不直接介绍源码，打算先整体介绍一下思路，然后再根据源码解释具体的实现。">
 
 
-<meta property="og:description" content="Redis 没有直接使用 C 语言传统的字符串表示， 而是自己构建了一种名为简单动态字符串（simple dynamic string，SDS）的抽象类型， 并将 SDS 用作 Redis 的默认字符串表示。">
+<meta property="og:description" content="改换一下策略，不直接介绍源码，打算先整体介绍一下思路，然后再根据源码解释具体的实现。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Redis源码剖析–简单动态字符串sds">
-<meta name="twitter:title" content="Redis源码剖析–简单动态字符串sds">
-<meta property="og:url" content="https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AE%80%E5%8D%95%E5%8A%A8%E6%80%81%E5%AD%97%E7%AC%A6%E4%B8%B2sds/">
-<meta property="twitter:url" content="https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AE%80%E5%8D%95%E5%8A%A8%E6%80%81%E5%AD%97%E7%AC%A6%E4%B8%B2sds/">
+<meta property="og:title" content="Redis源码剖析-Dict字典">
+<meta name="twitter:title" content="Redis源码剖析-Dict字典">
+<meta property="og:url" content="https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-dict%E5%AD%97%E5%85%B8/">
+<meta property="twitter:url" content="https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-dict%E5%AD%97%E5%85%B8/">
 <meta property="og:site_name" content="Harley">
-<meta property="og:description" content="Redis 没有直接使用 C 语言传统的字符串表示， 而是自己构建了一种名为简单动态字符串（simple dynamic string，SDS）的抽象类型， 并将 SDS 用作 Redis 的默认字符串表示。">
-<meta name="twitter:description" content="Redis 没有直接使用 C 语言传统的字符串表示， 而是自己构建了一种名为简单动态字符串（simple dynamic string，SDS）的抽象类型， 并将 SDS 用作 Redis 的默认字符串表示。">
+<meta property="og:description" content="改换一下策略，不直接介绍源码，打算先整体介绍一下思路，然后再根据源码解释具体的实现。">
+<meta name="twitter:description" content="改换一下策略，不直接介绍源码，打算先整体介绍一下思路，然后再根据源码解释具体的实现。">
 <meta property="og:locale" content="zh-cn">
 
   
-    <meta property="article:published_time" content="2017-07-28T16:14:49">
+    <meta property="article:published_time" content="2017-07-31T16:36:53">
   
   
-    <meta property="article:modified_time" content="2017-07-28T16:14:49">
+    <meta property="article:modified_time" content="2017-07-31T16:36:53">
   
   
   
@@ -64,14 +64,14 @@
   <meta property="twitter:image" content="https://harleylau.github.io/img/harleylau.jpg">
 
 
-    <title>Redis源码剖析–简单动态字符串sds</title>
+    <title>Redis源码剖析-Dict字典</title>
 
     <link rel="icon" href="https://harleylau.github.io/favicon.png">
     
 
     
 
-    <link rel="canonical" href="https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AE%80%E5%8D%95%E5%8A%A8%E6%80%81%E5%AD%97%E7%AC%A6%E4%B8%B2sds/">
+    <link rel="canonical" href="https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-dict%E5%AD%97%E5%85%B8/">
 
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous" />
@@ -231,15 +231,15 @@
             <div class="post-header main-content-wrap text-left">
   
     <h1 class="post-title" itemprop="headline">
-      Redis源码剖析–简单动态字符串sds
+      Redis源码剖析-Dict字典
     </h1>
   
   
   <div class="postShorten-meta post-meta">
     
-      <time itemprop="datePublished" datetime="2017-07-28T16:14:49&#43;08:00">
+      <time itemprop="datePublished" datetime="2017-07-31T16:36:53&#43;08:00">
         
-  七月 28, 2017
+  七月 31, 2017
 
       </time>
     
@@ -260,281 +260,440 @@
           
           <div class="post-content markdown" itemprop="articleBody">
             <div class="main-content-wrap">
-              <p>Redis 没有直接使用 C 语言传统的字符串表示， 而是自己构建了一种名为简单动态字符串（simple dynamic string，SDS）的抽象类型， 并将 SDS 用作 Redis 的默认字符串表示。</p>
+              <p>改换一下策略，不直接介绍源码，打算先整体介绍一下思路，然后再根据源码解释具体的实现。</p>
 
 <h1 id="table-of-contents">目录</h1><nav id="TableOfContents">
 <ul>
-<li><a href="#sds的定义">SDS的定义</a></li>
-<li><a href="#sds基本操作">SDS基本操作</a>
+<li><a href="#dict定义">Dict定义</a></li>
+<li><a href="#dict操作">Dict操作</a>
 <ul>
-<li><a href="#sds初始化">SDS初始化</a></li>
-<li><a href="#sds复制函数">SDS复制函数</a></li>
-<li><a href="#sds释放函数">SDS释放函数</a></li>
-<li><a href="#sds扩容函数">SDS扩容函数</a></li>
+<li><a href="#判断是否需要进行rehash">判断是否需要进行rehash</a></li>
+<li><a href="#rehash算法">rehash算法</a></li>
+<li><a href="#dict插入键">Dict插入键</a></li>
+<li><a href="#添加或更新元素">添加或更新元素</a></li>
+<li><a href="#删除键值对">删除键值对</a></li>
+<li><a href="#查看key的值">查看key的值</a></li>
 </ul></li>
-<li><a href="#sds小结">SDS小结</a></li>
 </ul>
 </nav>
 
-<p>Redis 没有直接使用 C 语言传统的字符串表示， 而是自己构建了一种名为简单动态字符串（simple dynamic string，SDS）的抽象类型， 并将 SDS 用作 Redis 的默认字符串表示。</p>
+<p>改换一下策略，不直接介绍源码，打算先整体介绍一下思路，然后再根据源码解释具体的实现。</p>
 
-<p>Redis中所有的键都是用sds格式来保存的， 包括一部分值的保存，也是用的sds格式。</p>
+<p><img src="https://harleylau.github.io/img/dict.png" alt="dict结构" /></p>
 
-<h1 id="sds的定义">SDS的定义</h1>
+<p>如图所示，一个dict字典中由两个hashtable组成，分别为ht[0]和ht[1]，用到的基本上都是ht[0]。 那么ht[1]什么时候用到呢？因为hash算出来的索引值是有可能重复的，也就是说不同的dictEntry有可能位于同一个hashtable的槽内，如果拥有的dictEntry的数量和slot的数量的比值超过了5，相当于平均每个slot拥有5个以上的dictEntry的时候，就需要重新rehash整个dict。</p>
 
-<p>sds.h中的定义如下：</p>
+<p>扩展或者收缩dict的时候，并不是一次性完成的， 因为如果dict中拥有大量数据的时候，一次性的操作有可能会影响正式的服务。</p>
 
-<pre><code>/*
- * 类型别名，用于指向 sdshdr 的 buf 属性
- */
-typedef char *sds;
+<p>所以redis采取的策略是分布式的rehash。 利用rehashidx来记录当前进行到了哪个索引，下一次的rehash从这个索引开始。那什么时候进行rehash呢，有两种策略， 一种是在指定时间内执行固定步数；另一种是在每次对当前dict进行查询、修改的时候，每一次操作都附带完成一个索引值的rehash。这样就把整体的rehash时间平摊到了各个小操作中。</p>
+
+<p>在rehash的过程中，如果执行查询操作，两个ht都需要查询；修改和删除也需要操作两个ht，插入的时候，只需要插入到ht[1]，这样就保证了ht[0]里边的键值对只少不多。</p>
+
+<h1 id="dict定义">Dict定义</h1>
+
+<pre><code>typedef struct dict {
+    dictType *type;  // 类型特定函数
+    void *privdata;  // 私有数据
+    dictht ht[2];    // 2个哈希表
+    // rehash 索引
+    // 当 rehash 不在进行时，值为 -1
+    long rehashidx; /* rehashing not in progress if rehashidx == -1 */
+    // 目前正在运行的安全迭代器的数量
+    unsigned long iterators; /* number of iterators currently running */
+} dict;
 </code></pre>
 
-<p>sds包含两部分，在最基本的字符数组之外，加了两个字符数组信息，还有一个类似header的信息，header中包括了一下几个部分：</p>
+<p>dictType保存一些用于操作特定类型键值对的函数，定义如下：</p>
 
-<ul>
-<li>len：表示字符串真正的长度，不包含空终止字符</li>
-<li>alloc：表示字符串的最大容量，不包含Header和最后的空终止字符</li>
-<li>flags：表示header的类型</li>
-</ul>
+<pre><code>typedef struct dictType {
+    // 计算哈希值的函数
+    uint64_t (*hashFunction)(const void *key);
+    // 复制键的函数
+    void *(*keyDup)(void *privdata, const void *key);
+    // 复制值的函数
+    void *(*valDup)(void *privdata, const void *obj);
+    // 比较键的函数
+    int (*keyCompare)(void *privdata, const void *key1, const void *key2);
+    // 销毁键的函数
+    void (*keyDestructor)(void *privdata, void *key);
+    // 销毁值的函数
+    void (*valDestructor)(void *privdata, void *obj);
+} dictType;
+</code></pre>
 
-<p>这样做的好处是能够马上知道字符串的长度和剩余空间，而无需遍历一遍字符数组计算长度。</p>
+<p>dicht哈希表，所有的键值对保存在里边，定义如下：</p>
 
-<p>同时，由于在c语言中一般都是通过字符数组最后的&rdquo;\0&rdquo;来判断字符串的结束，而sds可以无视这些特殊字符的存在，可以直接根据len来获取完整的字符串。</p>
+<pre><code>typedef struct dictht {
+    dictEntry **table;  // 哈希数组
+    unsigned long size;  // 总的哈希表大小
+    // 哈希表大小掩码，用于计算索引值
+    // 总是等于 size - 1
+    unsigned long sizemask;  
+    unsigned long used;  // 该哈希表已有节点的数量
+} dictht;
+</code></pre>
 
-<p>此外，在修改字符串的时候，sds能够减少空间与分配的次数，提高运行效率，具体的可以稍后看代码中的实现。</p>
+<p>dictEntry则保存了每一个具体的键值对，定义如下：</p>
 
-<h1 id="sds基本操作">SDS基本操作</h1>
+<pre><code>typedef struct dictEntry {
+    // 键
+    void *key;
+    union {
+        void *val;
+        uint64_t u64;
+        int64_t s64;
+        double d;
+    } v; // 值
+    // 指向下一个结点，因为hash值有可能冲突，冲突的时候链表形式保存在同一个索引后边
+    struct dictEntry *next;
+} dictEntry;
+</code></pre>
 
-<h2 id="sds初始化">SDS初始化</h2>
+<h1 id="dict操作">Dict操作</h1>
 
-<pre><code>sds sdsnewlen(const void *init, size_t initlen) {
-    void *sh;
-    sds s;
-    //根据长度判断创建header的类型
-    char type = sdsReqType(initlen);
-    /* Empty strings are usually created in order to append. Use type 8
-     * since type 5 is not good at this. */
-    if (type == SDS_TYPE_5 &amp;&amp; initlen == 0) type = SDS_TYPE_8;
-    //获取header的长度
-    int hdrlen = sdsHdrSize(type);
-    unsigned char *fp; /* flags pointer. */
+<h2 id="判断是否需要进行rehash">判断是否需要进行rehash</h2>
 
-    //分配空间，header长度+字符串长度+结束字符
-    sh = s_malloc(hdrlen+initlen+1);
-    if (!init)
-        memset(sh, 0, hdrlen+initlen+1);
-    if (sh == NULL) return NULL;
-    //s是字符串真正保存的地址
-    s = (char*)sh+hdrlen;
-    //fp表示header中的flag
-    fp = ((unsigned char*)s)-1;
-    switch(type) {
-        case SDS_TYPE_5: {
-            *fp = type | (initlen &lt;&lt; SDS_TYPE_BITS);
-            break;
-        }
-        case SDS_TYPE_8: {
-            SDS_HDR_VAR(8,s);
-            sh-&gt;len = initlen;
-            sh-&gt;alloc = initlen;
-            *fp = type;
-            break;
-        }
-        case SDS_TYPE_16: {
-            SDS_HDR_VAR(16,s);
-            sh-&gt;len = initlen;
-            sh-&gt;alloc = initlen;
-            *fp = type;
-            break;
-        }
-        case SDS_TYPE_32: {
-            SDS_HDR_VAR(32,s);
-            sh-&gt;len = initlen;
-            sh-&gt;alloc = initlen;
-            *fp = type;
-            break;
-        }
-        case SDS_TYPE_64: {
-            SDS_HDR_VAR(64,s);
-            sh-&gt;len = initlen;
-            sh-&gt;alloc = initlen;
-            *fp = type;
-            break;
-        }
-    }
-    if (initlen &amp;&amp; init)
-        //如果有初始内容，复制
-        memcpy(s, init, initlen);
-    s[initlen] = '\0';
-    return s;
+<pre><code>/* Resize the table to the minimal size that contains all the elements,
+ * but with the invariant of a USED/BUCKETS ratio near to &lt;= 1 */
+int dictResize(dict *d)
+{
+    int minimal;
+    // 不能在关闭 rehash 或者正在 rehash 的时候调用
+    if (!dict_can_resize || dictIsRehashing(d)) return DICT_ERR;
+    // 查看已经使用了多少结点，最少分配DICT_HT_INITIAL_SIZE=4个结点
+    // 否则，计算让比率接近 1：1 所需要的最少节点数量
+    minimal = d-&gt;ht[0].used;
+    if (minimal &lt; DICT_HT_INITIAL_SIZE)
+        minimal = DICT_HT_INITIAL_SIZE;
+    return dictExpand(d, minimal);
 }
-</code></pre>
 
-<p>根据初始化长度的不同，生成的header也不同</p>
-
-<pre><code>/* Note: sdshdr5 is never used, we just access the flags byte directly.
- * However is here to document the layout of type 5 SDS strings. */
-struct __attribute__ ((__packed__)) sdshdr5 {
-    unsigned char flags; /* 3 lsb of type, and 5 msb of string length */
-    char buf[];
-};
-struct __attribute__ ((__packed__)) sdshdr8 {
-    uint8_t len; /* used */
-    uint8_t alloc; /* excluding the header and null terminator */
-    unsigned char flags; /* 3 lsb of type, 5 unused bits */
-    char buf[];
-};
-struct __attribute__ ((__packed__)) sdshdr16 {
-    uint16_t len; /* used */
-    uint16_t alloc; /* excluding the header and null terminator */
-    unsigned char flags; /* 3 lsb of type, 5 unused bits */
-    char buf[];
-};
-struct __attribute__ ((__packed__)) sdshdr32 {
-    uint32_t len; /* used */
-    uint32_t alloc; /* excluding the header and null terminator */
-    unsigned char flags; /* 3 lsb of type, 5 unused bits */
-    char buf[];
-};
-struct __attribute__ ((__packed__)) sdshdr64 {
-    uint64_t len; /* used */
-    uint64_t alloc; /* excluding the header and null terminator */
-    unsigned char flags; /* 3 lsb of type, 5 unused bits */
-    char buf[];
-};
-</code></pre>
-
-<p>len表示已使用的长度， alloc表示分配的长度，包括header的长度和终止符，flag用来标记header的类型。</p>
-
-<h2 id="sds复制函数">SDS复制函数</h2>
-
-<pre><code>/* Duplicate an sds string. */
-//输入sds， 返回复制成功后的地址
-sds sdsdup(const sds s) {
-    return sdsnewlen(s, sdslen(s));
-}
-</code></pre>
-
-<h2 id="sds释放函数">SDS释放函数</h2>
-
-<pre><code>/* Free an sds string. No operation is performed if 's' is NULL. */
-void sdsfree(sds s) {
-    if (s == NULL) return;
-    s_free((char*)s-sdsHdrSize(s[-1]));
-    //s[-1] 得到header中的flag， 然后通过sdsHdrSize获得header的大小， 相减得到header的地址
-    //s_free释放
-}
-</code></pre>
-
-<h2 id="sds扩容函数">SDS扩容函数</h2>
-
-<pre><code>/* Enlarge the free space at the end of the sds string so that the caller
- * is sure that after calling this function can overwrite up to addlen
- * bytes after the end of the string, plus one more byte for nul term.
+/* Expand or create the hash table */
+/*
+ * 创建一个新的哈希表，并根据字典的情况，选择以下其中一个动作来进行：
  *
- * Note: this does not change the *length* of the sds string as returned
- * by sdslen(), but only the free buffer space we have. */
-sds sdsMakeRoomFor(sds s, size_t addlen) {
-    void *sh, *newsh;
-    // 获取 s 目前的空余空间长度
-    size_t avail = sdsavail(s);
-    size_t len, newlen;
-    char type, oldtype = s[-1] &amp; SDS_TYPE_MASK;
-    int hdrlen;
+ * 1) 如果字典的 0 号哈希表为空，那么将新哈希表设置为 0 号哈希表
+ * 2) 如果字典的 0 号哈希表非空，那么将新哈希表设置为 1 号哈希表，
+ *    并打开字典的 rehash 标识，使得程序可以开始对字典进行 rehash
+ *
+ * size 参数不够大，或者 rehash 已经在进行时，返回 DICT_ERR 。
+ *
+ * 成功创建 0 号哈希表，或者 1 号哈希表时，返回 DICT_OK 。
+ */
+int dictExpand(dict *d, unsigned long size)
+{
+    dictht n; /* the new hash table */
+    // 计算大于size的第一个2的N次方的值，用来当作新的哈希表的大小
+    unsigned long realsize = _dictNextPower(size);
 
-    // s 目前的空余空间已经足够，无须再进行扩展，直接返回
-    /* Return ASAP if there is enough space left. */
-    if (avail &gt;= addlen) return s;
+    /* the size is invalid if it is smaller than the number of
+     * elements already inside the hash table */
+    if (dictIsRehashing(d) || d-&gt;ht[0].used &gt; size)
+        return DICT_ERR;
 
-    len = sdslen(s);
-    sh = (char*)s-sdsHdrSize(oldtype);
-    // s 最少需要的长度
-    newlen = (len+addlen);
-    if (newlen &lt; SDS_MAX_PREALLOC)
-        // 如果新长度小于 SDS_MAX_PREALLOC 
-        // 那么为它分配两倍于所需长度的空间
-        newlen *= 2;
-    else
-        // 否则，分配长度为目前长度加上 SDS_MAX_PREALLOC
-        newlen += SDS_MAX_PREALLOC;
+    /* Rehashing to the same table size is not useful. */
+    // 如果新表大小跟老表一样， 没有进行expand的需要
+    if (realsize == d-&gt;ht[0].size) return DICT_ERR;
 
-    // 得到新的type类型
-    type = sdsReqType(newlen);
+    /* Allocate the new hash table and initialize all pointers to NULL */
+    n.size = realsize;
+    n.sizemask = realsize-1;
+    n.table = zcalloc(realsize*sizeof(dictEntry*));
+    n.used = 0;
 
-    /* Don't use type 5: the user is appending to the string and type 5 is
-     * not able to remember empty space, so sdsMakeRoomFor() must be called
-     * at every appending operation. */
-    if (type == SDS_TYPE_5) type = SDS_TYPE_8;
-
-    hdrlen = sdsHdrSize(type);
-    if (oldtype==type) {
-        // 如果前后类型不变, 无需更改header，realloc
-        newsh = s_realloc(sh, hdrlen+newlen+1);
-        if (newsh == NULL) return NULL;
-        s = (char*)newsh+hdrlen;
-    } else {
-        /* Since the header size changes, need to move the string forward,
-         * and can't use realloc */
-        newsh = s_malloc(hdrlen+newlen+1);
-        if (newsh == NULL) return NULL;
-        memcpy((char*)newsh+hdrlen, s, len+1);
-        s_free(sh);
-        s = (char*)newsh+hdrlen;
-        s[-1] = type;
-        sdssetlen(s, len);
+    /* Is this the first initialization? If so it's not really a rehashing
+     * we just set the first hash table so that it can accept keys. */
+     // 如果 0 号哈希表为空，那么这是一次初始化：
+     // 程序将新哈希表赋给 0 号哈希表的指针，然后字典就可以开始处理键值对了。
+    if (d-&gt;ht[0].table == NULL) {
+        d-&gt;ht[0] = n;
+        return DICT_OK;
     }
-    // 重新设置header中的alloc参数
-    sdssetalloc(s, newlen);
-    return s;
+
+    /* Prepare a second hash table for incremental rehashing */
+    // 如果 0 号哈希表非空，那么这是一次 rehash ：
+    // 程序将新哈希表设置为 1 号哈希表，
+    // 并将字典的 rehash 标识打开，让程序可以开始对字典进行 rehash
+    d-&gt;ht[1] = n;
+    d-&gt;rehashidx = 0;
+    return DICT_OK;
 }
 </code></pre>
 
+<h2 id="rehash算法">rehash算法</h2>
+
+<pre><code>/* Performs N steps of incremental rehashing. Returns 1 if there are still
+ * keys to move from the old to the new hash table, otherwise 0 is returned.
+ * 执行 N 步渐进式 rehash 。
+ *
+ * 返回 1 表示仍有键需要从 0 号哈希表移动到 1 号哈希表，
+ * 返回 0 则表示所有键都已经迁移完毕。
+ * Note that a rehashing step consists in moving a bucket (that may have more
+ * than one key as we use chaining) from the old to the new hash table, however
+ * since part of the hash table may be composed of empty spaces, it is not
+ * guaranteed that this function will rehash even a single bucket, since it
+ * will visit at max N*10 empty buckets in total, otherwise the amount of
+ * work it does would be unbound and the function may block for a long time.
+ * 每步 rehash 都是以一个哈希表索引（桶）作为单位的，
+ * 一个桶里可能会有多个节点，
+ * 被 rehash 的桶里的所有节点都会被移动到新哈希表。*/
+int dictRehash(dict *d, int n) {
+    // 由于hash表中的桶有可能为空，设置最大访问空桶的数量为n*10，否则如果空桶很多的话会等待比较长的一段时间
+    int empty_visits = n*10; /* Max number of empty buckets to visit. */
+    // 只可以在 rehash 进行中时执行
+    if (!dictIsRehashing(d)) return 0;
+
+    while(n-- &amp;&amp; d-&gt;ht[0].used != 0) {
+        dictEntry *de, *nextde;
+
+        /* Note that rehashidx can't overflow as we are sure there are more
+         * elements because ht[0].used != 0 */
+        // 确保 rehashidx 没有越界
+        assert(d-&gt;ht[0].size &gt; (unsigned long)d-&gt;rehashidx);
+        // 略过数组中为空的索引，找到下一个非空索引
+        // 如果访问的空索引达到了n*10， 停止遍历
+        while(d-&gt;ht[0].table[d-&gt;rehashidx] == NULL) {
+            d-&gt;rehashidx++;
+            if (--empty_visits == 0) return 1;
+        }
+        // 指向该索引的链表表头节点
+        de = d-&gt;ht[0].table[d-&gt;rehashidx];
+        /* Move all the keys in this bucket from the old to the new hash HT */
+        // 将链表中的所有节点迁移到新哈希表
+        while(de) {
+            unsigned int h;
+
+            nextde = de-&gt;next;
+            /* Get the index in the new hash table */
+            // 根据新表的sizemask计算哈希值
+            h = dictHashKey(d, de-&gt;key) &amp; d-&gt;ht[1].sizemask;
+            // 插入节点到新哈希表
+            de-&gt;next = d-&gt;ht[1].table[h];
+            d-&gt;ht[1].table[h] = de;
+            // 更新计数器
+            d-&gt;ht[0].used--;
+            d-&gt;ht[1].used++;
+            de = nextde;
+        }
+        // 将刚迁移完的哈希表索引的指针设为空
+        d-&gt;ht[0].table[d-&gt;rehashidx] = NULL;
+        // 更新 rehash 索引
+        d-&gt;rehashidx++;
+    }
+
+    /* Check if we already rehashed the whole table... */
+    // 如果 0 号哈希表为空，那么表示 rehash 执行完毕
+    if (d-&gt;ht[0].used == 0) {
+        // 释放 0 号哈希表
+        zfree(d-&gt;ht[0].table);
+        // 将原来的 1 号哈希表设置为新的 0 号哈希表
+        d-&gt;ht[0] = d-&gt;ht[1];
+        // 重置旧的 1 号哈希表
+        _dictReset(&amp;d-&gt;ht[1]);
+        // 关闭 rehash 标识
+        d-&gt;rehashidx = -1;
+        return 0;
+    }
+
+    /* More to rehash... */
+    return 1;
+}
+</code></pre>
+
+<p>在两种情况下会调用rehash的操作，一种是在指定时间内执行操作，每次操作进行100步：</p>
+
+<pre><code>/* Rehash for an amount of time between ms milliseconds and ms+1 milliseconds */
+int dictRehashMilliseconds(dict *d, int ms) {
+    // 记录开始时间
+    long long start = timeInMilliseconds();
+    int rehashes = 0;
+
+    while(dictRehash(d,100)) {
+        // 在给定毫秒数内，以 100 步为单位，对字典进行 rehash
+        rehashes += 100;
+        // 如果时间已过，跳出
+        if (timeInMilliseconds()-start &gt; ms) break;
+    }
+    return rehashes;
+}
+</code></pre>
+
+<p>另一种是在执行普通的查询或者更新操作的时候，同时执行一次rehash</p>
+
+<pre><code>/* This function is called by common lookup or update operations in the
+ * dictionary so that the hash table automatically migrates from H1 to H2
+ * while it is actively used. */
+static void _dictRehashStep(dict *d) {
+    if (d-&gt;iterators == 0) dictRehash(d,1);
+}
+</code></pre>
+
+<h2 id="dict插入键">Dict插入键</h2>
+
+<pre><code>/* Add an element to the target hash table */
+int dictAdd(dict *d, void *key, void *val)
+{
+    // 往字典中添加一个key
+    dictEntry *entry = dictAddRaw(d,key,NULL);
+
+    if (!entry) return DICT_ERR;
+    // 如果成功返回， 为key是指value
+    dictSetVal(d, entry, val);
+    return DICT_OK;
+}
+
+dictEntry *dictAddRaw(dict *d, void *key, dictEntry **existing)
+{
+    int index;
+    dictEntry *entry;
+    dictht *ht;
+
+    // 如果在进行rehash操作， 执行一步rehash
+    if (dictIsRehashing(d)) _dictRehashStep(d);
+
+    /* Get the index of the new element, or -1 if
+     * the element already exists. */
+     // 获取key的索引，如果索引已经存在，返回NULL
+    if ((index = _dictKeyIndex(d, key, dictHashKey(d,key), existing)) == -1)
+        return NULL;
+
+    /* Allocate the memory and store the new entry.
+     * Insert the element in top, with the assumption that in a database
+     * system it is more likely that recently added entries are accessed
+     * more frequently. */
+     // 是否在进行rehash操作，如果在rehash， 放到新表ht[1]， 否则放到ht[0]
+    ht = dictIsRehashing(d) ? &amp;d-&gt;ht[1] : &amp;d-&gt;ht[0];
+    entry = zmalloc(sizeof(*entry));
+    // 插入新结点
+    entry-&gt;next = ht-&gt;table[index];
+    ht-&gt;table[index] = entry;
+    ht-&gt;used++;
+
+    /* Set the hash entry fields. */
+    dictSetKey(d, entry, key);
+    return entry;
+}
+</code></pre>
+
+<h2 id="添加或更新元素">添加或更新元素</h2>
+
 <ul>
-<li>当要增加字符在SDS之后的时候，先判断目前的剩余长度是否满足条件，如果慢煮条件，直接将字符串添加在后边</li>
-<li>如果当前的剩余空间不够，需要对SDS进行扩容。如果对 SDS 进行修改之后， SDS 的长度（也即是 len 属性的值）将小于 1 MB ， 那么程序分配和 len 属性同样大小的未使用空间， 这时 SDS len 属性的值将和 free 属性的值相同。 举个例子， 如果进行修改之后， SDS 的 len 将变成 13 字节， 那么程序也会分配 13 字节的未使用空间， SDS 的 buf 数组的实际长度将变成 13 + 13 + 1 = 27 字节（额外的一字节用于保存空字符）。</li>
-<li>如果对 SDS 进行修改之后， SDS 的长度将大于等于 1 MB ， 那么程序会分配 1 MB 的未使用空间。 比如， 如果进行修改之后， SDS 的 len 将变成 30 MB ， 那么程序会分配 1 MB 的未使用空间， SDS 的 buf 数组的实际长度将为 30 MB + 1 MB + 1 byte 。</li>
+<li>如果之前元素不存在，添加成功后返回1</li>
+<li>如果之前元素存在，更新元素，同时返回0</li>
+<li>如果存在的话，设置新的值，然后释放老的值，这样做能够充分利用引用计数，如果是同一个元素的话，更改计数就行</li>
 </ul>
 
-<h1 id="sds小结">SDS小结</h1>
+<pre><code>int dictReplace(dict *d, void *key, void *val)
+{
+    dictEntry *entry, *existing, auxentry;
 
-<p>SDS提供了一系列函数，不一一列出。 参考《redis设计与实现》一书的说明，SDS与C字符串的区别如下</p>
+    /* Try to add the element. If the key
+     * does not exists dictAdd will suceed. */
+    // 添加键值对，如果之前不存在的话，添加成功返回1
+    entry = dictAddRaw(d,key,&amp;existing);
+    if (entry) {
+        dictSetVal(d, entry, val);
+        return 1;
+    }
 
-<table>
-<thead>
-<tr>
-<th>C 字符串</th>
-<th>SDS</th>
-</tr>
-</thead>
+    /* Set the new value and free the old one. Note that it is important
+     * to do that in this order, as the value may just be exactly the same
+     * as the previous one. In this context, think to reference counting,
+     * you want to increment (set), and then decrement (free), and not the
+     * reverse. */
+    // 如果存在的话，设置新的值，然后释放老的值，这样做能够充分利用引用计数，如果是同一个元素的话，更改计数就行
+    auxentry = *existing;
+    dictSetVal(d, existing, val);
+    dictFreeVal(d, &amp;auxentry);
+    return 0;
+}
+</code></pre>
 
-<tbody>
-<tr>
-<td>获取字符串长度的复杂度为 O(N) 。</td>
-<td>获取字符串长度的复杂度为 O(1) 。</td>
-</tr>
+<h2 id="删除键值对">删除键值对</h2>
 
-<tr>
-<td>API 是不安全的，可能会造成缓冲区溢出。</td>
-<td>API 是安全的，不会造成缓冲区溢出。</td>
-</tr>
+<pre><code>static dictEntry *dictGenericDelete(dict *d, const void *key, int nofree) {
+    unsigned int h, idx;
+    dictEntry *he, *prevHe;
+    int table;
 
-<tr>
-<td>修改字符串长度 N 次必然需要执行 N 次内存重分配。</td>
-<td>修改字符串长度 N 次最多需要执行 N 次内存重分配。</td>
-</tr>
+    // 如果两个哈希表都没有元素， 返回NULL
+    if (d-&gt;ht[0].used == 0 &amp;&amp; d-&gt;ht[1].used == 0) return NULL;
 
-<tr>
-<td>只能保存文本数据。</td>
-<td>可以保存文本或者二进制数据。</td>
-</tr>
+    // 如果正在进行rehash，先执行一步rehash
+    if (dictIsRehashing(d)) _dictRehashStep(d);
+    h = dictHashKey(d, key);
 
-<tr>
-<td>可以使用所有 <string.h> 库中的函数。</td>
-<td>可以使用一部分 <string.h> 库中的函数。</td>
-</tr>
-</tbody>
-</table>
+    // 两个表都要查看
+    for (table = 0; table &lt;= 1; table++) {
+        idx = h &amp; d-&gt;ht[table].sizemask;
+        he = d-&gt;ht[table].table[idx];
+        prevHe = NULL;
+        while(he) {
+            if (key==he-&gt;key || dictCompareKeys(d, key, he-&gt;key)) {
+                /* Unlink the element from the list */
+                if (prevHe)
+                    prevHe-&gt;next = he-&gt;next;
+                else
+                    d-&gt;ht[table].table[idx] = he-&gt;next;
+                if (!nofree) {
+                    dictFreeKey(d, he);
+                    dictFreeVal(d, he);
+                    zfree(he);
+                }
+                d-&gt;ht[table].used--;
+                return he;
+            }
+            prevHe = he;
+            he = he-&gt;next;
+        }
+        // 如果没有在进行rehash，说明ht[1]没有值，就不用查看了
+        if (!dictIsRehashing(d)) break;
+    }
+    return NULL; /* not found */
+}
+</code></pre>
+
+<p>参数中的nofree用来标记是否真的删除，如果这个值为1的话，只是把这个键值对从table中拿下来，但并不是真的删除；如果想要移除一个键值对，但是在真的删除之前还想使用它的值，这个操作是有用的。</p>
+
+<p>如果没有这个操作，需要先执行find操作找到结点，使用之后再执行删除，就需要进行两次查找；而这个操作只需要进行一次查找，用完之后再调用dictFreeUnlinkedEntry释放这个键值对就行。</p>
+
+<h2 id="查看key的值">查看key的值</h2>
+
+<pre><code>dictEntry *dictFind(dict *d, const void *key)
+{
+    dictEntry *he;
+    unsigned int h, idx, table;
+
+    // 如果没有键值对，返回NULL
+    if (d-&gt;ht[0].used + d-&gt;ht[1].used == 0) return NULL; /* dict is empty */
+    // 如果正在进行rehash，先进行一次rehash
+    if (dictIsRehashing(d)) _dictRehashStep(d);
+    // 计算hash值
+    h = dictHashKey(d, key);
+    for (table = 0; table &lt;= 1; table++) {
+        // 计算索引值
+        idx = h &amp; d-&gt;ht[table].sizemask;
+        he = d-&gt;ht[table].table[idx];
+        while(he) {
+            if (key==he-&gt;key || dictCompareKeys(d, key, he-&gt;key))
+                return he;
+            he = he-&gt;next;
+        }
+        // 如果没有在进行rehash，没有查看ht[1]的必要
+        if (!dictIsRehashing(d)) return NULL;
+    }
+    return NULL;
+}
+
+void *dictFetchValue(dict *d, const void *key) {
+    dictEntry *he;
+
+    he = dictFind(d,key);
+    return he ? dictGetVal(he) : NULL;
+}
+</code></pre>
+
+<p>此外还有一个遍历dict的操作，如果dict保持不变，直接按照索引顺序遍历就行，但是由于dict存在扩大和缩小的可能性，如果和做到在扩大或缩小的同时，遍历dict能够不漏掉所有键值对呢，这个算法比较复杂， 单独开一篇研究。</p>
               
             </div>
           </div>
@@ -561,7 +720,7 @@ sds sdsMakeRoomFor(sds s, size_t addlen) {
           
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-%E9%93%BE%E8%A1%A8list/" data-tooltip="Redis源码剖析 链表list">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2018/12/%E4%BB%8Ehexo%E8%BD%AC%E5%88%B0hugo/" data-tooltip="从hexo转到hugo">
               
                   <i class="fa fa-angle-left"></i>
                   <span class="hide-xs hide-sm text-small icon-ml">下一篇</span>
@@ -569,7 +728,7 @@ sds sdsMakeRoomFor(sds s, size_t addlen) {
             </li>
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2017/07/tornado-%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%BA%94%E7%94%A8/" data-tooltip="Tornado 线程池应用">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-%E9%93%BE%E8%A1%A8list/" data-tooltip="Redis源码剖析 链表list">
               
                   <span class="hide-xs hide-sm text-small icon-mr">上一篇</span>
                   <i class="fa fa-angle-right"></i>
@@ -587,19 +746,19 @@ sds sdsMakeRoomFor(sds s, size_t addlen) {
         </li>
         
           <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AE%80%E5%8D%95%E5%8A%A8%E6%80%81%E5%AD%97%E7%AC%A6%E4%B8%B2sds/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-dict%E5%AD%97%E5%85%B8/">
               <i class="fa fa-facebook-official"></i>
             </a>
           </li>
         
           <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AE%80%E5%8D%95%E5%8A%A8%E6%80%81%E5%AD%97%E7%AC%A6%E4%B8%B2sds/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-dict%E5%AD%97%E5%85%B8/">
               <i class="fa fa-twitter"></i>
             </a>
           </li>
         
           <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AE%80%E5%8D%95%E5%8A%A8%E6%80%81%E5%AD%97%E7%AC%A6%E4%B8%B2sds/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-dict%E5%AD%97%E5%85%B8/">
               <i class="fa fa-google-plus"></i>
             </a>
           </li>
@@ -647,7 +806,7 @@ sds sdsMakeRoomFor(sds s, size_t addlen) {
           
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-%E9%93%BE%E8%A1%A8list/" data-tooltip="Redis源码剖析 链表list">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2018/12/%E4%BB%8Ehexo%E8%BD%AC%E5%88%B0hugo/" data-tooltip="从hexo转到hugo">
               
                   <i class="fa fa-angle-left"></i>
                   <span class="hide-xs hide-sm text-small icon-ml">下一篇</span>
@@ -655,7 +814,7 @@ sds sdsMakeRoomFor(sds s, size_t addlen) {
             </li>
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2017/07/tornado-%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%BA%94%E7%94%A8/" data-tooltip="Tornado 线程池应用">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-%E9%93%BE%E8%A1%A8list/" data-tooltip="Redis源码剖析 链表list">
               
                   <span class="hide-xs hide-sm text-small icon-mr">上一篇</span>
                   <i class="fa fa-angle-right"></i>
@@ -673,19 +832,19 @@ sds sdsMakeRoomFor(sds s, size_t addlen) {
         </li>
         
           <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AE%80%E5%8D%95%E5%8A%A8%E6%80%81%E5%AD%97%E7%AC%A6%E4%B8%B2sds/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-dict%E5%AD%97%E5%85%B8/">
               <i class="fa fa-facebook-official"></i>
             </a>
           </li>
         
           <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AE%80%E5%8D%95%E5%8A%A8%E6%80%81%E5%AD%97%E7%AC%A6%E4%B8%B2sds/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-dict%E5%AD%97%E5%85%B8/">
               <i class="fa fa-twitter"></i>
             </a>
           </li>
         
           <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AE%80%E5%8D%95%E5%8A%A8%E6%80%81%E5%AD%97%E7%AC%A6%E4%B8%B2sds/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-dict%E5%AD%97%E5%85%B8/">
               <i class="fa fa-google-plus"></i>
             </a>
           </li>
@@ -715,19 +874,19 @@ sds sdsMakeRoomFor(sds s, size_t addlen) {
   <ul class="share-options">
     
       <li class="share-option">
-        <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fharleylau.github.io%2F2017%2F07%2Fredis%25E6%25BA%2590%25E7%25A0%2581%25E5%2589%2596%25E6%259E%2590%25E7%25AE%2580%25E5%258D%2595%25E5%258A%25A8%25E6%2580%2581%25E5%25AD%2597%25E7%25AC%25A6%25E4%25B8%25B2sds%2F">
+        <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fharleylau.github.io%2F2017%2F07%2Fredis%25E6%25BA%2590%25E7%25A0%2581%25E5%2589%2596%25E6%259E%2590-dict%25E5%25AD%2597%25E5%2585%25B8%2F">
           <i class="fa fa-facebook-official"></i><span>分享到 Facebook</span>
         </a>
       </li>
     
       <li class="share-option">
-        <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=https%3A%2F%2Fharleylau.github.io%2F2017%2F07%2Fredis%25E6%25BA%2590%25E7%25A0%2581%25E5%2589%2596%25E6%259E%2590%25E7%25AE%2580%25E5%258D%2595%25E5%258A%25A8%25E6%2580%2581%25E5%25AD%2597%25E7%25AC%25A6%25E4%25B8%25B2sds%2F">
+        <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=https%3A%2F%2Fharleylau.github.io%2F2017%2F07%2Fredis%25E6%25BA%2590%25E7%25A0%2581%25E5%2589%2596%25E6%259E%2590-dict%25E5%25AD%2597%25E5%2585%25B8%2F">
           <i class="fa fa-twitter"></i><span>分享到 Twitter</span>
         </a>
       </li>
     
       <li class="share-option">
-        <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=https%3A%2F%2Fharleylau.github.io%2F2017%2F07%2Fredis%25E6%25BA%2590%25E7%25A0%2581%25E5%2589%2596%25E6%259E%2590%25E7%25AE%2580%25E5%258D%2595%25E5%258A%25A8%25E6%2580%2581%25E5%25AD%2597%25E7%25AC%25A6%25E4%25B8%25B2sds%2F">
+        <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=https%3A%2F%2Fharleylau.github.io%2F2017%2F07%2Fredis%25E6%25BA%2590%25E7%25A0%2581%25E5%2589%2596%25E6%259E%2590-dict%25E5%25AD%2597%25E5%2585%25B8%2F">
           <i class="fa fa-google-plus"></i><span>分享到 Google&#43;</span>
         </a>
       </li>
@@ -984,9 +1143,9 @@ $(document).ready(function() {
     
       <script>
         var disqus_config = function () {
-          this.page.url = 'https:\/\/harleylau.github.io\/2017\/07\/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AE%80%E5%8D%95%E5%8A%A8%E6%80%81%E5%AD%97%E7%AC%A6%E4%B8%B2sds\/';
+          this.page.url = 'https:\/\/harleylau.github.io\/2017\/07\/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-dict%E5%AD%97%E5%85%B8\/';
           
-            this.page.identifier = '\/2017\/07\/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AE%80%E5%8D%95%E5%8A%A8%E6%80%81%E5%AD%97%E7%AC%A6%E4%B8%B2sds\/'
+            this.page.identifier = '\/2017\/07\/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-dict%E5%AD%97%E5%85%B8\/'
           
         };
         (function() {

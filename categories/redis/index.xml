@@ -21,6 +21,15 @@
     </item>
     
     <item>
+      <title>Redis源码剖析-Dict字典</title>
+      <link>https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-dict%E5%AD%97%E5%85%B8/</link>
+      <pubDate>Mon, 31 Jul 2017 16:36:53 +0800</pubDate>
+      
+      <guid>https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-dict%E5%AD%97%E5%85%B8/</guid>
+      <description>&lt;p&gt;改换一下策略，不直接介绍源码，打算先整体介绍一下思路，然后再根据源码解释具体的实现。&lt;/p&gt;</description>
+    </item>
+    
+    <item>
       <title>Redis源码剖析 链表list</title>
       <link>https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-%E9%93%BE%E8%A1%A8list/</link>
       <pubDate>Mon, 31 Jul 2017 12:15:30 +0800</pubDate>
