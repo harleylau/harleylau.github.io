@@ -21,6 +21,17 @@
     </item>
     
     <item>
+      <title>Redis源码剖析–跳跃表</title>
+      <link>https://harleylau.github.io/2017/08/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E8%B7%B3%E8%B7%83%E8%A1%A8/</link>
+      <pubDate>Thu, 24 Aug 2017 10:46:04 +0800</pubDate>
+      
+      <guid>https://harleylau.github.io/2017/08/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E8%B7%B3%E8%B7%83%E8%A1%A8/</guid>
+      <description>&lt;!--toc--&gt;
+
+&lt;p&gt;跳跃表（skiplist）是一种有序数据结构， 它通过在每个节点中维持多个指向其他节点的指针， 从而达到快速访问节点的目的。&lt;/p&gt;</description>
+    </item>
+    
+    <item>
       <title>Redis源码剖析-Dict遍历算法</title>
       <link>https://harleylau.github.io/2017/08/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-dict%E9%81%8D%E5%8E%86%E7%AE%97%E6%B3%95/</link>
       <pubDate>Wed, 02 Aug 2017 16:08:16 +0800</pubDate>
