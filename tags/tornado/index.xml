@@ -6,10 +6,21 @@
     <description>Recent content in Tornado on Harley</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 30 Oct 2017 10:10:55 +0800</lastBuildDate>
+    <lastBuildDate>Mon, 12 Feb 2018 11:29:39 +0800</lastBuildDate>
     
 	<atom:link href="https://harleylau.github.io/tags/tornado/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Tornado之WebSocket</title>
+      <link>https://harleylau.github.io/2018/02/tornado%E4%B9%8Bwebsocket/</link>
+      <pubDate>Mon, 12 Feb 2018 11:29:39 +0800</pubDate>
+      
+      <guid>https://harleylau.github.io/2018/02/tornado%E4%B9%8Bwebsocket/</guid>
+      <description>&lt;!--toc--&gt;
+
+&lt;p&gt;WebSocket是HTML5开始提供的一种浏览器与服务器间进行全双工通讯的网络技术。 WebSocket通信协议于2011年被IETF定为标准RFC 6455，WebSocketAPI被W3C定为标准。 在WebSocket API中，浏览器和服务器只需要要做一个握手的动作，然后，浏览器和服务器之间就形成了一条快速通道。两者之间就直接可以数据互相传送。&lt;/p&gt;</description>
+    </item>
     
     <item>
       <title>Tornado Websocket调用时出现403错误</title>
