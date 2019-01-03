@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="generator" content="Hugo 0.52 with theme Tranquilpeak 0.4.3-SNAPSHOT">
+<meta name="author" content="Harley">
+<meta name="keywords" content="Tornado">
+<meta name="description" content="
+
+Tornado实现后台逻辑的时候，可能遇到这样的情况： 需要同时请求多个第三方数据，比如同时从多个网址请求数据，而这几个第三方数据相互没有关联。 最简单的方式是写多个yield，第一个yield返回结果之后，继续请求第二个yield。">
+
+
+<meta property="og:description" content="
+
+Tornado实现后台逻辑的时候，可能遇到这样的情况： 需要同时请求多个第三方数据，比如同时从多个网址请求数据，而这几个第三方数据相互没有关联。 最简单的方式是写多个yield，第一个yield返回结果之后，继续请求第二个yield。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Tornado并行执行多个异步请求">
+<meta name="twitter:title" content="Tornado并行执行多个异步请求">
+<meta property="og:url" content="https://harleylau.github.io/2018/04/tornado%E5%B9%B6%E8%A1%8C%E6%89%A7%E8%A1%8C%E5%A4%9A%E4%B8%AA%E5%BC%82%E6%AD%A5%E8%AF%B7%E6%B1%82/">
+<meta property="twitter:url" content="https://harleylau.github.io/2018/04/tornado%E5%B9%B6%E8%A1%8C%E6%89%A7%E8%A1%8C%E5%A4%9A%E4%B8%AA%E5%BC%82%E6%AD%A5%E8%AF%B7%E6%B1%82/">
+<meta property="og:site_name" content="Harley">
+<meta property="og:description" content="
+
+Tornado实现后台逻辑的时候，可能遇到这样的情况： 需要同时请求多个第三方数据，比如同时从多个网址请求数据，而这几个第三方数据相互没有关联。 最简单的方式是写多个yield，第一个yield返回结果之后，继续请求第二个yield。">
+<meta name="twitter:description" content="
+
+Tornado实现后台逻辑的时候，可能遇到这样的情况： 需要同时请求多个第三方数据，比如同时从多个网址请求数据，而这几个第三方数据相互没有关联。 最简单的方式是写多个yield，第一个yield返回结果之后，继续请求第二个yield。">
+<meta property="og:locale" content="zh-cn">
+
+  
+    <meta property="article:published_time" content="2018-04-11T11:25:22">
+  
+  
+    <meta property="article:modified_time" content="2018-04-11T11:25:22">
+  
+  
+  
+    
+      <meta property="article:section" content="Tornado">
+    
+  
+  
+    
+      <meta property="article:tag" content="Tornado">
+    
+  
+
+
+<meta name="twitter:card" content="summary">
+
+
+
+
+
+
+
+
+
+
+
+  <meta property="og:image" content="https://harleylau.github.io/img/harleylau.jpg">
+  <meta property="twitter:image" content="https://harleylau.github.io/img/harleylau.jpg">
+
+
+    <title>Tornado并行执行多个异步请求</title>
+
+    <link rel="icon" href="https://harleylau.github.io/favicon.png">
+    
+
+    
+
+    <link rel="canonical" href="https://harleylau.github.io/2018/04/tornado%E5%B9%B6%E8%A1%8C%E6%89%A7%E8%A1%8C%E5%A4%9A%E4%B8%AA%E5%BC%82%E6%AD%A5%E8%AF%B7%E6%B1%82/">
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.4/jquery.fancybox.min.css" integrity="sha256-vuXZ9LGmmwtjqFX1F+EKin1ThZMub58gKULUyf0qECk=" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.4/helpers/jquery.fancybox-thumbs.min.css" integrity="sha256-SEa4XYAHihTcEP1f5gARTB2K26Uk8PsndQYHQC1f4jU=" crossorigin="anonymous" />
+    
+    
+    <link rel="stylesheet" href="https://harleylau.github.io/css/style-nnm2spxvve8onlujjlegkkytaehyadd4ksxc1hyzzq9a2wvtrgbljqyulomn.min.css" />
+    
+    
+
+    
+      
+    
+    
+  </head>
+
+  <body>
+    <div id="blog">
+      <header id="header" data-behavior="4">
+  <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+  <div class="header-title">
+    <a class="header-title-link" href="https://harleylau.github.io/">Harley</a>
+  </div>
+  
+    
+      <a class="header-right-picture "
+         href="https://harleylau.github.io/#about">
+    
+    
+    
+      
+        <img class="header-picture" src="https://harleylau.github.io/img/harleylau.jpg" alt="作者的图片" />
+      
+    
+    </a>
+  
+</header>
+
+      <nav id="sidebar" data-behavior="4">
+  <div class="sidebar-container">
+    
+      <div class="sidebar-profile">
+        <a href="https://harleylau.github.io/#about">
+          <img class="sidebar-profile-picture" src="https://harleylau.github.io/img/harleylau.jpg" alt="作者的图片" />
+        </a>
+        <h4 class="sidebar-profile-name">Harley</h4>
+        
+      </div>
+    
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://harleylau.github.io/">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-home"></i>
+      
+      <span class="sidebar-button-desc">首页</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://harleylau.github.io/categories">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-bookmark"></i>
+      
+      <span class="sidebar-button-desc">分类</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://harleylau.github.io/tags">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-tags"></i>
+      
+      <span class="sidebar-button-desc">标签</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://harleylau.github.io/archives">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-archive"></i>
+      
+      <span class="sidebar-button-desc">归档</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://harleylau.github.io/#about">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-question"></i>
+      
+      <span class="sidebar-button-desc">关于</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://github.com/harleylau" target="_blank" rel="noopener">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-github"></i>
+      
+      <span class="sidebar-button-desc">GitHub</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://blog.csdn.net/harleylau" target="_blank" rel="noopener">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-code"></i>
+      
+      <span class="sidebar-button-desc">CSDN</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://harleylau.github.io/index.xml">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-rss"></i>
+      
+      <span class="sidebar-button-desc">RSS</span>
+    </a>
+  </li>
+
+
+    </ul>
+  </div>
+</nav>
+
+      
+
+      <div id="main" data-behavior="4"
+        class="
+               hasCoverMetaIn
+               ">
+        <article class="post" itemscope itemType="http://schema.org/BlogPosting">
+          
+          
+            <div class="post-header main-content-wrap text-left">
+  
+    <h1 class="post-title" itemprop="headline">
+      Tornado并行执行多个异步请求
+    </h1>
+  
+  
+  <div class="postShorten-meta post-meta">
+    
+      <time itemprop="datePublished" datetime="2018-04-11T11:25:22&#43;08:00">
+        
+  四月 11, 2018
+
+      </time>
+    
+    
+  
+  
+    <span>发布在</span>
+    
+      <a class="category-link" href="https://harleylau.github.io/categories/tornado">Tornado</a>
+    
+  
+
+  </div>
+
+</div>
+          
+          <div class="post-content markdown" itemprop="articleBody">
+            <div class="main-content-wrap">
+              <h1 id="table-of-contents">目录</h1><nav id="TableOfContents">
+<ul>
+<li><a href="#tornado并行执行多个异步的原理">tornado并行执行多个异步的原理</a>
+<ul>
+<li><a href="#起因">起因</a></li>
+<li><a href="#前提知识">前提知识</a></li>
+<li><a href="#传递参数">传递参数</a></li>
+<li><a href="#future对象">Future对象</a></li>
+<li><a href="#寻找问题">寻找问题</a></li>
+</ul></li>
+</ul>
+</nav>
+
+<p>Tornado实现后台逻辑的时候，可能遇到这样的情况： 需要同时请求多个第三方数据，比如同时从多个网址请求数据，而这几个第三方数据相互没有关联。 最简单的方式是写多个yield，第一个yield返回结果之后，继续请求第二个yield。</p>
+
+<p>这样虽然不会影响总体的性能，因为当前yield进行的时候，程序可以继续执行其他的请求，而无需等待在这边。 但是对于单个的请求来讲， 从它的视角来看， 就是顺序的请求多个第三方数据，然后返回，这样会造成这个请求的处理时间比较长。 </p>
+
+<p>那么Tornado有没有这种机制，对于单个请求来讲，如果需要请求多个无关联的外部数据，可以同时将这几个数据请求发出，等所有的数据返回之后再进行下面的流程。 相当于小学时的数学题，刷牙需要2分钟， 泡面需要3分钟， 我们无需刷完牙再泡面；而是泡面的同时可以刷牙，这样可以将单个流程的5分钟减少到3分钟。当然答案是肯定的， Tornado有类似的机制。</p>
+
+<p>tornado可以用如下方式，同时并发n个请求：</p>
+
+<pre><code>response1, response2,... responsen = yield [http_client.fetch(url1) , http_client.fetch(url2), ...... ,http_client.fetch(url2) ]
+</code></pre>
+
+<p>等到n个请求都响应了之后，会返回给程序控制权</p>
+
+<p>对于其中的原理，在网上找到一篇文章，讲得很详细，</p>
+
+<p>下面的都是转载的内容， 原始文章地址： <a href="http://www.pulpcode.cn/2016/03/06/tornado-yield-futures-run-in-parallel/">http://www.pulpcode.cn/2016/03/06/tornado-yield-futures-run-in-parallel/</a></p>
+
+<h1 id="tornado并行执行多个异步的原理">tornado并行执行多个异步的原理</h1>
+
+<h2 id="起因">起因</h2>
+
+<p>实际上之前一直使用tornado异步，也大概知道tornado Coroutine yield的原理，从来不知道tornado可以支持“同时多个异步并发执行，等它们的结果都获取到再返回”，官网中给出类似的写法：</p>
+
+<blockquote>
+<p>You can also yield a list or dict of Futures, which will be started at the same time and run in parallel; a list or dict of results will be returned when they are all finished:</p>
+</blockquote>
+
+<pre><code>@gen.coroutine
+def get(self):
+	http_client = AsyncHTTPClient()
+	response1, response2 = yield [http_client.fetch(url1),
+	http_client.fetch(url2)]
+	response_dict = yield dict(response3=http_client.fetch(url3),
+	response4=http_client.fetch(url4))
+	response3 = response_dict['response3']
+	response4 = response_dict['response4']
+</code></pre>
+
+<p>所以这篇博客就来挖掘一下原因。</p>
+
+<h2 id="前提知识">前提知识</h2>
+
+<p>如果你想看懂这篇文章，你要知道什么是yield，什么是异步，还有什么是协程，对tornado异步的原理了解，里面用到的Futrue对象,coroutine之类,它们是如何被tornado的ioloop进行上下文切换的。</p>
+
+<p>当你在一个函数中使用yield的时候，这个函数就被称为一个生成器，这和普通函数不同的是，它可以被中断，什么是中断呢？比如现在有一个函数，你去调用它，这个时候，你就只能在这里等调用结果，什么都不能干，因为控制权已经交给函数了，当然比这高级一点的是将回调函数传入这个函数，使得这个函数能够在某些情况发生时，调用这个回调函数。</p>
+
+<p>而有了yield则更高级，可以在这个函数执行的途中，将控制权在返还给调用者，这样我们可以在做一些事情之后，继续让这个函数执行下去。这才是yield真正的精髓所在，比xrange要高端多了。</p>
+
+<h2 id="传递参数">传递参数</h2>
+
+<p>如果一个函数中有一个这样的一条语句：</p>
+
+<p>m = yield n,那其实意味着，在函数内部与外部的沟通中，n将会被生成器送出，m将会被外部调用者传入（通过send）。</p>
+
+<p>对应的tornado这条语句：response = yield http_client.fetch(url)</p>
+
+<p>实际上，http_client.fetch(url)返回了一个Future对象，当这个handler函数(比如get)被装饰器包裹之后,它就会通过generator.next()启动yield返回的generator,通过ioloop与generator.send(vaule)驱动generator运行,已达到异步执行的目的。</p>
+
+<p>而在tornado的coroutine异步处理中,都是通过Future对象封装异步回调函数的。你看见Futrue，一定会想起，python3.2新增的concurrent.futures功能，实际上功能确实类似，或者说思想上是一样的，既“封装callable，以便异步执行。”你可以简单的记为:tornado异步函数将返回一个Future对象，yield这个对象，将得到最终结果。</p>
+
+<h2 id="future对象">Future对象</h2>
+
+<p>这个Future对象有一个叫_set_done的flag，当调用set_result(self,result)来为这个Future对象设置result时会设置_set_done。在设置set_done之后，它所有的add_done_callback才会被执行。之后你就可以通过result方法，来获取最终结果。</p>
+
+<p>Future的一个简单的例子：</p>
+
+<pre><code>class HelloHandler(RequestHandler):
+	@gen.coroutine
+	def get(self):
+		x = yield self.do_test()
+		self.render(&quot;xxxx&quot;)
+		def do_test(self):
+			fut = Future()
+			fut.set_result(&quot;test&quot;)
+			return fut
+</code></pre>
+
+<h2 id="寻找问题">寻找问题</h2>
+
+<p>讲完上面的基础知识，我们该去找原问题了，既“同时多个异步并发执行，等它们的结果都获取到再返回”的支持代码.</p>
+
+<p>首先我们找到tornado的源码，找到coroutine其实是这样实现的。</p>
+
+<pre><code>def _make_coroutine_wrapper(func, replace_callback):
+    &quot;&quot;&quot;The inner workings of ``@gen.coroutine`` and ``@gen.engine``.
+    The two decorators differ in their treatment of the ``callback``
+    argument, so we cannot simply implement ``@engine`` in terms of
+    ``@coroutine``.
+    &quot;&quot;&quot;
+    # On Python 3.5, set the coroutine flag on our generator, to allow it
+    # to be used with 'await'.
+    if hasattr(types, 'coroutine'):
+        func = types.coroutine(func)
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        future = TracebackFuture()
+        if replace_callback and 'callback' in kwargs:
+            callback = kwargs.pop('callback')
+            IOLoop.current().add_future(
+                future, lambda future: callback(future.result()))
+        try:
+            result = func(*args, **kwargs) # 如果这个函数是一个普通的函数，将返回一个值，否者会返回一个生成器。
+        except (Return, StopIteration) as e:
+            result = _value_from_stopiteration(e)
+        except Exception:
+            future.set_exc_info(sys.exc_info())
+            return future
+        else:
+            if isinstance(result, GeneratorType):# 当它是生成器的时候。
+                # Inline the first iteration of Runner.run.  This lets us
+                # avoid the cost of creating a Runner when the coroutine
+                # never actually yields, which in turn allows us to
+                # use &quot;optional&quot; coroutines in critical path code without
+                # performance penalty for the synchronous case.
+                try:
+                    orig_stack_contexts = stack_context._state.contexts
+                    yielded = next(result) # result作为一个生成器将会执行到yield处，并返回一个Future对象。
+                    if stack_context._state.contexts is not orig_stack_contexts:
+                        yielded = TracebackFuture()
+                        yielded.set_exception(
+                            stack_context.StackContextInconsistentError(
+                                'stack_context inconsistency (probably caused '
+                                'by yield within a &quot;with StackContext&quot; block)'))
+                except (StopIteration, Return) as e:
+                    future.set_result(_value_from_stopiteration(e))
+                except Exception:
+                    future.set_exc_info(sys.exc_info())
+                else:
+                    Runner(result, future, yielded)
+                try:
+                    return future
+                finally:
+                    # Subtle memory optimization: if next() raised an exception,
+                    # the future's exc_info contains a traceback which
+                    # includes this stack frame.  This creates a cycle,
+                    # which will be collected at the next full GC but has
+                    # been shown to greatly increase memory usage of
+                    # benchmarks (relative to the refcount-based scheme
+                    # used in the absence of cycles).  We can avoid the
+                    # cycle by clearing the local variable after we return it.
+                    future = None
+        future.set_result(result)
+        return future
+    return wrapper
+</code></pre>
+
+<p>可以看到关键的这几句:</p>
+
+<pre><code>result = func(*args, **kwargs)
+yielded = next(result)
+Runner(result, future, yielded)
+</code></pre>
+
+<p>简单的说，这个函数，捕获被装饰器函数返回的生成器对象，传递给Runner。</p>
+
+<p>Runner的代码实际上是这样的：</p>
+
+<pre><code>def __init__(self, gen, result_future, first_yielded):
+    self.future = first_yield
+    self.io_loop.add_future(
+        self.future, lambda f: self.run()
+    )
+def run(self):
+    while True:
+        if not future.done():
+            return
+        try:
+            value = future.result()
+            yielded = self.gen.send(value)
+        except (StopIteration, Return) as e:
+            self.finished = True
+        except Exception:
+            self.finished = True
+            return
+        if not self.handle_yield(yielded):
+            return
+</code></pre>
+
+<p>而这个Runner，会将Futrue对象注册到io_loop中，或者就之前的例子，我们可以说将异步函数fetch注册到ioloop，当fetch完成后，它会调用自己的一个回调函数（我们这里讨论的是没有给fetch传递callback的情况，详见AsyncHTTPClient的定义），给future对象设置值。而io_loop又将会调用回调函数lambda f: self.run(),来将future.result的值赋值给value.
+可以看到这个value被send给了生成器内部，之后生成器又会得到下一个执行点（生成器）</p>
+
+<p>这个runner使用迭代的方式，一个一个的获取生成器，处理完之后，就使用handle_yield，判断是否要还有下一个Future对象和回调，（之所以用迭代，而不是递归，是因为在python中递归是一件很慢的事儿。）直到所有的future都done了。</p>
+
+<p>接着我们将注意力放到这个handle_yield函数中。</p>
+
+<pre><code>def handle_yield(self, yielded):
+    # Lists containing YieldPoints require stack contexts;
+    # other lists are handled in convert_yielded.
+    if _contains_yieldpoint(yielded):
+        yielded = multi(yielded)
+    if isinstance(yielded, YieldPoint):
+        # YieldPoints are too closely coupled to the Runner to go
+        # through the generic convert_yielded mechanism.
+        self.future = TracebackFuture()
+        def start_yield_point():
+            try:
+                yielded.start(self)
+                if yielded.is_ready():
+                    self.future.set_result(
+                        yielded.get_result())
+                else:
+                    self.yield_point = yielded
+            except Exception:
+                self.future = TracebackFuture()
+                self.future.set_exc_info(sys.exc_info())
+        if self.stack_context_deactivate is None:
+            # Start a stack context if this is the first
+            # YieldPoint we've seen.
+            with stack_context.ExceptionStackContext(
+                    self.handle_exception) as deactivate:
+                self.stack_context_deactivate = deactivate
+                def cb():
+                    start_yield_point()
+                    self.run()
+                self.io_loop.add_callback(cb)
+                return False
+        else:
+            start_yield_point()
+    else:
+        try:
+            self.future = convert_yielded(yielded)
+        except BadYieldError:
+            self.future = TracebackFuture()
+            self.future.set_exc_info(sys.exc_info())
+    if not self.future.done() or self.future is moment:
+        self.io_loop.add_future(
+            self.future, lambda f: self.run())
+        return False
+    return True
+</code></pre>
+
+<p>可以看到</p>
+
+<pre><code>if not self.future.done() or self.future is moment:
+	self.io_loop.add_future(
+		self.future, lambda f: self.run())
+</code></pre>
+
+<p>所以这就是循环的去执行到下一个yield的方式。还要注意的是，代码中提到的YieldPoint已经被放弃，Tornado4.0也推荐使用Future类型。</p>
+
+<p>再注意convert_yielded函数。</p>
+
+<pre><code>def convert_yielded(yielded):
+    &quot;&quot;&quot;Convert a yielded object into a `.Future`.
+    The default implementation accepts lists, dictionaries, and Futures.
+    If the `~functools.singledispatch` library is available, this function
+    may be extended to support additional types. For example::
+        @convert_yielded.register(asyncio.Future)
+        def _(asyncio_future):
+            return tornado.platform.asyncio.to_tornado_future(asyncio_future)
+    .. versionadded:: 4.1
+    &quot;&quot;&quot;
+    # Lists and dicts containing YieldPoints were handled earlier.
+    if isinstance(yielded, (list, dict)):
+        return multi(yielded)
+    elif is_future(yielded):
+        return yielded
+    elif isawaitable(yielded):
+        return _wrap_awaitable(yielded)
+    else:
+        raise BadYieldError(&quot;yielded unknown object %r&quot; % (yielded,))
+</code></pre>
+
+<p>我们注意到了multi(yielded)这个调用，最后我们找到了这段代码，这就是答案：</p>
+
+<pre><code>def multi(children, quiet_exceptions=()):
+    &quot;&quot;&quot;Runs multiple asynchronous operations in parallel.
+    ``children`` may either be a list or a dict whose values are
+    yieldable objects. ``multi()`` returns a new yieldable
+    object that resolves to a parallel structure containing their
+    results. If ``children`` is a list, the result is a list of
+    results in the same order; if it is a dict, the result is a dict
+    with the same keys.
+    That is, ``results = yield multi(list_of_futures)`` is equivalent
+    to::
+        results = []
+        for future in list_of_futures:
+            results.append(yield future)
+    If any children raise exceptions, ``multi()`` will raise the first
+    one. All others will be logged, unless they are of types
+    contained in the ``quiet_exceptions`` argument.
+    If any of the inputs are `YieldPoints &lt;YieldPoint&gt;`, the returned
+    yieldable object is a `YieldPoint`. Otherwise, returns a `.Future`.
+    This means that the result of `multi` can be used in a native
+    coroutine if and only if all of its children can be.
+    In a ``yield``-based coroutine, it is not normally necessary to
+    call this function directly, since the coroutine runner will
+    do it automatically when a list or dict is yielded. However,
+    it is necessary in ``await``-based coroutines, or to pass
+    the ``quiet_exceptions`` argument.
+    This function is available under the names ``multi()`` and ``Multi()``
+    for historical reasons.
+    .. versionchanged:: 4.2
+       If multiple yieldables fail, any exceptions after the first
+       (which is raised) will be logged. Added the ``quiet_exceptions``
+       argument to suppress this logging for selected exception types.
+    .. versionchanged:: 4.3
+       Replaced the class ``Multi`` and the function ``multi_future``
+       with a unified function ``multi``. Added support for yieldables
+       other than `YieldPoint` and `.Future`.
+    &quot;&quot;&quot;
+    if _contains_yieldpoint(children):
+        return MultiYieldPoint(children, quiet_exceptions=quiet_exceptions)
+    else:
+        return multi_future(children, quiet_exceptions=quiet_exceptions)
+</code></pre>
+
+<p>之后是multi_future的定义：</p>
+
+<pre><code>def multi_future(children, quiet_exceptions=()):
+    &quot;&quot;&quot;Wait for multiple asynchronous futures in parallel.
+    This function is similar to `multi`, but does not support
+    `YieldPoints &lt;YieldPoint&gt;`.
+    .. versionadded:: 4.0
+    .. versionchanged:: 4.2
+       If multiple ``Futures`` fail, any exceptions after the first (which is
+       raised) will be logged. Added the ``quiet_exceptions``
+       argument to suppress this logging for selected exception types.
+    .. deprecated:: 4.3
+       Use `multi` instead.
+    &quot;&quot;&quot;
+    if isinstance(children, dict):
+        keys = list(children.keys())
+        children = children.values()
+    else:
+        keys = None
+    children = list(map(convert_yielded, children))
+    assert all(is_future(i) for i in children)
+    unfinished_children = set(children)
+    future = Future()
+    if not children:
+        future.set_result({} if keys is not None else [])
+    def callback(f):
+        unfinished_children.remove(f)
+        if not unfinished_children:
+            result_list = []
+            for f in children:
+                try:
+                    result_list.append(f.result())
+                except Exception as e:
+                    if future.done():
+                        if not isinstance(e, quiet_exceptions):
+                            app_log.error(&quot;Multiple exceptions in yield list&quot;,
+                                          exc_info=True)
+                    else:
+                        future.set_exc_info(sys.exc_info())
+            if not future.done():
+                if keys is not None:
+                    future.set_result(dict(zip(keys, result_list)))
+                else:
+                    future.set_result(result_list)
+    listening = set()
+    for f in children:
+        if f not in listening:
+            listening.add(f)
+            f.add_done_callback(callback)
+    return future
+</code></pre>
+
+<p>这是它支持并行异步的关键代码，可以看到这个被包装的Future,它的listening,维护着多个子future，每次有一个子future完成后，就会调用callback，将其从unfinished_children中移除，当所有子Future的callback都执行完后，才会真正调用这个Future的set_result方法。</p>
+              
+            </div>
+          </div>
+          <div id="post-footer" class="post-footer main-content-wrap">
+            
+              
+                
+                
+                  <div class="post-footer-tags">
+                    <span class="text-color-light text-small">标签</span><br/>
+                    
+  <a class="tag tag--primary tag--small" href="https://harleylau.github.io/tags/tornado/">Tornado</a>
+
+                  </div>
+                
+              
+            
+            <div class="post-actions-wrap">
+  
+      <nav >
+        <ul class="post-actions post-action-nav">
+          
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2018/12/%E4%BB%8Ehexo%E8%BD%AC%E5%88%B0hugo/" data-tooltip="从hexo转到hugo">
+              
+                  <i class="fa fa-angle-left"></i>
+                  <span class="hide-xs hide-sm text-small icon-ml">下一篇</span>
+                </a>
+            </li>
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2018/02/tornado-websocket%E5%AE%9E%E7%8E%B0%E4%BA%8C%E7%BB%B4%E7%A0%81%E6%89%AB%E6%8F%8F/" data-tooltip="Tornado Websocket实现二维码扫描">
+              
+                  <span class="hide-xs hide-sm text-small icon-mr">上一篇</span>
+                  <i class="fa fa-angle-right"></i>
+                </a>
+            </li>
+          
+        </ul>
+      </nav>
+    <ul class="post-actions post-action-share" >
+      
+        <li class="post-action hide-lg hide-md hide-sm">
+          <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions">
+            <i class="fa fa-share-alt"></i>
+          </a>
+        </li>
+        
+          <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://harleylau.github.io/2018/04/tornado%E5%B9%B6%E8%A1%8C%E6%89%A7%E8%A1%8C%E5%A4%9A%E4%B8%AA%E5%BC%82%E6%AD%A5%E8%AF%B7%E6%B1%82/">
+              <i class="fa fa-facebook-official"></i>
+            </a>
+          </li>
+        
+          <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://harleylau.github.io/2018/04/tornado%E5%B9%B6%E8%A1%8C%E6%89%A7%E8%A1%8C%E5%A4%9A%E4%B8%AA%E5%BC%82%E6%AD%A5%E8%AF%B7%E6%B1%82/">
+              <i class="fa fa-twitter"></i>
+            </a>
+          </li>
+        
+          <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://harleylau.github.io/2018/04/tornado%E5%B9%B6%E8%A1%8C%E6%89%A7%E8%A1%8C%E5%A4%9A%E4%B8%AA%E5%BC%82%E6%AD%A5%E8%AF%B7%E6%B1%82/">
+              <i class="fa fa-google-plus"></i>
+            </a>
+          </li>
+        
+      
+      
+        <li class="post-action">
+          <a class="post-action-btn btn btn--default" href="#disqus_thread">
+            <i class="fa fa-comment-o"></i>
+          </a>
+        </li>
+      
+      <li class="post-action">
+        
+          <a class="post-action-btn btn btn--default" href="#table-of-contents">
+        
+          <i class="fa fa-list"></i>
+        </a>
+      </li>
+    </ul>
+  
+</div>
+
+            
+              
+                <div id="disqus_thread">
+  <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+              
+            
+          </div>
+        </article>
+        <footer id="footer" class="main-content-wrap">
+  <span class="copyrights">
+    &copy; 2019 Harley. All Rights Reserved
+  </span>
+</footer>
+
+      </div>
+      <div id="bottom-bar" class="post-bottom-bar" data-behavior="4">
+        <div class="post-actions-wrap">
+  
+      <nav >
+        <ul class="post-actions post-action-nav">
+          
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2018/12/%E4%BB%8Ehexo%E8%BD%AC%E5%88%B0hugo/" data-tooltip="从hexo转到hugo">
+              
+                  <i class="fa fa-angle-left"></i>
+                  <span class="hide-xs hide-sm text-small icon-ml">下一篇</span>
+                </a>
+            </li>
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2018/02/tornado-websocket%E5%AE%9E%E7%8E%B0%E4%BA%8C%E7%BB%B4%E7%A0%81%E6%89%AB%E6%8F%8F/" data-tooltip="Tornado Websocket实现二维码扫描">
+              
+                  <span class="hide-xs hide-sm text-small icon-mr">上一篇</span>
+                  <i class="fa fa-angle-right"></i>
+                </a>
+            </li>
+          
+        </ul>
+      </nav>
+    <ul class="post-actions post-action-share" >
+      
+        <li class="post-action hide-lg hide-md hide-sm">
+          <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions">
+            <i class="fa fa-share-alt"></i>
+          </a>
+        </li>
+        
+          <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://harleylau.github.io/2018/04/tornado%E5%B9%B6%E8%A1%8C%E6%89%A7%E8%A1%8C%E5%A4%9A%E4%B8%AA%E5%BC%82%E6%AD%A5%E8%AF%B7%E6%B1%82/">
+              <i class="fa fa-facebook-official"></i>
+            </a>
+          </li>
+        
+          <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://harleylau.github.io/2018/04/tornado%E5%B9%B6%E8%A1%8C%E6%89%A7%E8%A1%8C%E5%A4%9A%E4%B8%AA%E5%BC%82%E6%AD%A5%E8%AF%B7%E6%B1%82/">
+              <i class="fa fa-twitter"></i>
+            </a>
+          </li>
+        
+          <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://harleylau.github.io/2018/04/tornado%E5%B9%B6%E8%A1%8C%E6%89%A7%E8%A1%8C%E5%A4%9A%E4%B8%AA%E5%BC%82%E6%AD%A5%E8%AF%B7%E6%B1%82/">
+              <i class="fa fa-google-plus"></i>
+            </a>
+          </li>
+        
+      
+      
+        <li class="post-action">
+          <a class="post-action-btn btn btn--default" href="#disqus_thread">
+            <i class="fa fa-comment-o"></i>
+          </a>
+        </li>
+      
+      <li class="post-action">
+        
+          <a class="post-action-btn btn btn--default" href="#table-of-contents">
+        
+          <i class="fa fa-list"></i>
+        </a>
+      </li>
+    </ul>
+  
+</div>
+
+      </div>
+      <div id="share-options-bar" class="share-options-bar" data-behavior="4">
+  <i id="btn-close-shareoptions" class="fa fa-close"></i>
+  <ul class="share-options">
+    
+      <li class="share-option">
+        <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fharleylau.github.io%2F2018%2F04%2Ftornado%25E5%25B9%25B6%25E8%25A1%258C%25E6%2589%25A7%25E8%25A1%258C%25E5%25A4%259A%25E4%25B8%25AA%25E5%25BC%2582%25E6%25AD%25A5%25E8%25AF%25B7%25E6%25B1%2582%2F">
+          <i class="fa fa-facebook-official"></i><span>分享到 Facebook</span>
+        </a>
+      </li>
+    
+      <li class="share-option">
+        <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=https%3A%2F%2Fharleylau.github.io%2F2018%2F04%2Ftornado%25E5%25B9%25B6%25E8%25A1%258C%25E6%2589%25A7%25E8%25A1%258C%25E5%25A4%259A%25E4%25B8%25AA%25E5%25BC%2582%25E6%25AD%25A5%25E8%25AF%25B7%25E6%25B1%2582%2F">
+          <i class="fa fa-twitter"></i><span>分享到 Twitter</span>
+        </a>
+      </li>
+    
+      <li class="share-option">
+        <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=https%3A%2F%2Fharleylau.github.io%2F2018%2F04%2Ftornado%25E5%25B9%25B6%25E8%25A1%258C%25E6%2589%25A7%25E8%25A1%258C%25E5%25A4%259A%25E4%25B8%25AA%25E5%25BC%2582%25E6%25AD%25A5%25E8%25AF%25B7%25E6%25B1%2582%2F">
+          <i class="fa fa-google-plus"></i><span>分享到 Google&#43;</span>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+<div id="share-options-mask" class="share-options-mask"></div>
+    </div>
+    
+    <div id="about">
+  <div id="about-card">
+    <div id="about-btn-close">
+      <i class="fa fa-remove"></i>
+    </div>
+    
+      <img id="about-card-picture" src="https://harleylau.github.io/img/harleylau.jpg" alt="作者的图片" />
+    
+    <h4 id="about-card-name">Harley</h4>
+    
+    
+    
+      <div id="about-card-location">
+        <i class="fa fa-map-marker"></i>
+        <br/>
+        China
+      </div>
+    
+  </div>
+</div>
+
+    <div id="algolia-search-modal" class="modal-container">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="close-button"><i class="fa fa-close"></i></span>
+      <a href="https://algolia.com" target="_blank" rel="noopener" class="searchby-algolia text-color-light link-unstyled">
+        <span class="searchby-algolia-text text-color-light text-small">by</span>
+        <img class="searchby-algolia-logo" src="https://www.algolia.com/static_assets/images/press/downloads/algolia-light.svg">
+      </a>
+      <i class="search-icon fa fa-search"></i>
+      <form id="algolia-search-form">
+        <input type="text" id="algolia-search-input" name="search"
+          class="form-control input--large search-input" placeholder="搜索" />
+      </form>
+    </div>
+    <div class="modal-body">
+      <div class="no-result text-color-light text-center"></div>
+      <div class="results">
+        
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2019/01/%E4%BD%BF%E7%94%A8redis-setnx-%E5%91%BD%E4%BB%A4%E5%AE%9E%E7%8E%B0%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/">
+                <h3 class="media-heading">使用Redis SETNX 命令实现分布式锁</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Jan 1, 2019
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>使用Redis的 SETNX 命令可以实现分布式锁，本文介绍其实现方法。</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2019/01/hbase-rowkey-%E8%AE%BE%E8%AE%A1/">
+                <h3 class="media-heading">HBase Rowkey 设计</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Jan 1, 2019
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><!-- toc -->
+
+<p>HBase中的rowkey唯一的决定了一行数据，使用HBase的场景多种多样， rowkey设计的好坏很大程度上决定了应用场景中的执行效率。</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2018/12/%E4%BB%8Ehexo%E8%BD%AC%E5%88%B0hugo/">
+                <h3 class="media-heading">从hexo转到hugo</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Dec 12, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather">之前的博客都是用hexo生成的，也不是不好用， 只是对于js并不是很熟悉。正好最近一直在用golang，也顺便把原来的博客从hexo转到hugo上来。
+接下去会慢慢的把之前的文章都重新部署一下。</div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2018/04/tornado%E5%B9%B6%E8%A1%8C%E6%89%A7%E8%A1%8C%E5%A4%9A%E4%B8%AA%E5%BC%82%E6%AD%A5%E8%AF%B7%E6%B1%82/">
+                <h3 class="media-heading">Tornado并行执行多个异步请求</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Apr 4, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><!--toc-->
+
+<p>Tornado实现后台逻辑的时候，可能遇到这样的情况： 需要同时请求多个第三方数据，比如同时从多个网址请求数据，而这几个第三方数据相互没有关联。 最简单的方式是写多个yield，第一个yield返回结果之后，继续请求第二个yield。</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2018/02/tornado-websocket%E5%AE%9E%E7%8E%B0%E4%BA%8C%E7%BB%B4%E7%A0%81%E6%89%AB%E6%8F%8F/">
+                <h3 class="media-heading">Tornado Websocket实现二维码扫描</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Feb 2, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><!--toc--></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2018/02/tornado%E4%B9%8Bwebsocket/">
+                <h3 class="media-heading">Tornado之WebSocket</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Feb 2, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><!--toc-->
+
+<p>WebSocket是HTML5开始提供的一种浏览器与服务器间进行全双工通讯的网络技术。 WebSocket通信协议于2011年被IETF定为标准RFC 6455，WebSocketAPI被W3C定为标准。 在WebSocket API中，浏览器和服务器只需要要做一个握手的动作，然后，浏览器和服务器之间就形成了一条快速通道。两者之间就直接可以数据互相传送。</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2017/11/https%E9%80%9A%E9%85%8D%E8%AF%81%E4%B9%A6/">
+                <h3 class="media-heading">HTTPS通配证书</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Nov 11, 2017
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>HTTPS的通配证书有一些限制条件</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2017/11/python-%E5%A4%84%E7%90%86xml%E8%BD%AC%E4%B8%BAjson/">
+                <h3 class="media-heading">Python 处理XML转为json</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Nov 11, 2017
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>Python中虽然有ElementTree等来处理xml格式，但是总是感觉不如json处理来的方便.</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2017/10/tornado-websocket%E8%B0%83%E7%94%A8%E6%97%B6%E5%87%BA%E7%8E%B0403%E9%94%99%E8%AF%AF/">
+                <h3 class="media-heading">Tornado Websocket调用时出现403错误</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Oct 10, 2017
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>tornado websocket 实现的时候，调用可能出现403的错误 </p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2017/09/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%AF%B9%E8%B1%A1object/">
+                <h3 class="media-heading">Redis源码剖析–对象Object</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Sep 9, 2017
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><!--toc-->
+
+<p>之前介绍的都是Redis的基础数据结构，比如简单动态字符串（SDS）、双端链表、字典、压缩列表、整数集合， 等等，不过Redis并没有直接用这些结构来实现键值对的数据库，而是对其进行了封装， 所有的键和值都是用对象Object来表示的。</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+      </div>
+    </div>
+    <div class="modal-footer">
+      <p class="results-count text-medium"
+         data-message-zero=""
+         data-message-one=""
+         data-message-other="">
+         20 posts found
+      </p>
+    </div>
+  </div>
+</div>
+    
+  
+    
+    <div id="cover" style="background-image:url('https://harleylau.github.io/images/cover.jpg');"></div>
+  
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js" integrity="sha256-/BfiIkHlHoVihZdc6TFuj7MmJ0TWcWsMXkeDFwhi0zw=" crossorigin="anonymous"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.7/js/jquery.fancybox.min.js" integrity="sha256-GEAnjcTqVP+vBp3SSc8bEDQqvWAZMiHyUSIorrWwH50=" crossorigin="anonymous"></script>
+
+
+<script src="https://harleylau.github.io/js/script-qi9wbxp2ya2j6p7wx1i6tgavftewndznf4v0hy2gvivk1rxgc3lm7njqb6bz.min.js"></script>
+
+
+<script lang="javascript">
+window.onload = updateMinWidth;
+window.onresize = updateMinWidth;
+document.getElementById("sidebar").addEventListener("transitionend", updateMinWidth);
+function updateMinWidth() {
+  var sidebar = document.getElementById("sidebar");
+  var main = document.getElementById("main");
+  main.style.minWidth = "";
+  var w1 = getComputedStyle(main).getPropertyValue("min-width");
+  var w2 = getComputedStyle(sidebar).getPropertyValue("width");
+  var w3 = getComputedStyle(sidebar).getPropertyValue("left");
+  main.style.minWidth = `calc(${w1} - ${w2} - ${w3})`;
+}
+</script>
+
+<script>
+$(document).ready(function() {
+  hljs.configure({ classPrefix: '', useBR: false });
+  $('pre.code-highlight > code, pre > code').each(function(i, block) {
+    if (!$(this).hasClass('codeblock')) {
+      $(this).addClass('codeblock');
+    }
+    hljs.highlightBlock(block);
+  });
+});
+</script>
+
+
+  
+    
+      <script>
+        var disqus_config = function () {
+          this.page.url = 'https:\/\/harleylau.github.io\/2018\/04\/tornado%E5%B9%B6%E8%A1%8C%E6%89%A7%E8%A1%8C%E5%A4%9A%E4%B8%AA%E5%BC%82%E6%AD%A5%E8%AF%B7%E6%B1%82\/';
+          
+            this.page.identifier = '\/2018\/04\/tornado%E5%B9%B6%E8%A1%8C%E6%89%A7%E8%A1%8C%E5%A4%9A%E4%B8%AA%E5%BC%82%E6%AD%A5%E8%AF%B7%E6%B1%82\/'
+          
+        };
+        (function() {
+          
+          
+          if (window.location.hostname == "localhost") {
+            return;
+          }
+          var d = document, s = d.createElement('script');
+          var disqus_shortname = 'harleylau';
+          s.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+
+          s.setAttribute('data-timestamp', +new Date());
+          (d.head || d.body).appendChild(s);
+        })();
+      </script>
+    
+  
+
+
+
+
+    
+  </body>
+</html>
+
