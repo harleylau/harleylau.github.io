@@ -39,5 +39,14 @@
 接下去会慢慢的把之前的文章都重新部署一下。</description>
     </item>
     
+    <item>
+      <title>Json Web Token</title>
+      <link>https://harleylau.github.io/2017/07/json-web-token/</link>
+      <pubDate>Tue, 25 Jul 2017 08:46:38 +0800</pubDate>
+      
+      <guid>https://harleylau.github.io/2017/07/json-web-token/</guid>
+      <description>&lt;p&gt;JSON Web Token（JWT）是一个非常轻巧的规范。这个规范允许我们使用JWT在用户和服务器之间传递安全可靠的信息。&lt;/p&gt;</description>
+    </item>
+    
   </channel>
 </rss>

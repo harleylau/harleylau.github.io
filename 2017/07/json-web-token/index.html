@@ -7,40 +7,36 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="generator" content="Hugo 0.52 with theme Tranquilpeak 0.4.3-SNAPSHOT">
 <meta name="author" content="Harley">
-<meta name="keywords" content="Redis, 分布式锁">
-<meta name="description" content="使用Redis的 SETNX 命令可以实现分布式锁，本文介绍其实现方法。">
+<meta name="keywords" content="JWT">
+<meta name="description" content="JSON Web Token（JWT）是一个非常轻巧的规范。这个规范允许我们使用JWT在用户和服务器之间传递安全可靠的信息。">
 
 
-<meta property="og:description" content="使用Redis的 SETNX 命令可以实现分布式锁，本文介绍其实现方法。">
+<meta property="og:description" content="JSON Web Token（JWT）是一个非常轻巧的规范。这个规范允许我们使用JWT在用户和服务器之间传递安全可靠的信息。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="使用Redis SETNX 命令实现分布式锁">
-<meta name="twitter:title" content="使用Redis SETNX 命令实现分布式锁">
-<meta property="og:url" content="https://harleylau.github.io/2019/01/%E4%BD%BF%E7%94%A8redis-setnx-%E5%91%BD%E4%BB%A4%E5%AE%9E%E7%8E%B0%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/">
-<meta property="twitter:url" content="https://harleylau.github.io/2019/01/%E4%BD%BF%E7%94%A8redis-setnx-%E5%91%BD%E4%BB%A4%E5%AE%9E%E7%8E%B0%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/">
+<meta property="og:title" content="Json Web Token">
+<meta name="twitter:title" content="Json Web Token">
+<meta property="og:url" content="https://harleylau.github.io/2017/07/json-web-token/">
+<meta property="twitter:url" content="https://harleylau.github.io/2017/07/json-web-token/">
 <meta property="og:site_name" content="Harley">
-<meta property="og:description" content="使用Redis的 SETNX 命令可以实现分布式锁，本文介绍其实现方法。">
-<meta name="twitter:description" content="使用Redis的 SETNX 命令可以实现分布式锁，本文介绍其实现方法。">
+<meta property="og:description" content="JSON Web Token（JWT）是一个非常轻巧的规范。这个规范允许我们使用JWT在用户和服务器之间传递安全可靠的信息。">
+<meta name="twitter:description" content="JSON Web Token（JWT）是一个非常轻巧的规范。这个规范允许我们使用JWT在用户和服务器之间传递安全可靠的信息。">
 <meta property="og:locale" content="zh-cn">
 
   
-    <meta property="article:published_time" content="2019-01-01T16:46:31">
+    <meta property="article:published_time" content="2017-07-25T08:46:38">
   
   
-    <meta property="article:modified_time" content="2019-01-01T16:46:31">
+    <meta property="article:modified_time" content="2017-07-25T08:46:38">
   
   
   
     
-      <meta property="article:section" content="Redis">
-    
-      <meta property="article:section" content="分布式锁">
+      <meta property="article:section" content="JWT">
     
   
   
     
-      <meta property="article:tag" content="Redis">
-    
-      <meta property="article:tag" content="分布式锁">
+      <meta property="article:tag" content="JWT">
     
   
 
@@ -53,8 +49,8 @@
 
 
 
-  <meta property="og:image" content="https://harleylau.github.io/img/redis.png">
-  <meta property="twitter:image" content="https://harleylau.github.io/img/redis.png">
+  <meta property="og:image" content="https://harleylau.github.io/img/jwt.png">
+  <meta property="twitter:image" content="https://harleylau.github.io/img/jwt.png">
 
 
 
@@ -64,14 +60,14 @@
   <meta property="twitter:image" content="https://harleylau.github.io/img/harleylau.jpg">
 
 
-    <title>使用Redis SETNX 命令实现分布式锁</title>
+    <title>Json Web Token</title>
 
     <link rel="icon" href="https://harleylau.github.io/favicon.png">
     
 
     
 
-    <link rel="canonical" href="https://harleylau.github.io/2019/01/%E4%BD%BF%E7%94%A8redis-setnx-%E5%91%BD%E4%BB%A4%E5%AE%9E%E7%8E%B0%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/">
+    <link rel="canonical" href="https://harleylau.github.io/2017/07/json-web-token/">
 
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous" />
@@ -231,15 +227,15 @@
             <div class="post-header main-content-wrap text-left">
   
     <h1 class="post-title" itemprop="headline">
-      使用Redis SETNX 命令实现分布式锁
+      Json Web Token
     </h1>
   
   
   <div class="postShorten-meta post-meta">
     
-      <time itemprop="datePublished" datetime="2019-01-01T16:46:31&#43;08:00">
+      <time itemprop="datePublished" datetime="2017-07-25T08:46:38&#43;08:00">
         
-  一月 1, 2019
+  七月 25, 2017
 
       </time>
     
@@ -248,9 +244,7 @@
   
     <span>发布在</span>
     
-      <a class="category-link" href="https://harleylau.github.io/categories/redis">Redis</a>, 
-    
-      <a class="category-link" href="https://harleylau.github.io/categories/%e5%88%86%e5%b8%83%e5%bc%8f%e9%94%81">分布式锁</a>
+      <a class="category-link" href="https://harleylau.github.io/categories/jwt">JWT</a>
     
   
 
@@ -260,141 +254,120 @@
           
           <div class="post-content markdown" itemprop="articleBody">
             <div class="main-content-wrap">
-              <p>使用Redis的 SETNX 命令可以实现分布式锁，本文介绍其实现方法。</p>
+              <p>JSON Web Token（JWT）是一个非常轻巧的规范。这个规范允许我们使用JWT在用户和服务器之间传递安全可靠的信息。</p>
 
 <h1 id="table-of-contents">目录</h1><nav id="TableOfContents">
 <ul>
-<li><a href="#setnx命令简介">SETNX命令简介</a>
+<li><a href="#token-auth机制">Token Auth机制</a>
 <ul>
-<li><a href="#命令格式">命令格式</a></li>
-<li><a href="#返回值">返回值</a></li>
-<li><a href="#示例">示例</a></li>
+<li><a href="#相比cookie的优势">相比cookie的优势</a></li>
+<li><a href="#相比session的优势">相比session的优势</a></li>
 </ul></li>
-<li><a href="#setnx分布式锁实现方案">SETNX分布式锁实现方案</a>
+<li><a href="#jwt的组成">JWT的组成</a>
 <ul>
-<li><a href="#setnx设置锁">SETNX设置锁</a></li>
-<li><a href="#判断过期条件">判断过期条件</a></li>
-<li><a href="#解决竞争条件">解决竞争条件</a></li>
-<li><a href="#伪代码">伪代码</a></li>
+<li><a href="#头部-header">头部（Header）</a></li>
+<li><a href="#有效载荷-payload">有效载荷（payload）</a></li>
+<li><a href="#签名-signature">签名（signature）</a></li>
 </ul></li>
+<li><a href="#jwt安全性">JWT安全性</a></li>
 </ul>
 </nav>
 
-<p>直接进入正题，现在分布式的应用场景很多，为了保持数据的一致性，经常碰到需要对资源加锁的情形。 利用redis来实现分布式锁就是其中的一种实现方案。</p>
+<h1 id="token-auth机制">Token Auth机制</h1>
 
-<h1 id="setnx命令简介">SETNX命令简介</h1>
+<p>JSON Web Token（JWT）是一个非常轻巧的规范。这个规范允许我们使用JWT在用户和服务器之间传递安全可靠的信息。</p>
 
-<h2 id="命令格式">命令格式</h2>
+<p>JWT通过用户发送用户名和密码给服务器，服务器验证通过之后，生成签名的token给客户端。客户端存储这个token，之后请求帐号相关的信息时带上token，服务端验证token之后，进行相应的处理。</p>
 
-<pre><code>SETNX key value
+<h2 id="相比cookie的优势">相比cookie的优势</h2>
+
+<p><strong>支持跨域站点访问</strong></p>
+
+<p>Cookie是不允许垮域访问的，可以通过设置顶级域名的方式实现部分跨域，但是跨站点的访问仍然不支持。</p>
+
+<p>Token没有站点的限制，跨域站点的时候仍旧能够使用。</p>
+
+<p><strong>安全性更高</strong></p>
+
+<p>不需要考虑对CSRF（跨站请求伪造）的防范；</p>
+
+<h2 id="相比session的优势">相比session的优势</h2>
+
+<p><strong>节省服务器空间</strong></p>
+
+<p>session验证方式需要在服务端保存每个session，会占用服务器空间。如果单纯用DB存储，还有性能上的劣势；用redis等存储则不太经济。</p>
+
+<p>Token方式将成本分摊到各个客户端，所需要的仅仅是一个解编码的过程。</p>
+
+<h1 id="jwt的组成">JWT的组成</h1>
+
+<p>JWT由三部分组成，分别是头部、载荷和签名。三个部分中间用点分隔开，并且都使用 Base64 编码。</p>
+
+<p>总体JWT示例：</p>
+
+<pre><code>eyJ0eXAiOiAiSldUIiwiYWxnIjogIkhTMjU2In0.eyJpc3MiOiAiaGFybGV5IiwiaWF0IjogMTUwMDk1NTk1MCwiZXhwIjogMTUwMDk1Nzk4NywidXNlcl9pZCI6ICI3ODk4IiwidXNlcl9yb2xlIjoiQWRtaW4ifQ.b0998815569be8f4ca8518030c3d586cc5bdff12dd7ad0004a1c38fa735ce18a
 </code></pre>
 
-<p>将 key 的值设为 value ，当且仅当 key 不存在。</p>
+<h2 id="头部-header">头部（Header）</h2>
 
-<p>若给定的 key 已经存在，则 SETNX 不做任何动作。</p>
+<p>header 部分主要包括两部分，一个是 Token 的类型，另一个是使用的算法，
+比如Token类型是 JWT，使用的算法是 HS256。</p>
 
-<p>SETNX 是『SET if Not eXists』(如果不存在，则 SET)的简写。</p>
-
-<h2 id="返回值">返回值</h2>
-
-<p>设置成功，返回 1 。
-设置失败，返回 0 。</p>
-
-<h2 id="示例">示例</h2>
-
-<pre><code>redis&gt; EXISTS job                # job 不存在
-(integer) 0
-
-redis&gt; SETNX job &quot;programmer&quot;    # job 设置成功
-(integer) 1
-
-redis&gt; SETNX job &quot;code-farmer&quot;   # 尝试覆盖 job ，失败
-(integer) 0
-
-redis&gt; GET job                   # 没有被覆盖
-&quot;programmer&quot;
+<pre><code>{
+&quot;typ&quot;: &quot;JWT&quot;,
+&quot;alg&quot;: &quot;HS256&quot;
+}
 </code></pre>
 
-<h1 id="setnx分布式锁实现方案">SETNX分布式锁实现方案</h1>
+<p>经过base64编码之后的值为
+eyJ0eXAiOiAiSldUIiwiYWxnIjogIkhTMjU2In0</p>
 
-<p>利用SETNX的特性，很容易的想到，在需要加锁的时候，调用SETNX命令，如果返回了1，表示设置成功，获得了当前锁，之后做一些想要的操作，完成之后调用DEL命令释放锁。</p>
+<h2 id="有效载荷-payload">有效载荷（payload）</h2>
 
-<pre><code>redis&gt; SETNX lock true    # 获得锁成功
-(integer) 1
-... do thing ...
-redis&gt; DEL lock    # 释放锁
-(integer) 1
+<p>有效载荷内部的数据可以自己定义，JWT规范也给出了一些标准字段，比如</p>
 
+<ul>
+<li>iss: 该JWT的签发者</li>
+<li>sub: 该JWT所面向的用户</li>
+<li>aud: 接收该JWT的一方</li>
+<li>exp(expires): 什么时候过期，这里是一个Unix时间戳</li>
+<li>iat(issued at): 在什么时候签发的</li>
+<li>jti(JWT ID）: 唯一的JWT ID</li>
+</ul>
+
+<p>比如payload内容如下：</p>
+
+<pre><code>{
+    &quot;iss&quot;: &quot;harley&quot;,
+    &quot;iat&quot;: 1500955950,
+    &quot;exp&quot;: 1500957987,
+    &quot;user_id&quot;: &quot;7898&quot;,
+    &quot;user_role&quot;: &quot;Admin&quot;
+}
 </code></pre>
 
-<p>但是这样存在一个问题，如果在执行DEL命令之前，当前程序发生错误，那么这个锁就永远得不到释放，其他程序也永远无法加锁成功。</p>
+<p>base64加密后的结果为</p>
 
-<p>于是我们可以在加锁之后为这个锁设置一个过期时间，过期时间之后，如果没有释放，就自动删除，防止锁被一直占用。</p>
-
-<pre><code>redis&gt; SETNX lock true    # 获得锁成功
-(integer) 1
-redis&gt; EXPIRE lock 5    # 设置5秒的过期时间
-(integer) 1
-... do thing ...
-redis&gt; DEL lock    # 释放锁
-(integer) 1
-
+<pre><code>eyJpc3MiOiAiaGFybGV5IiwiaWF0IjogMTUwMDk1NTk1MCwiZXhwIjogMTUwMDk1Nzk4NywidXNlcl9pZCI6ICI3ODk4IiwidXNlcl9yb2xlIjoiQWRtaW4ifQ
 </code></pre>
 
-<p>但是这样还是有问题，如果在SETNX和EXPIRE之间程序又发生了错误，当前锁又无法释放。所以根本原因还是需要一个原子的操作，在获得锁的同时能够同时设置锁的过期时间。</p>
+<h2 id="签名-signature">签名（signature）</h2>
 
-<p>为了解决这个问题，Redis 2.8 版本中作者加入了 set 指令的扩展参数，使得 setnx 和 expire 指令可以一起执行， 这个可以在下一篇介绍。 本文介绍另一种方式。</p>
+<p>签名部分保证了token的安全性，signature的生成过程依赖前两部分的内容。
+将Header和payload连接在一起，得到</p>
 
-<h2 id="setnx设置锁">SETNX设置锁</h2>
-
-<p>在设置锁的时候，我们可以利用锁的值来实现过期的特性</p>
-
-<pre><code>SETNX lock  &lt;current Unix time + lock timeout&gt;
+<pre><code>eyJ0eXAiOiAiSldUIiwiYWxnIjogIkhTMjU2In0.eyJpc3MiOiAiaGFybGV5IiwiaWF0IjogMTUwMDk1NTk1MCwiZXhwIjogMTUwMDk1Nzk4NywidXNlcl9pZCI6ICI3ODk4IiwidXNlcl9yb2xlIjoiQWRtaW4ifQ
 </code></pre>
 
-<p>我们不是设置一个简单的值到lock中，而是将过期的时间写入到lock中。 获得锁的判断条件仍旧是跟之前一样， 如果返回了1的话，表示获得了锁，可以进行下一步的操作。</p>
+<p>将上面拼接完的字符串用HS256算法进行加密。在加密的时候，还需要提供一个密钥。假设密钥为secret，那么就可以得到我们加密后的内容b0998815569be8f4ca8518030c3d586cc5bdff12dd7ad0004a1c38fa735ce18a</p>
 
-<h2 id="判断过期条件">判断过期条件</h2>
+<p>加在后面得到完成JWT</p>
 
-<p>正常情况下，操作完成之后，仍旧执行DEL操作将当前锁释放。那么如果当前程序发生了错误退出了，当前锁没有正常释放，其他的进程如何获得锁呢。</p>
+<h1 id="jwt安全性">JWT安全性</h1>
 
-<p>假设上一个进程加锁之后异常退出，没有释放锁。当前的进程想要加锁，在调用SETNX的时候发现加锁失败，然后需要调用GET命令获得当前锁的值，即上一个进程写入的过期时间。 如果获得的过期时间未到，那么当前进程继续等待； 如果锁的过期时间已经到了，很大的概率上一个获得锁的进程已经发生了错误，因为我们这个过期时间一般会设置的比正常的运行时间要长。在这种情况下， 当前进程可以重新写入这个锁并进行后续的操作。</p>
+<p>JWT最后的签名部分对Header和payload进行了加密，如果Header和payload被篡改，最后的signature必然是不一样的。 由于加密时的secret是保密的，篡改者无法得到正确的签名。</p>
 
-<h2 id="解决竞争条件">解决竞争条件</h2>
-
-<p>但是这样又带来一个新的问题： 假设有P1和P2两个进程同时想获得锁，他们都检测到了当前的锁已经过期了， 他们可以写入，他们调用SET命令写入都会成功，那么如果决定到底是哪个进程获得了锁呢。</p>
-
-<p>所以在这边重新写入的时候不能简单的调用SET命令， 还有另一个命令可以考虑： GETSET。GETSET命令在设置值的同时，会将设置之前的值返回。</p>
-
-<p>仍旧考虑刚才的情形， P1和P2同时在竞争锁，发现锁的时间T已经过期了，然后他们同时调用GETSET命令设置新的锁。假设P1先设置成功时间T1，那么调用GETSET得到的值就是T； P2调用GETSET虽然将锁的时间设置成了T2，但是他得到的值是T1。</p>
-
-<p>通过判断GETSET返回的值，就能判断自己是否获得了锁。如果返回的值仍然是一个过期的时间，那么说明正确的加锁了；否则的话，说明正好有别的进程已经设置了锁，当前进程只是更新了一下锁而已，就继续等待。</p>
-
-<p>可能会说这边有一个小问题，P1设置的锁的过期时间被P2更改了。考虑到产生这种竞态条件的时候肯定时间间隔是非常小的， 即使重新设置了过期时间，这种很短的时间修改在大多数情况下都可以忽略不计。</p>
-
-<h2 id="伪代码">伪代码</h2>
-
-<p>所以，我们能够得到最终的一个过程，用伪代码表示</p>
-
-<pre><code>while 1:
-	lock = redis.SETNX(key, time.now() + timeout)
-	if lock == 1:
-		// 获得锁
-		break
-	lock_ts = redis.GET(key)
-	if (lock_ts &lt; time.now()) &amp;&amp; (redis.GETSET(key, time.now() + timeout) &lt; time.now()):
-		// 锁已经过期，用GETSET重新写锁
-		// 返回的原来的时间仍旧过期，说明加锁成功
-		break
-	else:
-		sleep
-		
-.... do something ...
-
-// 完成之后释放锁
-redis.DEL(key)
-	
-</code></pre>
+<p>但同时要注意的是，由于header和payload部分并未加密，所以不能把敏感信息放入其中。</p>
               
             </div>
           </div>
@@ -406,9 +379,7 @@ redis.DEL(key)
                   <div class="post-footer-tags">
                     <span class="text-color-light text-small">标签</span><br/>
                     
-  <a class="tag tag--primary tag--small" href="https://harleylau.github.io/tags/redis/">Redis</a>
-
-  <a class="tag tag--primary tag--small" href="https://harleylau.github.io/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/">分布式锁</a>
+  <a class="tag tag--primary tag--small" href="https://harleylau.github.io/tags/jwt/">JWT</a>
 
                   </div>
                 
@@ -421,7 +392,7 @@ redis.DEL(key)
           
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--disabled">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2018/12/%E4%BB%8Ehexo%E8%BD%AC%E5%88%B0hugo/" data-tooltip="从hexo转到hugo">
               
                   <i class="fa fa-angle-left"></i>
                   <span class="hide-xs hide-sm text-small icon-ml">下一篇</span>
@@ -429,7 +400,7 @@ redis.DEL(key)
             </li>
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2019/01/hbase-rowkey-%E8%AE%BE%E8%AE%A1/" data-tooltip="HBase Rowkey 设计">
+                <a class="post-action-btn btn btn--disabled">
               
                   <span class="hide-xs hide-sm text-small icon-mr">上一篇</span>
                   <i class="fa fa-angle-right"></i>
@@ -447,19 +418,19 @@ redis.DEL(key)
         </li>
         
           <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://harleylau.github.io/2019/01/%E4%BD%BF%E7%94%A8redis-setnx-%E5%91%BD%E4%BB%A4%E5%AE%9E%E7%8E%B0%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://harleylau.github.io/2017/07/json-web-token/">
               <i class="fa fa-facebook-official"></i>
             </a>
           </li>
         
           <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://harleylau.github.io/2019/01/%E4%BD%BF%E7%94%A8redis-setnx-%E5%91%BD%E4%BB%A4%E5%AE%9E%E7%8E%B0%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://harleylau.github.io/2017/07/json-web-token/">
               <i class="fa fa-twitter"></i>
             </a>
           </li>
         
           <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://harleylau.github.io/2019/01/%E4%BD%BF%E7%94%A8redis-setnx-%E5%91%BD%E4%BB%A4%E5%AE%9E%E7%8E%B0%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://harleylau.github.io/2017/07/json-web-token/">
               <i class="fa fa-google-plus"></i>
             </a>
           </li>
@@ -507,7 +478,7 @@ redis.DEL(key)
           
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--disabled">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2018/12/%E4%BB%8Ehexo%E8%BD%AC%E5%88%B0hugo/" data-tooltip="从hexo转到hugo">
               
                   <i class="fa fa-angle-left"></i>
                   <span class="hide-xs hide-sm text-small icon-ml">下一篇</span>
@@ -515,7 +486,7 @@ redis.DEL(key)
             </li>
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2019/01/hbase-rowkey-%E8%AE%BE%E8%AE%A1/" data-tooltip="HBase Rowkey 设计">
+                <a class="post-action-btn btn btn--disabled">
               
                   <span class="hide-xs hide-sm text-small icon-mr">上一篇</span>
                   <i class="fa fa-angle-right"></i>
@@ -533,19 +504,19 @@ redis.DEL(key)
         </li>
         
           <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://harleylau.github.io/2019/01/%E4%BD%BF%E7%94%A8redis-setnx-%E5%91%BD%E4%BB%A4%E5%AE%9E%E7%8E%B0%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://harleylau.github.io/2017/07/json-web-token/">
               <i class="fa fa-facebook-official"></i>
             </a>
           </li>
         
           <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://harleylau.github.io/2019/01/%E4%BD%BF%E7%94%A8redis-setnx-%E5%91%BD%E4%BB%A4%E5%AE%9E%E7%8E%B0%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://harleylau.github.io/2017/07/json-web-token/">
               <i class="fa fa-twitter"></i>
             </a>
           </li>
         
           <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://harleylau.github.io/2019/01/%E4%BD%BF%E7%94%A8redis-setnx-%E5%91%BD%E4%BB%A4%E5%AE%9E%E7%8E%B0%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://harleylau.github.io/2017/07/json-web-token/">
               <i class="fa fa-google-plus"></i>
             </a>
           </li>
@@ -575,19 +546,19 @@ redis.DEL(key)
   <ul class="share-options">
     
       <li class="share-option">
-        <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fharleylau.github.io%2F2019%2F01%2F%25E4%25BD%25BF%25E7%2594%25A8redis-setnx-%25E5%2591%25BD%25E4%25BB%25A4%25E5%25AE%259E%25E7%258E%25B0%25E5%2588%2586%25E5%25B8%2583%25E5%25BC%258F%25E9%2594%2581%2F">
+        <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fharleylau.github.io%2F2017%2F07%2Fjson-web-token%2F">
           <i class="fa fa-facebook-official"></i><span>分享到 Facebook</span>
         </a>
       </li>
     
       <li class="share-option">
-        <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=https%3A%2F%2Fharleylau.github.io%2F2019%2F01%2F%25E4%25BD%25BF%25E7%2594%25A8redis-setnx-%25E5%2591%25BD%25E4%25BB%25A4%25E5%25AE%259E%25E7%258E%25B0%25E5%2588%2586%25E5%25B8%2583%25E5%25BC%258F%25E9%2594%2581%2F">
+        <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=https%3A%2F%2Fharleylau.github.io%2F2017%2F07%2Fjson-web-token%2F">
           <i class="fa fa-twitter"></i><span>分享到 Twitter</span>
         </a>
       </li>
     
       <li class="share-option">
-        <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=https%3A%2F%2Fharleylau.github.io%2F2019%2F01%2F%25E4%25BD%25BF%25E7%2594%25A8redis-setnx-%25E5%2591%25BD%25E4%25BB%25A4%25E5%25AE%259E%25E7%258E%25B0%25E5%2588%2586%25E5%25B8%2583%25E5%25BC%258F%25E9%2594%2581%2F">
+        <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=https%3A%2F%2Fharleylau.github.io%2F2017%2F07%2Fjson-web-token%2F">
           <i class="fa fa-google-plus"></i><span>分享到 Google&#43;</span>
         </a>
       </li>
@@ -776,9 +747,9 @@ $(document).ready(function() {
     
       <script>
         var disqus_config = function () {
-          this.page.url = 'https:\/\/harleylau.github.io\/2019\/01\/%E4%BD%BF%E7%94%A8redis-setnx-%E5%91%BD%E4%BB%A4%E5%AE%9E%E7%8E%B0%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81\/';
+          this.page.url = 'https:\/\/harleylau.github.io\/2017\/07\/json-web-token\/';
           
-            this.page.identifier = '\/2019\/01\/%E4%BD%BF%E7%94%A8redis-setnx-%E5%91%BD%E4%BB%A4%E5%AE%9E%E7%8E%B0%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81\/'
+            this.page.identifier = '\/2017\/07\/json-web-token\/'
           
         };
         (function() {
