@@ -6,10 +6,19 @@
     <description>Recent content in Tornado on Harley</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Tue, 25 Jul 2017 08:54:31 +0800</lastBuildDate>
+    <lastBuildDate>Thu, 07 Sep 2017 11:21:02 +0800</lastBuildDate>
     
 	<atom:link href="https://harleylau.github.io/categories/tornado/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Tornado–打印block日志</title>
+      <link>https://harleylau.github.io/2017/09/tornado%E6%89%93%E5%8D%B0block%E6%97%A5%E5%BF%97/</link>
+      <pubDate>Thu, 07 Sep 2017 11:21:02 +0800</pubDate>
+      
+      <guid>https://harleylau.github.io/2017/09/tornado%E6%89%93%E5%8D%B0block%E6%97%A5%E5%BF%97/</guid>
+      <description>&lt;p&gt;Tornado在使用过程，碰到过性能瓶颈。 当碰到Tornado中有比较耗时的任务的时候，请求一多就会阻塞整个服务。这个时候就需要查看到底是什么任务阻塞了服务，然后针对性的进行优化。&lt;/p&gt;</description>
+    </item>
     
     <item>
       <title>Tornado 线程池应用</title>

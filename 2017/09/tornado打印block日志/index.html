@@ -7,20 +7,38 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="generator" content="Hugo 0.52 with theme Tranquilpeak 0.4.3-SNAPSHOT">
 <meta name="author" content="Harley">
-<meta name="keywords" content="">
-<meta name="description" content="Hugo tranquilpeak theme demo">
+<meta name="keywords" content="Tornado">
+<meta name="description" content="Tornado在使用过程，碰到过性能瓶颈。 当碰到Tornado中有比较耗时的任务的时候，请求一多就会阻塞整个服务。这个时候就需要查看到底是什么任务阻塞了服务，然后针对性的进行优化。">
 
 
-<meta property="og:description" content="Hugo tranquilpeak theme demo">
-<meta property="og:type" content="website">
-<meta property="og:title" content="Tornado">
-<meta name="twitter:title" content="Tornado">
-<meta property="og:url" content="https://harleylau.github.io/categories/tornado/">
-<meta property="twitter:url" content="https://harleylau.github.io/categories/tornado/">
+<meta property="og:description" content="Tornado在使用过程，碰到过性能瓶颈。 当碰到Tornado中有比较耗时的任务的时候，请求一多就会阻塞整个服务。这个时候就需要查看到底是什么任务阻塞了服务，然后针对性的进行优化。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Tornado–打印block日志">
+<meta name="twitter:title" content="Tornado–打印block日志">
+<meta property="og:url" content="https://harleylau.github.io/2017/09/tornado%E6%89%93%E5%8D%B0block%E6%97%A5%E5%BF%97/">
+<meta property="twitter:url" content="https://harleylau.github.io/2017/09/tornado%E6%89%93%E5%8D%B0block%E6%97%A5%E5%BF%97/">
 <meta property="og:site_name" content="Harley">
-<meta property="og:description" content="Hugo tranquilpeak theme demo">
-<meta name="twitter:description" content="Hugo tranquilpeak theme demo">
+<meta property="og:description" content="Tornado在使用过程，碰到过性能瓶颈。 当碰到Tornado中有比较耗时的任务的时候，请求一多就会阻塞整个服务。这个时候就需要查看到底是什么任务阻塞了服务，然后针对性的进行优化。">
+<meta name="twitter:description" content="Tornado在使用过程，碰到过性能瓶颈。 当碰到Tornado中有比较耗时的任务的时候，请求一多就会阻塞整个服务。这个时候就需要查看到底是什么任务阻塞了服务，然后针对性的进行优化。">
 <meta property="og:locale" content="zh-cn">
+
+  
+    <meta property="article:published_time" content="2017-09-07T11:21:02">
+  
+  
+    <meta property="article:modified_time" content="2017-09-07T11:21:02">
+  
+  
+  
+    
+      <meta property="article:section" content="Tornado">
+    
+  
+  
+    
+      <meta property="article:tag" content="Tornado">
+    
+  
 
 
 <meta name="twitter:card" content="summary">
@@ -39,16 +57,14 @@
   <meta property="twitter:image" content="https://harleylau.github.io/img/harleylau.jpg">
 
 
-    <title>Tornado</title>
+    <title>Tornado–打印block日志</title>
 
     <link rel="icon" href="https://harleylau.github.io/favicon.png">
     
-      <link rel="alternate" type="application/rss+xml" title="RSS" href="https://harleylau.github.io/categories/tornado/index.xml">
-    
 
     
 
-    <link rel="canonical" href="https://harleylau.github.io/categories/tornado/">
+    <link rel="canonical" href="https://harleylau.github.io/2017/09/tornado%E6%89%93%E5%8D%B0block%E6%97%A5%E5%BF%97/">
 
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous" />
@@ -68,7 +84,7 @@
 
   <body>
     <div id="blog">
-      <header id="header" data-behavior="1">
+      <header id="header" data-behavior="4">
   <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
   <div class="header-title">
     <a class="header-title-link" href="https://harleylau.github.io/">Harley</a>
@@ -88,7 +104,7 @@
   
 </header>
 
-      <nav id="sidebar" data-behavior="1">
+      <nav id="sidebar" data-behavior="4">
   <div class="sidebar-container">
     
       <div class="sidebar-profile">
@@ -195,39 +211,21 @@
 </nav>
 
       
-        
 
-      
-      <div id="main" data-behavior="1"
+      <div id="main" data-behavior="4"
         class="
                hasCoverMetaIn
                ">
-        
-          <section class="postShorten-group main-content-wrap">
-            
-            
-              
+        <article class="post" itemscope itemType="http://schema.org/BlogPosting">
+          
+          
+            <div class="post-header main-content-wrap text-left">
   
-    
-      
-        
-      
-    
+    <h1 class="post-title" itemprop="headline">
+      Tornado–打印block日志
+    </h1>
   
-
-
   
-
-<article class="postShorten postShorten--thumbnailimg-bottom" itemscope itemType="http://schema.org/BlogPosting">
-  <div class="postShorten-wrap">
-    
-    <div class="postShorten-header">
-      <h1 class="postShorten-title" itemprop="headline">
-        <a class="link-unstyled" href="https://harleylau.github.io/2017/09/tornado%E6%89%93%E5%8D%B0block%E6%97%A5%E5%BF%97/">
-          Tornado–打印block日志
-        </a>
-      </h1>
-      
   <div class="postShorten-meta post-meta">
     
       <time itemprop="datePublished" datetime="2017-09-07T11:21:02&#43;08:00">
@@ -247,85 +245,135 @@
 
   </div>
 
-    </div>
-    <div class="postShorten-excerpt" itemprop="articleBody">
-      
-        <p>Tornado在使用过程，碰到过性能瓶颈。 当碰到Tornado中有比较耗时的任务的时候，请求一多就会阻塞整个服务。这个时候就需要查看到底是什么任务阻塞了服务，然后针对性的进行优化。</p>
-      
-      <p>
-        <a href="https://harleylau.github.io/2017/09/tornado%E6%89%93%E5%8D%B0block%E6%97%A5%E5%BF%97/" class="postShorten-excerpt_link link">阅读全文</a>
-        
-      </p>
-    </div>
-  </div>
+</div>
+          
+          <div class="post-content markdown" itemprop="articleBody">
+            <div class="main-content-wrap">
+              <p>Tornado在使用过程，碰到过性能瓶颈。 当碰到Tornado中有比较耗时的任务的时候，请求一多就会阻塞整个服务。这个时候就需要查看到底是什么任务阻塞了服务，然后针对性的进行优化。</p>
+
+<p>Tornado使用logging打印日志，我们可以指定当某个请求的处理时间超过设定时间的时候，打印这个请求的stack trace。</p>
+
+<p>源码如下：</p>
+
+<pre><code> def set_blocking_log_threshold(self, seconds):
+        &quot;&quot;&quot;Logs a stack trace if the `IOLoop` is blocked for more than
+        ``s`` seconds.
+
+        Equivalent to ``set_blocking_signal_threshold(seconds,
+        self.log_stack)``
+        &quot;&quot;&quot;
+        self.set_blocking_signal_threshold(seconds, self.log_stack)
+</code></pre>
+
+<p>如何使用呢，只需要在启动服务的时候设置block的时间即可，如下所示：</p>
+
+<pre><code>if __name__ == '__main__':
+
+    app = create_app()
+
+    server = tornado.httpserver.HTTPServer(app)
+    server.listen(options.port)
+    io_loop = tornado.ioloop.IOLoop.instance()
+    io_loop.set_blocking_log_threshold(0.5)
+    io_loop.start()
+</code></pre>
+
+<p>如果某个请求的处理时间超过0.5秒，就会打印该请求的栈。</p>
+              
+            </div>
+          </div>
+          <div id="post-footer" class="post-footer main-content-wrap">
+            
+              
+                
+                
+                  <div class="post-footer-tags">
+                    <span class="text-color-light text-small">标签</span><br/>
+                    
+  <a class="tag tag--primary tag--small" href="https://harleylau.github.io/tags/tornado/">Tornado</a>
+
+                  </div>
+                
+              
+            
+            <div class="post-actions-wrap">
   
-</article>
+      <nav >
+        <ul class="post-actions post-action-nav">
+          
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2018/12/%E4%BB%8Ehexo%E8%BD%AC%E5%88%B0hugo/" data-tooltip="从hexo转到hugo">
+              
+                  <i class="fa fa-angle-left"></i>
+                  <span class="hide-xs hide-sm text-small icon-ml">下一篇</span>
+                </a>
+            </li>
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2017/09/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%8E%8B%E7%BC%A9%E5%88%97%E8%A1%A8/" data-tooltip="Redis源码剖析–压缩列表">
+              
+                  <span class="hide-xs hide-sm text-small icon-mr">上一篇</span>
+                  <i class="fa fa-angle-right"></i>
+                </a>
+            </li>
+          
+        </ul>
+      </nav>
+    <ul class="post-actions post-action-share" >
+      
+        <li class="post-action hide-lg hide-md hide-sm">
+          <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions">
+            <i class="fa fa-share-alt"></i>
+          </a>
+        </li>
+        
+          <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://harleylau.github.io/2017/09/tornado%E6%89%93%E5%8D%B0block%E6%97%A5%E5%BF%97/">
+              <i class="fa fa-facebook-official"></i>
+            </a>
+          </li>
+        
+          <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://harleylau.github.io/2017/09/tornado%E6%89%93%E5%8D%B0block%E6%97%A5%E5%BF%97/">
+              <i class="fa fa-twitter"></i>
+            </a>
+          </li>
+        
+          <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://harleylau.github.io/2017/09/tornado%E6%89%93%E5%8D%B0block%E6%97%A5%E5%BF%97/">
+              <i class="fa fa-google-plus"></i>
+            </a>
+          </li>
+        
+      
+      
+        <li class="post-action">
+          <a class="post-action-btn btn btn--default" href="#disqus_thread">
+            <i class="fa fa-comment-o"></i>
+          </a>
+        </li>
+      
+      <li class="post-action">
+        
+          <a class="post-action-btn btn btn--default" href="#">
+        
+          <i class="fa fa-list"></i>
+        </a>
+      </li>
+    </ul>
+  
+</div>
 
             
               
-  
-    
-  
-
-
-  
-
-<article class="postShorten postShorten--thumbnailimg-left" itemscope itemType="http://schema.org/BlogPosting">
-  <div class="postShorten-wrap">
-    
-    <div class="postShorten-header">
-      <h1 class="postShorten-title" itemprop="headline">
-        <a class="link-unstyled" href="https://harleylau.github.io/2017/07/tornado-%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%BA%94%E7%94%A8/">
-          Tornado 线程池应用
-        </a>
-      </h1>
-      
-  <div class="postShorten-meta post-meta">
-    
-      <time itemprop="datePublished" datetime="2017-07-25T08:54:31&#43;08:00">
-        
-  七月 25, 2017
-
-      </time>
-    
-    
-  
-  
-    <span>发布在</span>
-    
-      <a class="category-link" href="https://harleylau.github.io/categories/tornado">Tornado</a>, 
-    
-      <a class="category-link" href="https://harleylau.github.io/categories/%e7%ba%bf%e7%a8%8b%e6%b1%a0">线程池</a>
-    
-  
-
-  </div>
-
-    </div>
-    <div class="postShorten-excerpt" itemprop="articleBody">
-      
-        <p>Tornado是一个异步框架，在异步操作的时候能提升程序的处理性能。但是如果在程序中碰到同步的逻辑，由于GIL的关系，会直接卡死，导致性能急剧下降。</p>
-      
-      <p>
-        <a href="https://harleylau.github.io/2017/07/tornado-%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%BA%94%E7%94%A8/" class="postShorten-excerpt_link link">阅读全文</a>
-        
-      </p>
-    </div>
-  </div>
-  
-    <a href="https://harleylau.github.io/2017/07/tornado-%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%BA%94%E7%94%A8/">
-      <div class="postShorten-thumbnailimg">
-        <img alt="" itemprop="image" src="https://harleylau.github.io/img/tornado.png"/>
-      </div>
-    </a>
-  
-</article>
-
+                <div id="disqus_thread">
+  <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+              
             
-            
-
-          </section>
-        
+          </div>
+        </article>
         <footer id="footer" class="main-content-wrap">
   <span class="copyrights">
     &copy; 2019 Harley. All Rights Reserved
@@ -333,6 +381,102 @@
 </footer>
 
       </div>
+      <div id="bottom-bar" class="post-bottom-bar" data-behavior="4">
+        <div class="post-actions-wrap">
+  
+      <nav >
+        <ul class="post-actions post-action-nav">
+          
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2018/12/%E4%BB%8Ehexo%E8%BD%AC%E5%88%B0hugo/" data-tooltip="从hexo转到hugo">
+              
+                  <i class="fa fa-angle-left"></i>
+                  <span class="hide-xs hide-sm text-small icon-ml">下一篇</span>
+                </a>
+            </li>
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2017/09/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%8E%8B%E7%BC%A9%E5%88%97%E8%A1%A8/" data-tooltip="Redis源码剖析–压缩列表">
+              
+                  <span class="hide-xs hide-sm text-small icon-mr">上一篇</span>
+                  <i class="fa fa-angle-right"></i>
+                </a>
+            </li>
+          
+        </ul>
+      </nav>
+    <ul class="post-actions post-action-share" >
+      
+        <li class="post-action hide-lg hide-md hide-sm">
+          <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions">
+            <i class="fa fa-share-alt"></i>
+          </a>
+        </li>
+        
+          <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://harleylau.github.io/2017/09/tornado%E6%89%93%E5%8D%B0block%E6%97%A5%E5%BF%97/">
+              <i class="fa fa-facebook-official"></i>
+            </a>
+          </li>
+        
+          <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://harleylau.github.io/2017/09/tornado%E6%89%93%E5%8D%B0block%E6%97%A5%E5%BF%97/">
+              <i class="fa fa-twitter"></i>
+            </a>
+          </li>
+        
+          <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://harleylau.github.io/2017/09/tornado%E6%89%93%E5%8D%B0block%E6%97%A5%E5%BF%97/">
+              <i class="fa fa-google-plus"></i>
+            </a>
+          </li>
+        
+      
+      
+        <li class="post-action">
+          <a class="post-action-btn btn btn--default" href="#disqus_thread">
+            <i class="fa fa-comment-o"></i>
+          </a>
+        </li>
+      
+      <li class="post-action">
+        
+          <a class="post-action-btn btn btn--default" href="#">
+        
+          <i class="fa fa-list"></i>
+        </a>
+      </li>
+    </ul>
+  
+</div>
+
+      </div>
+      <div id="share-options-bar" class="share-options-bar" data-behavior="4">
+  <i id="btn-close-shareoptions" class="fa fa-close"></i>
+  <ul class="share-options">
+    
+      <li class="share-option">
+        <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fharleylau.github.io%2F2017%2F09%2Ftornado%25E6%2589%2593%25E5%258D%25B0block%25E6%2597%25A5%25E5%25BF%2597%2F">
+          <i class="fa fa-facebook-official"></i><span>分享到 Facebook</span>
+        </a>
+      </li>
+    
+      <li class="share-option">
+        <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=https%3A%2F%2Fharleylau.github.io%2F2017%2F09%2Ftornado%25E6%2589%2593%25E5%258D%25B0block%25E6%2597%25A5%25E5%25BF%2597%2F">
+          <i class="fa fa-twitter"></i><span>分享到 Twitter</span>
+        </a>
+      </li>
+    
+      <li class="share-option">
+        <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=https%3A%2F%2Fharleylau.github.io%2F2017%2F09%2Ftornado%25E6%2589%2593%25E5%258D%25B0block%25E6%2597%25A5%25E5%25BF%2597%2F">
+          <i class="fa fa-google-plus"></i><span>分享到 Google&#43;</span>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+<div id="share-options-mask" class="share-options-mask"></div>
     </div>
     
     <div id="about">
@@ -618,6 +762,32 @@ $(document).ready(function() {
 });
 </script>
 
+
+  
+    
+      <script>
+        var disqus_config = function () {
+          this.page.url = 'https:\/\/harleylau.github.io\/2017\/09\/tornado%E6%89%93%E5%8D%B0block%E6%97%A5%E5%BF%97\/';
+          
+            this.page.identifier = '\/2017\/09\/tornado%E6%89%93%E5%8D%B0block%E6%97%A5%E5%BF%97\/'
+          
+        };
+        (function() {
+          
+          
+          if (window.location.hostname == "localhost") {
+            return;
+          }
+          var d = document, s = d.createElement('script');
+          var disqus_shortname = 'harleylau';
+          s.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+
+          s.setAttribute('data-timestamp', +new Date());
+          (d.head || d.body).appendChild(s);
+        })();
+      </script>
+    
+  
 
 
 

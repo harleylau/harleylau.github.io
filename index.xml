@@ -42,6 +42,15 @@
     </item>
     
     <item>
+      <title>Tornado–打印block日志</title>
+      <link>https://harleylau.github.io/2017/09/tornado%E6%89%93%E5%8D%B0block%E6%97%A5%E5%BF%97/</link>
+      <pubDate>Thu, 07 Sep 2017 11:21:02 +0800</pubDate>
+      
+      <guid>https://harleylau.github.io/2017/09/tornado%E6%89%93%E5%8D%B0block%E6%97%A5%E5%BF%97/</guid>
+      <description>&lt;p&gt;Tornado在使用过程，碰到过性能瓶颈。 当碰到Tornado中有比较耗时的任务的时候，请求一多就会阻塞整个服务。这个时候就需要查看到底是什么任务阻塞了服务，然后针对性的进行优化。&lt;/p&gt;</description>
+    </item>
+    
+    <item>
       <title>Redis源码剖析–压缩列表</title>
       <link>https://harleylau.github.io/2017/09/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%8E%8B%E7%BC%A9%E5%88%97%E8%A1%A8/</link>
       <pubDate>Tue, 05 Sep 2017 09:51:55 +0800</pubDate>
