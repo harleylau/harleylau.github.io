@@ -1,0 +1,1217 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="generator" content="Hugo 0.52 with theme Tranquilpeak 0.4.3-SNAPSHOT">
+<meta name="author" content="Harley">
+<meta name="keywords" content="Python">
+<meta name="description" content="Python中虽然有ElementTree等来处理xml格式，但是总是感觉不如json处理来的方便.">
+
+
+<meta property="og:description" content="Python中虽然有ElementTree等来处理xml格式，但是总是感觉不如json处理来的方便.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Python 处理XML转为json">
+<meta name="twitter:title" content="Python 处理XML转为json">
+<meta property="og:url" content="https://harleylau.github.io/2017/11/python-%E5%A4%84%E7%90%86xml%E8%BD%AC%E4%B8%BAjson/">
+<meta property="twitter:url" content="https://harleylau.github.io/2017/11/python-%E5%A4%84%E7%90%86xml%E8%BD%AC%E4%B8%BAjson/">
+<meta property="og:site_name" content="Harley">
+<meta property="og:description" content="Python中虽然有ElementTree等来处理xml格式，但是总是感觉不如json处理来的方便.">
+<meta name="twitter:description" content="Python中虽然有ElementTree等来处理xml格式，但是总是感觉不如json处理来的方便.">
+<meta property="og:locale" content="zh-cn">
+
+  
+    <meta property="article:published_time" content="2017-11-01T12:39:11">
+  
+  
+    <meta property="article:modified_time" content="2017-11-01T12:39:11">
+  
+  
+  
+    
+      <meta property="article:section" content="Python">
+    
+  
+  
+    
+      <meta property="article:tag" content="Python">
+    
+      <meta property="article:tag" content="XML">
+    
+  
+
+
+<meta name="twitter:card" content="summary">
+
+
+
+
+
+
+
+
+
+
+
+  <meta property="og:image" content="https://harleylau.github.io/img/harleylau.jpg">
+  <meta property="twitter:image" content="https://harleylau.github.io/img/harleylau.jpg">
+
+
+    <title>Python 处理XML转为json</title>
+
+    <link rel="icon" href="https://harleylau.github.io/favicon.png">
+    
+
+    
+
+    <link rel="canonical" href="https://harleylau.github.io/2017/11/python-%E5%A4%84%E7%90%86xml%E8%BD%AC%E4%B8%BAjson/">
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.4/jquery.fancybox.min.css" integrity="sha256-vuXZ9LGmmwtjqFX1F+EKin1ThZMub58gKULUyf0qECk=" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.4/helpers/jquery.fancybox-thumbs.min.css" integrity="sha256-SEa4XYAHihTcEP1f5gARTB2K26Uk8PsndQYHQC1f4jU=" crossorigin="anonymous" />
+    
+    
+    <link rel="stylesheet" href="https://harleylau.github.io/css/style-nnm2spxvve8onlujjlegkkytaehyadd4ksxc1hyzzq9a2wvtrgbljqyulomn.min.css" />
+    
+    
+
+    
+      
+    
+    
+  </head>
+
+  <body>
+    <div id="blog">
+      <header id="header" data-behavior="4">
+  <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+  <div class="header-title">
+    <a class="header-title-link" href="https://harleylau.github.io/">Harley</a>
+  </div>
+  
+    
+      <a class="header-right-picture "
+         href="https://harleylau.github.io/#about">
+    
+    
+    
+      
+        <img class="header-picture" src="https://harleylau.github.io/img/harleylau.jpg" alt="作者的图片" />
+      
+    
+    </a>
+  
+</header>
+
+      <nav id="sidebar" data-behavior="4">
+  <div class="sidebar-container">
+    
+      <div class="sidebar-profile">
+        <a href="https://harleylau.github.io/#about">
+          <img class="sidebar-profile-picture" src="https://harleylau.github.io/img/harleylau.jpg" alt="作者的图片" />
+        </a>
+        <h4 class="sidebar-profile-name">Harley</h4>
+        
+      </div>
+    
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://harleylau.github.io/">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-home"></i>
+      
+      <span class="sidebar-button-desc">首页</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://harleylau.github.io/categories">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-bookmark"></i>
+      
+      <span class="sidebar-button-desc">分类</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://harleylau.github.io/tags">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-tags"></i>
+      
+      <span class="sidebar-button-desc">标签</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://harleylau.github.io/archives">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-archive"></i>
+      
+      <span class="sidebar-button-desc">归档</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://harleylau.github.io/#about">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-question"></i>
+      
+      <span class="sidebar-button-desc">关于</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://github.com/harleylau" target="_blank" rel="noopener">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-github"></i>
+      
+      <span class="sidebar-button-desc">GitHub</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://blog.csdn.net/harleylau" target="_blank" rel="noopener">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-code"></i>
+      
+      <span class="sidebar-button-desc">CSDN</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://harleylau.github.io/index.xml">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-rss"></i>
+      
+      <span class="sidebar-button-desc">RSS</span>
+    </a>
+  </li>
+
+
+    </ul>
+  </div>
+</nav>
+
+      
+
+      <div id="main" data-behavior="4"
+        class="
+               hasCoverMetaIn
+               ">
+        <article class="post" itemscope itemType="http://schema.org/BlogPosting">
+          
+          
+            <div class="post-header main-content-wrap text-left">
+  
+    <h1 class="post-title" itemprop="headline">
+      Python 处理XML转为json
+    </h1>
+  
+  
+  <div class="postShorten-meta post-meta">
+    
+      <time itemprop="datePublished" datetime="2017-11-01T12:39:11&#43;08:00">
+        
+  十一月 1, 2017
+
+      </time>
+    
+    
+  
+  
+    <span>发布在</span>
+    
+      <a class="category-link" href="https://harleylau.github.io/categories/python">Python</a>
+    
+  
+
+  </div>
+
+</div>
+          
+          <div class="post-content markdown" itemprop="articleBody">
+            <div class="main-content-wrap">
+              <p>Python中虽然有ElementTree等来处理xml格式，但是总是感觉不如json处理来的方便.</p>
+
+<p>目前也有不少直接将xml格式转为json格式的库，比如这个xmltodict的库</p>
+
+<p>库相关的原始网页为：<a href="https://pypi.python.org/pypi/xmltodict ">https://pypi.python.org/pypi/xmltodict </a>   可以查看相关内容</p>
+
+<p>这边仅仅记录一下实现的机制，以备后来查看</p>
+
+<pre><code>
+#!/usr/bin/env python
+&quot;Makes working with XML feel like you are working with JSON&quot;
+
+try:
+    from defusedexpat import pyexpat as expat
+except ImportError:
+    from xml.parsers import expat
+from xml.sax.saxutils import XMLGenerator
+from xml.sax.xmlreader import AttributesImpl
+try:  # pragma no cover
+    from cStringIO import StringIO
+except ImportError:  # pragma no cover
+    try:
+        from StringIO import StringIO
+    except ImportError:
+        from io import StringIO
+try:  # pragma no cover
+    from collections import OrderedDict
+except ImportError:  # pragma no cover
+    try:
+        from ordereddict import OrderedDict
+    except ImportError:
+        OrderedDict = dict
+
+try:  # pragma no cover
+    _basestring = basestring
+except NameError:  # pragma no cover
+    _basestring = str
+try:  # pragma no cover
+    _unicode = unicode
+except NameError:  # pragma no cover
+    _unicode = str
+
+__author__ = 'Martin Blech'
+__version__ = '0.10.2'
+__license__ = 'MIT'
+
+
+class ParsingInterrupted(Exception):
+    pass
+
+
+class _DictSAXHandler(object):
+    def __init__(self,
+                 item_depth=0,
+                 item_callback=lambda *args: True,
+                 xml_attribs=True,
+                 attr_prefix='@',
+                 cdata_key='#text',
+                 force_cdata=False,
+                 cdata_separator='',
+                 postprocessor=None,
+                 dict_constructor=OrderedDict,
+                 strip_whitespace=True,
+                 namespace_separator=':',
+                 namespaces=None,
+                 force_list=None):
+        self.path = []
+        self.stack = []
+        self.data = []
+        self.item = None
+        self.item_depth = item_depth
+        self.xml_attribs = xml_attribs
+        self.item_callback = item_callback
+        self.attr_prefix = attr_prefix
+        self.cdata_key = cdata_key
+        self.force_cdata = force_cdata
+        self.cdata_separator = cdata_separator
+        self.postprocessor = postprocessor
+        self.dict_constructor = dict_constructor
+        self.strip_whitespace = strip_whitespace
+        self.namespace_separator = namespace_separator
+        self.namespaces = namespaces
+        self.force_list = force_list
+
+    def _build_name(self, full_name):
+        if not self.namespaces:
+            return full_name
+        i = full_name.rfind(self.namespace_separator)
+        if i == -1:
+            return full_name
+        namespace, name = full_name[:i], full_name[i+1:]
+        short_namespace = self.namespaces.get(namespace, namespace)
+        if not short_namespace:
+            return name
+        else:
+            return self.namespace_separator.join((short_namespace, name))
+
+    def _attrs_to_dict(self, attrs):
+        if isinstance(attrs, dict):
+            return attrs
+        return self.dict_constructor(zip(attrs[0::2], attrs[1::2]))
+
+    def startElement(self, full_name, attrs):
+        name = self._build_name(full_name)
+        attrs = self._attrs_to_dict(attrs)
+        self.path.append((name, attrs or None))
+        if len(self.path) &gt; self.item_depth:
+            self.stack.append((self.item, self.data))
+            if self.xml_attribs:
+                attr_entries = []
+                for key, value in attrs.items():
+                    key = self.attr_prefix+self._build_name(key)
+                    if self.postprocessor:
+                        entry = self.postprocessor(self.path, key, value)
+                    else:
+                        entry = (key, value)
+                    if entry:
+                        attr_entries.append(entry)
+                attrs = self.dict_constructor(attr_entries)
+            else:
+                attrs = None
+            self.item = attrs or None
+            self.data = []
+
+    def endElement(self, full_name):
+        name = self._build_name(full_name)
+        if len(self.path) == self.item_depth:
+            item = self.item
+            if item is None:
+                item = (None if not self.data
+                        else self.cdata_separator.join(self.data))
+
+            should_continue = self.item_callback(self.path, item)
+            if not should_continue:
+                raise ParsingInterrupted()
+        if len(self.stack):
+            data = (None if not self.data
+                    else self.cdata_separator.join(self.data))
+            item = self.item
+            self.item, self.data = self.stack.pop()
+            if self.strip_whitespace and data:
+                data = data.strip() or None
+            if data and self.force_cdata and item is None:
+                item = self.dict_constructor()
+            if item is not None:
+                if data:
+                    self.push_data(item, self.cdata_key, data)
+                self.item = self.push_data(self.item, name, item)
+            else:
+                self.item = self.push_data(self.item, name, data)
+        else:
+            self.item = None
+            self.data = []
+        self.path.pop()
+
+    def characters(self, data):
+        if not self.data:
+            self.data = [data]
+        else:
+            self.data.append(data)
+
+    def push_data(self, item, key, data):
+        if self.postprocessor is not None:
+            result = self.postprocessor(self.path, key, data)
+            if result is None:
+                return item
+            key, data = result
+        if item is None:
+            item = self.dict_constructor()
+        try:
+            value = item[key]
+            if isinstance(value, list):
+                value.append(data)
+            else:
+                item[key] = [value, data]
+        except KeyError:
+            if self._should_force_list(key, data):
+                item[key] = [data]
+            else:
+                item[key] = data
+        return item
+
+    def _should_force_list(self, key, value):
+        if not self.force_list:
+            return False
+        try:
+            return key in self.force_list
+        except TypeError:
+            return self.force_list(self.path[:-1], key, value)
+
+
+def parse(xml_input, encoding=None, expat=expat, process_namespaces=False,
+          namespace_separator=':', **kwargs):
+    &quot;&quot;&quot;Parse the given XML input and convert it into a dictionary.
+
+    `xml_input` can either be a `string` or a file-like object.
+
+    If `xml_attribs` is `True`, element attributes are put in the dictionary
+    among regular child elements, using `@` as a prefix to avoid collisions. If
+    set to `False`, they are just ignored.
+
+    Simple example::
+
+        &gt;&gt;&gt; import xmltodict
+        &gt;&gt;&gt; doc = xmltodict.parse(\&quot;\&quot;\&quot;
+        ... &lt;a prop=&quot;x&quot;&gt;
+        ...   &lt;b&gt;1&lt;/b&gt;
+        ...   &lt;b&gt;2&lt;/b&gt;
+        ... &lt;/a&gt;
+        ... \&quot;\&quot;\&quot;)
+        &gt;&gt;&gt; doc['a']['@prop']
+        u'x'
+        &gt;&gt;&gt; doc['a']['b']
+        [u'1', u'2']
+
+    If `item_depth` is `0`, the function returns a dictionary for the root
+    element (default behavior). Otherwise, it calls `item_callback` every time
+    an item at the specified depth is found and returns `None` in the end
+    (streaming mode).
+
+    The callback function receives two parameters: the `path` from the document
+    root to the item (name-attribs pairs), and the `item` (dict). If the
+    callback's return value is false-ish, parsing will be stopped with the
+    :class:`ParsingInterrupted` exception.
+
+    Streaming example::
+
+        &gt;&gt;&gt; def handle(path, item):
+        ...     print 'path:%s item:%s' % (path, item)
+        ...     return True
+        ...
+        &gt;&gt;&gt; xmltodict.parse(\&quot;\&quot;\&quot;
+        ... &lt;a prop=&quot;x&quot;&gt;
+        ...   &lt;b&gt;1&lt;/b&gt;
+        ...   &lt;b&gt;2&lt;/b&gt;
+        ... &lt;/a&gt;\&quot;\&quot;\&quot;, item_depth=2, item_callback=handle)
+        path:[(u'a', {u'prop': u'x'}), (u'b', None)] item:1
+        path:[(u'a', {u'prop': u'x'}), (u'b', None)] item:2
+
+    The optional argument `postprocessor` is a function that takes `path`,
+    `key` and `value` as positional arguments and returns a new `(key, value)`
+    pair where both `key` and `value` may have changed. Usage example::
+
+        &gt;&gt;&gt; def postprocessor(path, key, value):
+        ...     try:
+        ...         return key + ':int', int(value)
+        ...     except (ValueError, TypeError):
+        ...         return key, value
+        &gt;&gt;&gt; xmltodict.parse('&lt;a&gt;&lt;b&gt;1&lt;/b&gt;&lt;b&gt;2&lt;/b&gt;&lt;b&gt;x&lt;/b&gt;&lt;/a&gt;',
+        ...                 postprocessor=postprocessor)
+        OrderedDict([(u'a', OrderedDict([(u'b:int', [1, 2]), (u'b', u'x')]))])
+
+    You can pass an alternate version of `expat` (such as `defusedexpat`) by
+    using the `expat` parameter. E.g:
+
+        &gt;&gt;&gt; import defusedexpat
+        &gt;&gt;&gt; xmltodict.parse('&lt;a&gt;hello&lt;/a&gt;', expat=defusedexpat.pyexpat)
+        OrderedDict([(u'a', u'hello')])
+
+    You can use the force_list argument to force lists to be created even
+    when there is only a single child of a given level of hierarchy. The
+    force_list argument is a tuple of keys. If the key for a given level
+    of hierarchy is in the force_list argument, that level of hierarchy
+    will have a list as a child (even if there is only one sub-element).
+    The index_keys operation takes precendence over this. This is applied
+    after any user-supplied postprocessor has already run.
+
+        For example, given this input:
+        &lt;servers&gt;
+          &lt;server&gt;
+            &lt;name&gt;host1&lt;/name&gt;
+            &lt;os&gt;Linux&lt;/os&gt;
+            &lt;interfaces&gt;
+              &lt;interface&gt;
+                &lt;name&gt;em0&lt;/name&gt;
+                &lt;ip_address&gt;10.0.0.1&lt;/ip_address&gt;
+              &lt;/interface&gt;
+            &lt;/interfaces&gt;
+          &lt;/server&gt;
+        &lt;/servers&gt;
+
+        If called with force_list=('interface',), it will produce
+        this dictionary:
+        {'servers':
+          {'server':
+            {'name': 'host1',
+             'os': 'Linux'},
+             'interfaces':
+              {'interface':
+                [ {'name': 'em0', 'ip_address': '10.0.0.1' } ] } } }
+
+        `force_list` can also be a callable that receives `path`, `key` and
+        `value`. This is helpful in cases where the logic that decides whether
+        a list should be forced is more complex.
+    &quot;&quot;&quot;
+    handler = _DictSAXHandler(namespace_separator=namespace_separator,
+                              **kwargs)
+    if isinstance(xml_input, _unicode):
+        if not encoding:
+            encoding = 'utf-8'
+        xml_input = xml_input.encode(encoding)
+    if not process_namespaces:
+        namespace_separator = None
+    parser = expat.ParserCreate(
+        encoding,
+        namespace_separator
+    )
+    try:
+        parser.ordered_attributes = True
+    except AttributeError:
+        # Jython's expat does not support ordered_attributes
+        pass
+    parser.StartElementHandler = handler.startElement
+    parser.EndElementHandler = handler.endElement
+    parser.CharacterDataHandler = handler.characters
+    parser.buffer_text = True
+    try:
+        parser.ParseFile(xml_input)
+    except (TypeError, AttributeError):
+        parser.Parse(xml_input, True)
+    return handler.item
+
+
+def _emit(key, value, content_handler,
+          attr_prefix='@',
+          cdata_key='#text',
+          depth=0,
+          preprocessor=None,
+          pretty=False,
+          newl='\n',
+          indent='\t',
+          full_document=True):
+    if preprocessor is not None:
+        result = preprocessor(key, value)
+        if result is None:
+            return
+        key, value = result
+    if (not hasattr(value, '__iter__')
+            or isinstance(value, _basestring)
+            or isinstance(value, dict)):
+        value = [value]
+    for index, v in enumerate(value):
+        if full_document and depth == 0 and index &gt; 0:
+            raise ValueError('document with multiple roots')
+        if v is None:
+            v = OrderedDict()
+        elif not isinstance(v, dict):
+            v = _unicode(v)
+        if isinstance(v, _basestring):
+            v = OrderedDict(((cdata_key, v),))
+        cdata = None
+        attrs = OrderedDict()
+        children = []
+        for ik, iv in v.items():
+            if ik == cdata_key:
+                cdata = iv
+                continue
+            if ik.startswith(attr_prefix):
+                if not isinstance(iv, _unicode):
+                    iv = _unicode(iv)
+                attrs[ik[len(attr_prefix):]] = iv
+                continue
+            children.append((ik, iv))
+        if pretty:
+            content_handler.ignorableWhitespace(depth * indent)
+        content_handler.startElement(key, AttributesImpl(attrs))
+        if pretty and children:
+            content_handler.ignorableWhitespace(newl)
+        for child_key, child_value in children:
+            _emit(child_key, child_value, content_handler,
+                  attr_prefix, cdata_key, depth+1, preprocessor,
+                  pretty, newl, indent)
+        if cdata is not None:
+            content_handler.characters(cdata)
+        if pretty and children:
+            content_handler.ignorableWhitespace(depth * indent)
+        content_handler.endElement(key)
+        if pretty and depth:
+            content_handler.ignorableWhitespace(newl)
+
+
+def unparse(input_dict, output=None, encoding='utf-8', full_document=True,
+            **kwargs):
+    &quot;&quot;&quot;Emit an XML document for the given `input_dict` (reverse of `parse`).
+
+    The resulting XML document is returned as a string, but if `output` (a
+    file-like object) is specified, it is written there instead.
+
+    Dictionary keys prefixed with `attr_prefix` (default=`'@'`) are interpreted
+    as XML node attributes, whereas keys equal to `cdata_key`
+    (default=`'#text'`) are treated as character data.
+
+    The `pretty` parameter (default=`False`) enables pretty-printing. In this
+    mode, lines are terminated with `'\n'` and indented with `'\t'`, but this
+    can be customized with the `newl` and `indent` parameters.
+
+    &quot;&quot;&quot;
+    if full_document and len(input_dict) != 1:
+        raise ValueError('Document must have exactly one root.')
+    must_return = False
+    if output is None:
+        output = StringIO()
+        must_return = True
+    content_handler = XMLGenerator(output, encoding)
+    if full_document:
+        content_handler.startDocument()
+    for key, value in input_dict.items():
+        _emit(key, value, content_handler, full_document=full_document,
+              **kwargs)
+    if full_document:
+        content_handler.endDocument()
+    if must_return:
+        value = output.getvalue()
+        try:  # pragma no cover
+            value = value.decode(encoding)
+        except AttributeError:  # pragma no cover
+            pass
+        return value
+
+if __name__ == '__main__':  # pragma: no cover
+    import sys
+    import marshal
+    try:
+        stdin = sys.stdin.buffer
+        stdout = sys.stdout.buffer
+    except AttributeError:
+        stdin = sys.stdin
+        stdout = sys.stdout
+
+    (item_depth,) = sys.argv[1:]
+    item_depth = int(item_depth)
+
+
+    def handle_item(path, item):
+        marshal.dump((path, item), stdout)
+        return True
+
+    try:
+        root = parse(stdin,
+                     item_depth=item_depth,
+                     item_callback=handle_item,
+                     dict_constructor=dict)
+        if item_depth == 0:
+            handle_item([], root)
+    except KeyboardInterrupt:
+        pass
+
+
+</code></pre>
+              
+            </div>
+          </div>
+          <div id="post-footer" class="post-footer main-content-wrap">
+            
+              
+                
+                
+                  <div class="post-footer-tags">
+                    <span class="text-color-light text-small">标签</span><br/>
+                    
+  <a class="tag tag--primary tag--small" href="https://harleylau.github.io/tags/python/">Python</a>
+
+  <a class="tag tag--primary tag--small" href="https://harleylau.github.io/tags/xml/">XML</a>
+
+                  </div>
+                
+              
+            
+            <div class="post-actions-wrap">
+  
+      <nav >
+        <ul class="post-actions post-action-nav">
+          
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2018/12/%E4%BB%8Ehexo%E8%BD%AC%E5%88%B0hugo/" data-tooltip="从hexo转到hugo">
+              
+                  <i class="fa fa-angle-left"></i>
+                  <span class="hide-xs hide-sm text-small icon-ml">下一篇</span>
+                </a>
+            </li>
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2017/10/tornado-websocket%E8%B0%83%E7%94%A8%E6%97%B6%E5%87%BA%E7%8E%B0403%E9%94%99%E8%AF%AF/" data-tooltip="Tornado Websocket调用时出现403错误">
+              
+                  <span class="hide-xs hide-sm text-small icon-mr">上一篇</span>
+                  <i class="fa fa-angle-right"></i>
+                </a>
+            </li>
+          
+        </ul>
+      </nav>
+    <ul class="post-actions post-action-share" >
+      
+        <li class="post-action hide-lg hide-md hide-sm">
+          <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions">
+            <i class="fa fa-share-alt"></i>
+          </a>
+        </li>
+        
+          <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://harleylau.github.io/2017/11/python-%E5%A4%84%E7%90%86xml%E8%BD%AC%E4%B8%BAjson/">
+              <i class="fa fa-facebook-official"></i>
+            </a>
+          </li>
+        
+          <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://harleylau.github.io/2017/11/python-%E5%A4%84%E7%90%86xml%E8%BD%AC%E4%B8%BAjson/">
+              <i class="fa fa-twitter"></i>
+            </a>
+          </li>
+        
+          <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://harleylau.github.io/2017/11/python-%E5%A4%84%E7%90%86xml%E8%BD%AC%E4%B8%BAjson/">
+              <i class="fa fa-google-plus"></i>
+            </a>
+          </li>
+        
+      
+      
+        <li class="post-action">
+          <a class="post-action-btn btn btn--default" href="#disqus_thread">
+            <i class="fa fa-comment-o"></i>
+          </a>
+        </li>
+      
+      <li class="post-action">
+        
+          <a class="post-action-btn btn btn--default" href="#">
+        
+          <i class="fa fa-list"></i>
+        </a>
+      </li>
+    </ul>
+  
+</div>
+
+            
+              
+                <div id="disqus_thread">
+  <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+              
+            
+          </div>
+        </article>
+        <footer id="footer" class="main-content-wrap">
+  <span class="copyrights">
+    &copy; 2019 Harley. All Rights Reserved
+  </span>
+</footer>
+
+      </div>
+      <div id="bottom-bar" class="post-bottom-bar" data-behavior="4">
+        <div class="post-actions-wrap">
+  
+      <nav >
+        <ul class="post-actions post-action-nav">
+          
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2018/12/%E4%BB%8Ehexo%E8%BD%AC%E5%88%B0hugo/" data-tooltip="从hexo转到hugo">
+              
+                  <i class="fa fa-angle-left"></i>
+                  <span class="hide-xs hide-sm text-small icon-ml">下一篇</span>
+                </a>
+            </li>
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2017/10/tornado-websocket%E8%B0%83%E7%94%A8%E6%97%B6%E5%87%BA%E7%8E%B0403%E9%94%99%E8%AF%AF/" data-tooltip="Tornado Websocket调用时出现403错误">
+              
+                  <span class="hide-xs hide-sm text-small icon-mr">上一篇</span>
+                  <i class="fa fa-angle-right"></i>
+                </a>
+            </li>
+          
+        </ul>
+      </nav>
+    <ul class="post-actions post-action-share" >
+      
+        <li class="post-action hide-lg hide-md hide-sm">
+          <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions">
+            <i class="fa fa-share-alt"></i>
+          </a>
+        </li>
+        
+          <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://harleylau.github.io/2017/11/python-%E5%A4%84%E7%90%86xml%E8%BD%AC%E4%B8%BAjson/">
+              <i class="fa fa-facebook-official"></i>
+            </a>
+          </li>
+        
+          <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://harleylau.github.io/2017/11/python-%E5%A4%84%E7%90%86xml%E8%BD%AC%E4%B8%BAjson/">
+              <i class="fa fa-twitter"></i>
+            </a>
+          </li>
+        
+          <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://harleylau.github.io/2017/11/python-%E5%A4%84%E7%90%86xml%E8%BD%AC%E4%B8%BAjson/">
+              <i class="fa fa-google-plus"></i>
+            </a>
+          </li>
+        
+      
+      
+        <li class="post-action">
+          <a class="post-action-btn btn btn--default" href="#disqus_thread">
+            <i class="fa fa-comment-o"></i>
+          </a>
+        </li>
+      
+      <li class="post-action">
+        
+          <a class="post-action-btn btn btn--default" href="#">
+        
+          <i class="fa fa-list"></i>
+        </a>
+      </li>
+    </ul>
+  
+</div>
+
+      </div>
+      <div id="share-options-bar" class="share-options-bar" data-behavior="4">
+  <i id="btn-close-shareoptions" class="fa fa-close"></i>
+  <ul class="share-options">
+    
+      <li class="share-option">
+        <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fharleylau.github.io%2F2017%2F11%2Fpython-%25E5%25A4%2584%25E7%2590%2586xml%25E8%25BD%25AC%25E4%25B8%25BAjson%2F">
+          <i class="fa fa-facebook-official"></i><span>分享到 Facebook</span>
+        </a>
+      </li>
+    
+      <li class="share-option">
+        <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=https%3A%2F%2Fharleylau.github.io%2F2017%2F11%2Fpython-%25E5%25A4%2584%25E7%2590%2586xml%25E8%25BD%25AC%25E4%25B8%25BAjson%2F">
+          <i class="fa fa-twitter"></i><span>分享到 Twitter</span>
+        </a>
+      </li>
+    
+      <li class="share-option">
+        <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=https%3A%2F%2Fharleylau.github.io%2F2017%2F11%2Fpython-%25E5%25A4%2584%25E7%2590%2586xml%25E8%25BD%25AC%25E4%25B8%25BAjson%2F">
+          <i class="fa fa-google-plus"></i><span>分享到 Google&#43;</span>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+<div id="share-options-mask" class="share-options-mask"></div>
+    </div>
+    
+    <div id="about">
+  <div id="about-card">
+    <div id="about-btn-close">
+      <i class="fa fa-remove"></i>
+    </div>
+    
+      <img id="about-card-picture" src="https://harleylau.github.io/img/harleylau.jpg" alt="作者的图片" />
+    
+    <h4 id="about-card-name">Harley</h4>
+    
+    
+    
+      <div id="about-card-location">
+        <i class="fa fa-map-marker"></i>
+        <br/>
+        China
+      </div>
+    
+  </div>
+</div>
+
+    <div id="algolia-search-modal" class="modal-container">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="close-button"><i class="fa fa-close"></i></span>
+      <a href="https://algolia.com" target="_blank" rel="noopener" class="searchby-algolia text-color-light link-unstyled">
+        <span class="searchby-algolia-text text-color-light text-small">by</span>
+        <img class="searchby-algolia-logo" src="https://www.algolia.com/static_assets/images/press/downloads/algolia-light.svg">
+      </a>
+      <i class="search-icon fa fa-search"></i>
+      <form id="algolia-search-form">
+        <input type="text" id="algolia-search-input" name="search"
+          class="form-control input--large search-input" placeholder="搜索" />
+      </form>
+    </div>
+    <div class="modal-body">
+      <div class="no-result text-color-light text-center"></div>
+      <div class="results">
+        
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2019/01/%E4%BD%BF%E7%94%A8redis-setnx-%E5%91%BD%E4%BB%A4%E5%AE%9E%E7%8E%B0%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/">
+                <h3 class="media-heading">使用Redis SETNX 命令实现分布式锁</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Jan 1, 2019
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>使用Redis的 SETNX 命令可以实现分布式锁，本文介绍其实现方法。</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2019/01/hbase-rowkey-%E8%AE%BE%E8%AE%A1/">
+                <h3 class="media-heading">HBase Rowkey 设计</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Jan 1, 2019
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><!-- toc -->
+
+<p>HBase中的rowkey唯一的决定了一行数据，使用HBase的场景多种多样， rowkey设计的好坏很大程度上决定了应用场景中的执行效率。</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2018/12/%E4%BB%8Ehexo%E8%BD%AC%E5%88%B0hugo/">
+                <h3 class="media-heading">从hexo转到hugo</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Dec 12, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather">之前的博客都是用hexo生成的，也不是不好用， 只是对于js并不是很熟悉。正好最近一直在用golang，也顺便把原来的博客从hexo转到hugo上来。
+接下去会慢慢的把之前的文章都重新部署一下。</div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2017/11/python-%E5%A4%84%E7%90%86xml%E8%BD%AC%E4%B8%BAjson/">
+                <h3 class="media-heading">Python 处理XML转为json</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Nov 11, 2017
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>Python中虽然有ElementTree等来处理xml格式，但是总是感觉不如json处理来的方便.</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2017/10/tornado-websocket%E8%B0%83%E7%94%A8%E6%97%B6%E5%87%BA%E7%8E%B0403%E9%94%99%E8%AF%AF/">
+                <h3 class="media-heading">Tornado Websocket调用时出现403错误</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Oct 10, 2017
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>tornado websocket 实现的时候，调用可能出现403的错误 </p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2017/09/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%AF%B9%E8%B1%A1object/">
+                <h3 class="media-heading">Redis源码剖析–对象Object</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Sep 9, 2017
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><!--toc-->
+
+<p>之前介绍的都是Redis的基础数据结构，比如简单动态字符串（SDS）、双端链表、字典、压缩列表、整数集合， 等等，不过Redis并没有直接用这些结构来实现键值对的数据库，而是对其进行了封装， 所有的键和值都是用对象Object来表示的。</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2017/09/tornado%E6%89%93%E5%8D%B0block%E6%97%A5%E5%BF%97/">
+                <h3 class="media-heading">Tornado–打印block日志</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Sep 9, 2017
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>Tornado在使用过程，碰到过性能瓶颈。 当碰到Tornado中有比较耗时的任务的时候，请求一多就会阻塞整个服务。这个时候就需要查看到底是什么任务阻塞了服务，然后针对性的进行优化。</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2017/09/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%8E%8B%E7%BC%A9%E5%88%97%E8%A1%A8/">
+                <h3 class="media-heading">Redis源码剖析–压缩列表</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Sep 9, 2017
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><!--toc-->
+
+<p>压缩列表（ziplist）是列表键和哈希键的底层实现之一。
+Redis的列表键，哈希键，有序集合的底层实现都用到了ziplist。</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2017/08/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E6%95%B4%E6%95%B0%E9%9B%86%E5%90%88/">
+                <h3 class="media-heading">Redis源码剖析–整数集合</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Aug 8, 2017
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><!--toc-->
+
+<p>整数集合（intset）是集合键的底层实现之一： 当一个集合只包含整数值元素， 并且这个集合的元素数量不多时， Redis 就会使用整数集合作为集合键的底层实现。</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2017/08/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E8%B7%B3%E8%B7%83%E8%A1%A8/">
+                <h3 class="media-heading">Redis源码剖析–跳跃表</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Aug 8, 2017
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><!--toc-->
+
+<p>跳跃表（skiplist）是一种有序数据结构， 它通过在每个节点中维持多个指向其他节点的指针， 从而达到快速访问节点的目的。</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+      </div>
+    </div>
+    <div class="modal-footer">
+      <p class="results-count text-medium"
+         data-message-zero=""
+         data-message-one=""
+         data-message-other="">
+         16 posts found
+      </p>
+    </div>
+  </div>
+</div>
+    
+  
+    
+    <div id="cover" style="background-image:url('https://harleylau.github.io/images/cover.jpg');"></div>
+  
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js" integrity="sha256-/BfiIkHlHoVihZdc6TFuj7MmJ0TWcWsMXkeDFwhi0zw=" crossorigin="anonymous"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.7/js/jquery.fancybox.min.js" integrity="sha256-GEAnjcTqVP+vBp3SSc8bEDQqvWAZMiHyUSIorrWwH50=" crossorigin="anonymous"></script>
+
+
+<script src="https://harleylau.github.io/js/script-qi9wbxp2ya2j6p7wx1i6tgavftewndznf4v0hy2gvivk1rxgc3lm7njqb6bz.min.js"></script>
+
+
+<script lang="javascript">
+window.onload = updateMinWidth;
+window.onresize = updateMinWidth;
+document.getElementById("sidebar").addEventListener("transitionend", updateMinWidth);
+function updateMinWidth() {
+  var sidebar = document.getElementById("sidebar");
+  var main = document.getElementById("main");
+  main.style.minWidth = "";
+  var w1 = getComputedStyle(main).getPropertyValue("min-width");
+  var w2 = getComputedStyle(sidebar).getPropertyValue("width");
+  var w3 = getComputedStyle(sidebar).getPropertyValue("left");
+  main.style.minWidth = `calc(${w1} - ${w2} - ${w3})`;
+}
+</script>
+
+<script>
+$(document).ready(function() {
+  hljs.configure({ classPrefix: '', useBR: false });
+  $('pre.code-highlight > code, pre > code').each(function(i, block) {
+    if (!$(this).hasClass('codeblock')) {
+      $(this).addClass('codeblock');
+    }
+    hljs.highlightBlock(block);
+  });
+});
+</script>
+
+
+  
+    
+      <script>
+        var disqus_config = function () {
+          this.page.url = 'https:\/\/harleylau.github.io\/2017\/11\/python-%E5%A4%84%E7%90%86xml%E8%BD%AC%E4%B8%BAjson\/';
+          
+            this.page.identifier = '\/2017\/11\/python-%E5%A4%84%E7%90%86xml%E8%BD%AC%E4%B8%BAjson\/'
+          
+        };
+        (function() {
+          
+          
+          if (window.location.hostname == "localhost") {
+            return;
+          }
+          var d = document, s = d.createElement('script');
+          var disqus_shortname = 'harleylau';
+          s.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+
+          s.setAttribute('data-timestamp', +new Date());
+          (d.head || d.body).appendChild(s);
+        })();
+      </script>
+    
+  
+
+
+
+
+    
+  </body>
+</html>
+

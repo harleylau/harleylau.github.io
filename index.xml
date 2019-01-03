@@ -42,6 +42,24 @@
     </item>
     
     <item>
+      <title>Python 处理XML转为json</title>
+      <link>https://harleylau.github.io/2017/11/python-%E5%A4%84%E7%90%86xml%E8%BD%AC%E4%B8%BAjson/</link>
+      <pubDate>Wed, 01 Nov 2017 12:39:11 +0800</pubDate>
+      
+      <guid>https://harleylau.github.io/2017/11/python-%E5%A4%84%E7%90%86xml%E8%BD%AC%E4%B8%BAjson/</guid>
+      <description>&lt;p&gt;Python中虽然有ElementTree等来处理xml格式，但是总是感觉不如json处理来的方便.&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>Tornado Websocket调用时出现403错误</title>
+      <link>https://harleylau.github.io/2017/10/tornado-websocket%E8%B0%83%E7%94%A8%E6%97%B6%E5%87%BA%E7%8E%B0403%E9%94%99%E8%AF%AF/</link>
+      <pubDate>Mon, 30 Oct 2017 10:10:55 +0800</pubDate>
+      
+      <guid>https://harleylau.github.io/2017/10/tornado-websocket%E8%B0%83%E7%94%A8%E6%97%B6%E5%87%BA%E7%8E%B0403%E9%94%99%E8%AF%AF/</guid>
+      <description>&lt;p&gt;tornado websocket 实现的时候，调用可能出现403的错误 &lt;/p&gt;</description>
+    </item>
+    
+    <item>
       <title>Redis源码剖析–对象Object</title>
       <link>https://harleylau.github.io/2017/09/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%AF%B9%E8%B1%A1object/</link>
       <pubDate>Thu, 07 Sep 2017 18:20:21 +0800</pubDate>
