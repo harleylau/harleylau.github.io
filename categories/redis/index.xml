@@ -21,6 +21,18 @@
     </item>
     
     <item>
+      <title>Redis源码剖析–压缩列表</title>
+      <link>https://harleylau.github.io/2017/09/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%8E%8B%E7%BC%A9%E5%88%97%E8%A1%A8/</link>
+      <pubDate>Tue, 05 Sep 2017 09:51:55 +0800</pubDate>
+      
+      <guid>https://harleylau.github.io/2017/09/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%8E%8B%E7%BC%A9%E5%88%97%E8%A1%A8/</guid>
+      <description>&lt;!--toc--&gt;
+
+&lt;p&gt;压缩列表（ziplist）是列表键和哈希键的底层实现之一。
+Redis的列表键，哈希键，有序集合的底层实现都用到了ziplist。&lt;/p&gt;</description>
+    </item>
+    
+    <item>
       <title>Redis源码剖析–整数集合</title>
       <link>https://harleylau.github.io/2017/08/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E6%95%B4%E6%95%B0%E9%9B%86%E5%90%88/</link>
       <pubDate>Tue, 29 Aug 2017 17:44:28 +0800</pubDate>
