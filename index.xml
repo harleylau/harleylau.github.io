@@ -42,6 +42,17 @@
     </item>
     
     <item>
+      <title>Redis源码剖析–整数集合</title>
+      <link>https://harleylau.github.io/2017/08/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E6%95%B4%E6%95%B0%E9%9B%86%E5%90%88/</link>
+      <pubDate>Tue, 29 Aug 2017 17:44:28 +0800</pubDate>
+      
+      <guid>https://harleylau.github.io/2017/08/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E6%95%B4%E6%95%B0%E9%9B%86%E5%90%88/</guid>
+      <description>&lt;!--toc--&gt;
+
+&lt;p&gt;整数集合（intset）是集合键的底层实现之一： 当一个集合只包含整数值元素， 并且这个集合的元素数量不多时， Redis 就会使用整数集合作为集合键的底层实现。&lt;/p&gt;</description>
+    </item>
+    
+    <item>
       <title>Redis源码剖析–跳跃表</title>
       <link>https://harleylau.github.io/2017/08/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E8%B7%B3%E8%B7%83%E8%A1%A8/</link>
       <pubDate>Thu, 24 Aug 2017 10:46:04 +0800</pubDate>
