@@ -8,25 +8,25 @@
 <meta name="generator" content="Hugo 0.52 with theme Tranquilpeak 0.4.3-SNAPSHOT">
 <meta name="author" content="Harley">
 <meta name="keywords" content="redis">
-<meta name="description" content="Redis 没有直接使用 C 语言传统的字符串表示， 而是自己构建了一种名为简单动态字符串（simple dynamic string，SDS）的抽象类型， 并将 SDS 用作 Redis 的默认字符串表示。">
+<meta name="description" content="Redis另一个基础的数据结构是链表，C并没有内置的链表结构，因此Redis自己实现了一个列表。">
 
 
-<meta property="og:description" content="Redis 没有直接使用 C 语言传统的字符串表示， 而是自己构建了一种名为简单动态字符串（simple dynamic string，SDS）的抽象类型， 并将 SDS 用作 Redis 的默认字符串表示。">
+<meta property="og:description" content="Redis另一个基础的数据结构是链表，C并没有内置的链表结构，因此Redis自己实现了一个列表。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Redis源码剖析–简单动态字符串sds">
-<meta name="twitter:title" content="Redis源码剖析–简单动态字符串sds">
-<meta property="og:url" content="https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AE%80%E5%8D%95%E5%8A%A8%E6%80%81%E5%AD%97%E7%AC%A6%E4%B8%B2sds/">
-<meta property="twitter:url" content="https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AE%80%E5%8D%95%E5%8A%A8%E6%80%81%E5%AD%97%E7%AC%A6%E4%B8%B2sds/">
+<meta property="og:title" content="Redis源码剖析 链表list">
+<meta name="twitter:title" content="Redis源码剖析 链表list">
+<meta property="og:url" content="https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-%E9%93%BE%E8%A1%A8list/">
+<meta property="twitter:url" content="https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-%E9%93%BE%E8%A1%A8list/">
 <meta property="og:site_name" content="Harley">
-<meta property="og:description" content="Redis 没有直接使用 C 语言传统的字符串表示， 而是自己构建了一种名为简单动态字符串（simple dynamic string，SDS）的抽象类型， 并将 SDS 用作 Redis 的默认字符串表示。">
-<meta name="twitter:description" content="Redis 没有直接使用 C 语言传统的字符串表示， 而是自己构建了一种名为简单动态字符串（simple dynamic string，SDS）的抽象类型， 并将 SDS 用作 Redis 的默认字符串表示。">
+<meta property="og:description" content="Redis另一个基础的数据结构是链表，C并没有内置的链表结构，因此Redis自己实现了一个列表。">
+<meta name="twitter:description" content="Redis另一个基础的数据结构是链表，C并没有内置的链表结构，因此Redis自己实现了一个列表。">
 <meta property="og:locale" content="zh-cn">
 
   
-    <meta property="article:published_time" content="2017-07-28T16:14:49">
+    <meta property="article:published_time" content="2017-07-31T12:15:30">
   
   
-    <meta property="article:modified_time" content="2017-07-28T16:14:49">
+    <meta property="article:modified_time" content="2017-07-31T12:15:30">
   
   
   
@@ -64,14 +64,14 @@
   <meta property="twitter:image" content="https://harleylau.github.io/img/harleylau.jpg">
 
 
-    <title>Redis源码剖析–简单动态字符串sds</title>
+    <title>Redis源码剖析 链表list</title>
 
     <link rel="icon" href="https://harleylau.github.io/favicon.png">
     
 
     
 
-    <link rel="canonical" href="https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AE%80%E5%8D%95%E5%8A%A8%E6%80%81%E5%AD%97%E7%AC%A6%E4%B8%B2sds/">
+    <link rel="canonical" href="https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-%E9%93%BE%E8%A1%A8list/">
 
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous" />
@@ -231,15 +231,15 @@
             <div class="post-header main-content-wrap text-left">
   
     <h1 class="post-title" itemprop="headline">
-      Redis源码剖析–简单动态字符串sds
+      Redis源码剖析 链表list
     </h1>
   
   
   <div class="postShorten-meta post-meta">
     
-      <time itemprop="datePublished" datetime="2017-07-28T16:14:49&#43;08:00">
+      <time itemprop="datePublished" datetime="2017-07-31T12:15:30&#43;08:00">
         
-  七月 28, 2017
+  七月 31, 2017
 
       </time>
     
@@ -260,281 +260,299 @@
           
           <div class="post-content markdown" itemprop="articleBody">
             <div class="main-content-wrap">
-              <p>Redis 没有直接使用 C 语言传统的字符串表示， 而是自己构建了一种名为简单动态字符串（simple dynamic string，SDS）的抽象类型， 并将 SDS 用作 Redis 的默认字符串表示。</p>
+              <p>Redis另一个基础的数据结构是链表，C并没有内置的链表结构，因此Redis自己实现了一个列表。</p>
 
 <h1 id="table-of-contents">目录</h1><nav id="TableOfContents">
 <ul>
-<li><a href="#sds的定义">SDS的定义</a></li>
-<li><a href="#sds基本操作">SDS基本操作</a>
+<li><a href="#list结构">List结构</a></li>
+<li><a href="#链表操作">链表操作</a>
 <ul>
-<li><a href="#sds初始化">SDS初始化</a></li>
-<li><a href="#sds复制函数">SDS复制函数</a></li>
-<li><a href="#sds释放函数">SDS释放函数</a></li>
-<li><a href="#sds扩容函数">SDS扩容函数</a></li>
+<li><a href="#链表初始化">链表初始化</a></li>
+<li><a href="#链表清空">链表清空</a></li>
+<li><a href="#链表头部插入结点">链表头部插入结点</a></li>
+<li><a href="#往任意位置插入结点">往任意位置插入结点</a></li>
+<li><a href="#结点释放函数">结点释放函数</a></li>
+<li><a href="#获得链表的迭代器">获得链表的迭代器</a></li>
+<li><a href="#获得迭代器的下一个结点">获得迭代器的下一个结点</a></li>
+<li><a href="#复制链表">复制链表</a></li>
+<li><a href="#链表旋转">链表旋转</a></li>
 </ul></li>
-<li><a href="#sds小结">SDS小结</a></li>
 </ul>
 </nav>
 
-<p>Redis 没有直接使用 C 语言传统的字符串表示， 而是自己构建了一种名为简单动态字符串（simple dynamic string，SDS）的抽象类型， 并将 SDS 用作 Redis 的默认字符串表示。</p>
+<p>Redis另一个基础的数据结构是链表，C并没有内置的链表结构，因此Redis自己实现了一个列表。</p>
 
-<p>Redis中所有的键都是用sds格式来保存的， 包括一部分值的保存，也是用的sds格式。</p>
+<p>除了链表键之外， 发布与订阅、慢查询、监视器等功能也用到了链表， Redis 服务器本身还使用链表来保存多个客户端的状态信息， 以及使用链表来构建客户端输出缓冲区。</p>
 
-<h1 id="sds的定义">SDS的定义</h1>
+<h1 id="list结构">List结构</h1>
 
-<p>sds.h中的定义如下：</p>
+<p>双端链表结点定义如下：</p>
 
-<pre><code>/*
- * 类型别名，用于指向 sdshdr 的 buf 属性
- */
-typedef char *sds;
+<pre><code>typedef struct listNode {
+    struct listNode *prev; // 指向前一个结点
+    struct listNode *next;  // 指向后一个结点
+    void *value;   // 结点值
+} listNode;
 </code></pre>
 
-<p>sds包含两部分，在最基本的字符数组之外，加了两个字符数组信息，还有一个类似header的信息，header中包括了一下几个部分：</p>
+<p>链表迭代器定义如下：</p>
 
-<ul>
-<li>len：表示字符串真正的长度，不包含空终止字符</li>
-<li>alloc：表示字符串的最大容量，不包含Header和最后的空终止字符</li>
-<li>flags：表示header的类型</li>
-</ul>
-
-<p>这样做的好处是能够马上知道字符串的长度和剩余空间，而无需遍历一遍字符数组计算长度。</p>
-
-<p>同时，由于在c语言中一般都是通过字符数组最后的&rdquo;\0&rdquo;来判断字符串的结束，而sds可以无视这些特殊字符的存在，可以直接根据len来获取完整的字符串。</p>
-
-<p>此外，在修改字符串的时候，sds能够减少空间与分配的次数，提高运行效率，具体的可以稍后看代码中的实现。</p>
-
-<h1 id="sds基本操作">SDS基本操作</h1>
-
-<h2 id="sds初始化">SDS初始化</h2>
-
-<pre><code>sds sdsnewlen(const void *init, size_t initlen) {
-    void *sh;
-    sds s;
-    //根据长度判断创建header的类型
-    char type = sdsReqType(initlen);
-    /* Empty strings are usually created in order to append. Use type 8
-     * since type 5 is not good at this. */
-    if (type == SDS_TYPE_5 &amp;&amp; initlen == 0) type = SDS_TYPE_8;
-    //获取header的长度
-    int hdrlen = sdsHdrSize(type);
-    unsigned char *fp; /* flags pointer. */
-
-    //分配空间，header长度+字符串长度+结束字符
-    sh = s_malloc(hdrlen+initlen+1);
-    if (!init)
-        memset(sh, 0, hdrlen+initlen+1);
-    if (sh == NULL) return NULL;
-    //s是字符串真正保存的地址
-    s = (char*)sh+hdrlen;
-    //fp表示header中的flag
-    fp = ((unsigned char*)s)-1;
-    switch(type) {
-        case SDS_TYPE_5: {
-            *fp = type | (initlen &lt;&lt; SDS_TYPE_BITS);
-            break;
-        }
-        case SDS_TYPE_8: {
-            SDS_HDR_VAR(8,s);
-            sh-&gt;len = initlen;
-            sh-&gt;alloc = initlen;
-            *fp = type;
-            break;
-        }
-        case SDS_TYPE_16: {
-            SDS_HDR_VAR(16,s);
-            sh-&gt;len = initlen;
-            sh-&gt;alloc = initlen;
-            *fp = type;
-            break;
-        }
-        case SDS_TYPE_32: {
-            SDS_HDR_VAR(32,s);
-            sh-&gt;len = initlen;
-            sh-&gt;alloc = initlen;
-            *fp = type;
-            break;
-        }
-        case SDS_TYPE_64: {
-            SDS_HDR_VAR(64,s);
-            sh-&gt;len = initlen;
-            sh-&gt;alloc = initlen;
-            *fp = type;
-            break;
-        }
-    }
-    if (initlen &amp;&amp; init)
-        //如果有初始内容，复制
-        memcpy(s, init, initlen);
-    s[initlen] = '\0';
-    return s;
-}
+<pre><code>typedef struct listIter {  // 链表迭代器
+    listNode *next;   // 指向下一个结点
+    int direction;    // 标记迭代方向
+} listIter;
 </code></pre>
 
-<p>根据初始化长度的不同，生成的header也不同</p>
+<p>关于迭代器的方向标记，定义的全局变量用来标记：</p>
 
-<pre><code>/* Note: sdshdr5 is never used, we just access the flags byte directly.
- * However is here to document the layout of type 5 SDS strings. */
-struct __attribute__ ((__packed__)) sdshdr5 {
-    unsigned char flags; /* 3 lsb of type, and 5 msb of string length */
-    char buf[];
-};
-struct __attribute__ ((__packed__)) sdshdr8 {
-    uint8_t len; /* used */
-    uint8_t alloc; /* excluding the header and null terminator */
-    unsigned char flags; /* 3 lsb of type, 5 unused bits */
-    char buf[];
-};
-struct __attribute__ ((__packed__)) sdshdr16 {
-    uint16_t len; /* used */
-    uint16_t alloc; /* excluding the header and null terminator */
-    unsigned char flags; /* 3 lsb of type, 5 unused bits */
-    char buf[];
-};
-struct __attribute__ ((__packed__)) sdshdr32 {
-    uint32_t len; /* used */
-    uint32_t alloc; /* excluding the header and null terminator */
-    unsigned char flags; /* 3 lsb of type, 5 unused bits */
-    char buf[];
-};
-struct __attribute__ ((__packed__)) sdshdr64 {
-    uint64_t len; /* used */
-    uint64_t alloc; /* excluding the header and null terminator */
-    unsigned char flags; /* 3 lsb of type, 5 unused bits */
-    char buf[];
-};
+<pre><code>/* Directions for iterators */
+#define AL_START_HEAD 0
+#define AL_START_TAIL 1
 </code></pre>
 
-<p>len表示已使用的长度， alloc表示分配的长度，包括header的长度和终止符，flag用来标记header的类型。</p>
+<p>双端列表定义如下：</p>
 
-<h2 id="sds复制函数">SDS复制函数</h2>
-
-<pre><code>/* Duplicate an sds string. */
-//输入sds， 返回复制成功后的地址
-sds sdsdup(const sds s) {
-    return sdsnewlen(s, sdslen(s));
-}
+<pre><code>// 双端列表定义
+typedef struct list {
+    listNode *head;  // 链表头
+    listNode *tail;  // 链表尾
+    void *(*dup)(void *ptr);  // 列表复制函数
+    void (*free)(void *ptr);  // 列表释放函数
+    int (*match)(void *ptr, void *key);  // 列表匹配函数
+    unsigned long len;  // 列表长度
+} list;
 </code></pre>
 
-<h2 id="sds释放函数">SDS释放函数</h2>
+<h1 id="链表操作">链表操作</h1>
 
-<pre><code>/* Free an sds string. No operation is performed if 's' is NULL. */
-void sdsfree(sds s) {
-    if (s == NULL) return;
-    s_free((char*)s-sdsHdrSize(s[-1]));
-    //s[-1] 得到header中的flag， 然后通过sdsHdrSize获得header的大小， 相减得到header的地址
-    //s_free释放
-}
-</code></pre>
+<h2 id="链表初始化">链表初始化</h2>
 
-<h2 id="sds扩容函数">SDS扩容函数</h2>
-
-<pre><code>/* Enlarge the free space at the end of the sds string so that the caller
- * is sure that after calling this function can overwrite up to addlen
- * bytes after the end of the string, plus one more byte for nul term.
+<pre><code>/* Create a new list. The created list can be freed with
+ * AlFreeList(), but private value of every node need to be freed
+ * by the user before to call AlFreeList().
  *
- * Note: this does not change the *length* of the sds string as returned
- * by sdslen(), but only the free buffer space we have. */
-sds sdsMakeRoomFor(sds s, size_t addlen) {
-    void *sh, *newsh;
-    // 获取 s 目前的空余空间长度
-    size_t avail = sdsavail(s);
-    size_t len, newlen;
-    char type, oldtype = s[-1] &amp; SDS_TYPE_MASK;
-    int hdrlen;
-
-    // s 目前的空余空间已经足够，无须再进行扩展，直接返回
-    /* Return ASAP if there is enough space left. */
-    if (avail &gt;= addlen) return s;
-
-    len = sdslen(s);
-    sh = (char*)s-sdsHdrSize(oldtype);
-    // s 最少需要的长度
-    newlen = (len+addlen);
-    if (newlen &lt; SDS_MAX_PREALLOC)
-        // 如果新长度小于 SDS_MAX_PREALLOC 
-        // 那么为它分配两倍于所需长度的空间
-        newlen *= 2;
-    else
-        // 否则，分配长度为目前长度加上 SDS_MAX_PREALLOC
-        newlen += SDS_MAX_PREALLOC;
-
-    // 得到新的type类型
-    type = sdsReqType(newlen);
-
-    /* Don't use type 5: the user is appending to the string and type 5 is
-     * not able to remember empty space, so sdsMakeRoomFor() must be called
-     * at every appending operation. */
-    if (type == SDS_TYPE_5) type = SDS_TYPE_8;
-
-    hdrlen = sdsHdrSize(type);
-    if (oldtype==type) {
-        // 如果前后类型不变, 无需更改header，realloc
-        newsh = s_realloc(sh, hdrlen+newlen+1);
-        if (newsh == NULL) return NULL;
-        s = (char*)newsh+hdrlen;
-    } else {
-        /* Since the header size changes, need to move the string forward,
-         * and can't use realloc */
-        newsh = s_malloc(hdrlen+newlen+1);
-        if (newsh == NULL) return NULL;
-        memcpy((char*)newsh+hdrlen, s, len+1);
-        s_free(sh);
-        s = (char*)newsh+hdrlen;
-        s[-1] = type;
-        sdssetlen(s, len);
-    }
-    // 重新设置header中的alloc参数
-    sdssetalloc(s, newlen);
-    return s;
+ * On error, NULL is returned. Otherwise the pointer to the new list. */
+list *listCreate(void)
+{
+    struct list *list;  // 定义链表指针
+    // 分配内存，如果分配失败，返回NULL
+    if ((list = zmalloc(sizeof(*list))) == NULL)
+        return NULL;
+    // 链表头尾初始化
+    list-&gt;head = list-&gt;tail = NULL;
+    // 长度赋初值
+    list-&gt;len = 0;
+    // 复制函数、释放函数、匹配函数初始化为NULL
+    list-&gt;dup = NULL;
+    list-&gt;free = NULL;
+    list-&gt;match = NULL;
+    return list;
 }
 </code></pre>
 
-<ul>
-<li>当要增加字符在SDS之后的时候，先判断目前的剩余长度是否满足条件，如果慢煮条件，直接将字符串添加在后边</li>
-<li>如果当前的剩余空间不够，需要对SDS进行扩容。如果对 SDS 进行修改之后， SDS 的长度（也即是 len 属性的值）将小于 1 MB ， 那么程序分配和 len 属性同样大小的未使用空间， 这时 SDS len 属性的值将和 free 属性的值相同。 举个例子， 如果进行修改之后， SDS 的 len 将变成 13 字节， 那么程序也会分配 13 字节的未使用空间， SDS 的 buf 数组的实际长度将变成 13 + 13 + 1 = 27 字节（额外的一字节用于保存空字符）。</li>
-<li>如果对 SDS 进行修改之后， SDS 的长度将大于等于 1 MB ， 那么程序会分配 1 MB 的未使用空间。 比如， 如果进行修改之后， SDS 的 len 将变成 30 MB ， 那么程序会分配 1 MB 的未使用空间， SDS 的 buf 数组的实际长度将为 30 MB + 1 MB + 1 byte 。</li>
-</ul>
+<h2 id="链表清空">链表清空</h2>
 
-<h1 id="sds小结">SDS小结</h1>
+<pre><code>/* Remove all the elements from the list without destroying the list itself. */
+void listEmpty(list *list)
+{
+    unsigned long len;
+    listNode *current, *next;
 
-<p>SDS提供了一系列函数，不一一列出。 参考《redis设计与实现》一书的说明，SDS与C字符串的区别如下</p>
+    current = list-&gt;head;
+    len = list-&gt;len;
+    // 根据链表长度循环
+    while(len--) {
+        next = current-&gt;next;
+        // 如果定义了链表释放函数，用释放函数释放结点
+        if (list-&gt;free) list-&gt;free(current-&gt;value);
+        zfree(current);
+        current = next;
+    }
+    // 清空链表头尾结点及长度
+    list-&gt;head = list-&gt;tail = NULL;
+    list-&gt;len = 0;
+}
+</code></pre>
 
-<table>
-<thead>
-<tr>
-<th>C 字符串</th>
-<th>SDS</th>
-</tr>
-</thead>
+<h2 id="链表头部插入结点">链表头部插入结点</h2>
 
-<tbody>
-<tr>
-<td>获取字符串长度的复杂度为 O(N) 。</td>
-<td>获取字符串长度的复杂度为 O(1) 。</td>
-</tr>
+<pre><code>list *listAddNodeHead(list *list, void *value)
+{
+    listNode *node;  // 新建链表结点
 
-<tr>
-<td>API 是不安全的，可能会造成缓冲区溢出。</td>
-<td>API 是安全的，不会造成缓冲区溢出。</td>
-</tr>
+    if ((node = zmalloc(sizeof(*node))) == NULL)  // 初始化结点，如果失败返回NULL
+        return NULL;
+    // 将value赋值给结点
+    node-&gt;value = value;
+    if (list-&gt;len == 0) {
+        // 如果是第一个结点，头尾都指向该结点，该结点前后结点都为空
+        list-&gt;head = list-&gt;tail = node;
+        node-&gt;prev = node-&gt;next = NULL;
+    } else {
+        // 否则，将结点插入到链表头部
+        node-&gt;prev = NULL;
+        node-&gt;next = list-&gt;head;
+        list-&gt;head-&gt;prev = node;
+        list-&gt;head = node;
+    }
+    // 链表长度加1
+    list-&gt;len++;
+    return list;
+}
+</code></pre>
 
-<tr>
-<td>修改字符串长度 N 次必然需要执行 N 次内存重分配。</td>
-<td>修改字符串长度 N 次最多需要执行 N 次内存重分配。</td>
-</tr>
+<h2 id="往任意位置插入结点">往任意位置插入结点</h2>
 
-<tr>
-<td>只能保存文本数据。</td>
-<td>可以保存文本或者二进制数据。</td>
-</tr>
+<pre><code>list *listInsertNode(list *list, listNode *old_node, void *value, int after) {
+    listNode *node;  // 新建结点
 
-<tr>
-<td>可以使用所有 <string.h> 库中的函数。</td>
-<td>可以使用一部分 <string.h> 库中的函数。</td>
-</tr>
-</tbody>
-</table>
+    if ((node = zmalloc(sizeof(*node))) == NULL) //分配空间，失败返回NULL
+        return NULL;
+    node-&gt;value = value;
+    if (after) {
+        // 如果有after标记，将新结点放在old_node后边；如果old_node是尾部，调整tail指向
+        node-&gt;prev = old_node;
+        node-&gt;next = old_node-&gt;next;
+        if (list-&gt;tail == old_node) {
+            list-&gt;tail = node;
+        }
+    } else {
+        // 否则，将新结点放在old_node前边， 如果old_node是头部，调整head指向
+        node-&gt;next = old_node;
+        node-&gt;prev = old_node-&gt;prev;
+        if (list-&gt;head == old_node) {
+            list-&gt;head = node;
+        }
+    }
+    if (node-&gt;prev != NULL) {
+        node-&gt;prev-&gt;next = node;
+    }
+    if (node-&gt;next != NULL) {
+        node-&gt;next-&gt;prev = node;
+    }
+    list-&gt;len++;
+    return list;
+}
+</code></pre>
+
+<p>同时还提供了往链表尾部插入结点的函数，也是类似的操作。</p>
+
+<h2 id="结点释放函数">结点释放函数</h2>
+
+<pre><code>void listDelNode(list *list, listNode *node)
+{
+    if (node-&gt;prev)
+        // 如果结点有前置结点，即非head结点，调整前置结点的next指向
+        node-&gt;prev-&gt;next = node-&gt;next;
+    else
+        // 否则，是head结点，调整head结点指向
+        list-&gt;head = node-&gt;next;
+    if (node-&gt;next)
+        // 如果结点有后置结点，即非tail结点，调整后置结点的prev指向
+        node-&gt;next-&gt;prev = node-&gt;prev;
+    else
+        // 否则，是tail结点，调整tail结点指向
+        list-&gt;tail = node-&gt;prev;
+    // 如果定义了free函数，调用本身的free函数释放
+    if (list-&gt;free) list-&gt;free(node-&gt;value);
+    zfree(node);
+    list-&gt;len--;
+}
+</code></pre>
+
+<h2 id="获得链表的迭代器">获得链表的迭代器</h2>
+
+<pre><code>listIter *listGetIterator(list *list, int direction)
+{
+    listIter *iter; // 定义迭代器指针
+
+    if ((iter = zmalloc(sizeof(*iter))) == NULL) return NULL;  // 分配空间，失败返回NULL
+    if (direction == AL_START_HEAD)
+        // 如果从头开始，迭代器的next指向head
+        iter-&gt;next = list-&gt;head;
+    else
+        // 否则，从尾部开始，迭代器的next指向tail
+        iter-&gt;next = list-&gt;tail;
+    iter-&gt;direction = direction;
+    return iter;
+}
+</code></pre>
+
+<h2 id="获得迭代器的下一个结点">获得迭代器的下一个结点</h2>
+
+<pre><code>listNode *listNext(listIter *iter)
+{
+    listNode *current = iter-&gt;next; // 根据迭代器的next指针得到下一个结点
+
+    if (current != NULL) {
+        // 根据迭代器的方向，获得next的指向
+        if (iter-&gt;direction == AL_START_HEAD)
+            iter-&gt;next = current-&gt;next;
+        else
+            iter-&gt;next = current-&gt;prev;
+    }
+    return current;
+}
+</code></pre>
+
+<h2 id="复制链表">复制链表</h2>
+
+<pre><code>list *listDup(list *orig)
+{
+    list *copy;  // 定义复制的链表
+    listIter iter;
+    listNode *node;
+
+    if ((copy = listCreate()) == NULL)
+        return NULL;
+    // 复制相关的内置函数
+    copy-&gt;dup = orig-&gt;dup;
+    copy-&gt;free = orig-&gt;free;
+    copy-&gt;match = orig-&gt;match;
+    // 得到头结点的迭代器
+    listRewind(orig, &amp;iter);
+    while((node = listNext(&amp;iter)) != NULL) {
+        void *value;
+        // 如果有定义自己的复制函数，调用其进行复制
+        if (copy-&gt;dup) {
+            value = copy-&gt;dup(node-&gt;value);
+            if (value == NULL) {
+                listRelease(copy);
+                return NULL;
+            }
+        } else
+            // 否则，直接复制结点值
+            value = node-&gt;value;
+        // 将结点加入到目标的尾部
+        if (listAddNodeTail(copy, value) == NULL) {
+            listRelease(copy);
+            return NULL;
+        }
+    }
+    return copy;
+}
+</code></pre>
+
+<h2 id="链表旋转">链表旋转</h2>
+
+<p>其实就是将尾结点拿下来，放到头部</p>
+
+<pre><code>/* Rotate the list removing the tail node and inserting it to the head. */
+void listRotate(list *list) {
+    listNode *tail = list-&gt;tail;  // 得到尾结点
+
+    if (listLength(list) &lt;= 1) return; // 如果只有一个结点，无需进行后续的操作
+
+    /* Detach current tail */
+    list-&gt;tail = tail-&gt;prev;  // 链表的tail指向原来tail结点的前置结点，同时置next为空
+    list-&gt;tail-&gt;next = NULL;
+    /* Move it as head */
+    list-&gt;head-&gt;prev = tail;  // 将尾部挪下来的结点放到头部，将原来的head结点后移一个位置
+    tail-&gt;prev = NULL;
+    tail-&gt;next = list-&gt;head;
+    list-&gt;head = tail;
+}
+</code></pre>
               
             </div>
           </div>
@@ -561,7 +579,7 @@ sds sdsMakeRoomFor(sds s, size_t addlen) {
           
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-%E9%93%BE%E8%A1%A8list/" data-tooltip="Redis源码剖析 链表list">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2018/12/%E4%BB%8Ehexo%E8%BD%AC%E5%88%B0hugo/" data-tooltip="从hexo转到hugo">
               
                   <i class="fa fa-angle-left"></i>
                   <span class="hide-xs hide-sm text-small icon-ml">下一篇</span>
@@ -569,7 +587,7 @@ sds sdsMakeRoomFor(sds s, size_t addlen) {
             </li>
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2017/07/tornado-%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%BA%94%E7%94%A8/" data-tooltip="Tornado 线程池应用">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AE%80%E5%8D%95%E5%8A%A8%E6%80%81%E5%AD%97%E7%AC%A6%E4%B8%B2sds/" data-tooltip="Redis源码剖析–简单动态字符串sds">
               
                   <span class="hide-xs hide-sm text-small icon-mr">上一篇</span>
                   <i class="fa fa-angle-right"></i>
@@ -587,19 +605,19 @@ sds sdsMakeRoomFor(sds s, size_t addlen) {
         </li>
         
           <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AE%80%E5%8D%95%E5%8A%A8%E6%80%81%E5%AD%97%E7%AC%A6%E4%B8%B2sds/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-%E9%93%BE%E8%A1%A8list/">
               <i class="fa fa-facebook-official"></i>
             </a>
           </li>
         
           <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AE%80%E5%8D%95%E5%8A%A8%E6%80%81%E5%AD%97%E7%AC%A6%E4%B8%B2sds/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-%E9%93%BE%E8%A1%A8list/">
               <i class="fa fa-twitter"></i>
             </a>
           </li>
         
           <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AE%80%E5%8D%95%E5%8A%A8%E6%80%81%E5%AD%97%E7%AC%A6%E4%B8%B2sds/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-%E9%93%BE%E8%A1%A8list/">
               <i class="fa fa-google-plus"></i>
             </a>
           </li>
@@ -647,7 +665,7 @@ sds sdsMakeRoomFor(sds s, size_t addlen) {
           
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-%E9%93%BE%E8%A1%A8list/" data-tooltip="Redis源码剖析 链表list">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2018/12/%E4%BB%8Ehexo%E8%BD%AC%E5%88%B0hugo/" data-tooltip="从hexo转到hugo">
               
                   <i class="fa fa-angle-left"></i>
                   <span class="hide-xs hide-sm text-small icon-ml">下一篇</span>
@@ -655,7 +673,7 @@ sds sdsMakeRoomFor(sds s, size_t addlen) {
             </li>
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2017/07/tornado-%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%BA%94%E7%94%A8/" data-tooltip="Tornado 线程池应用">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AE%80%E5%8D%95%E5%8A%A8%E6%80%81%E5%AD%97%E7%AC%A6%E4%B8%B2sds/" data-tooltip="Redis源码剖析–简单动态字符串sds">
               
                   <span class="hide-xs hide-sm text-small icon-mr">上一篇</span>
                   <i class="fa fa-angle-right"></i>
@@ -673,19 +691,19 @@ sds sdsMakeRoomFor(sds s, size_t addlen) {
         </li>
         
           <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AE%80%E5%8D%95%E5%8A%A8%E6%80%81%E5%AD%97%E7%AC%A6%E4%B8%B2sds/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-%E9%93%BE%E8%A1%A8list/">
               <i class="fa fa-facebook-official"></i>
             </a>
           </li>
         
           <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AE%80%E5%8D%95%E5%8A%A8%E6%80%81%E5%AD%97%E7%AC%A6%E4%B8%B2sds/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-%E9%93%BE%E8%A1%A8list/">
               <i class="fa fa-twitter"></i>
             </a>
           </li>
         
           <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AE%80%E5%8D%95%E5%8A%A8%E6%80%81%E5%AD%97%E7%AC%A6%E4%B8%B2sds/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-%E9%93%BE%E8%A1%A8list/">
               <i class="fa fa-google-plus"></i>
             </a>
           </li>
@@ -715,19 +733,19 @@ sds sdsMakeRoomFor(sds s, size_t addlen) {
   <ul class="share-options">
     
       <li class="share-option">
-        <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fharleylau.github.io%2F2017%2F07%2Fredis%25E6%25BA%2590%25E7%25A0%2581%25E5%2589%2596%25E6%259E%2590%25E7%25AE%2580%25E5%258D%2595%25E5%258A%25A8%25E6%2580%2581%25E5%25AD%2597%25E7%25AC%25A6%25E4%25B8%25B2sds%2F">
+        <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fharleylau.github.io%2F2017%2F07%2Fredis%25E6%25BA%2590%25E7%25A0%2581%25E5%2589%2596%25E6%259E%2590-%25E9%2593%25BE%25E8%25A1%25A8list%2F">
           <i class="fa fa-facebook-official"></i><span>分享到 Facebook</span>
         </a>
       </li>
     
       <li class="share-option">
-        <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=https%3A%2F%2Fharleylau.github.io%2F2017%2F07%2Fredis%25E6%25BA%2590%25E7%25A0%2581%25E5%2589%2596%25E6%259E%2590%25E7%25AE%2580%25E5%258D%2595%25E5%258A%25A8%25E6%2580%2581%25E5%25AD%2597%25E7%25AC%25A6%25E4%25B8%25B2sds%2F">
+        <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=https%3A%2F%2Fharleylau.github.io%2F2017%2F07%2Fredis%25E6%25BA%2590%25E7%25A0%2581%25E5%2589%2596%25E6%259E%2590-%25E9%2593%25BE%25E8%25A1%25A8list%2F">
           <i class="fa fa-twitter"></i><span>分享到 Twitter</span>
         </a>
       </li>
     
       <li class="share-option">
-        <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=https%3A%2F%2Fharleylau.github.io%2F2017%2F07%2Fredis%25E6%25BA%2590%25E7%25A0%2581%25E5%2589%2596%25E6%259E%2590%25E7%25AE%2580%25E5%258D%2595%25E5%258A%25A8%25E6%2580%2581%25E5%25AD%2597%25E7%25AC%25A6%25E4%25B8%25B2sds%2F">
+        <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=https%3A%2F%2Fharleylau.github.io%2F2017%2F07%2Fredis%25E6%25BA%2590%25E7%25A0%2581%25E5%2589%2596%25E6%259E%2590-%25E9%2593%25BE%25E8%25A1%25A8list%2F">
           <i class="fa fa-google-plus"></i><span>分享到 Google&#43;</span>
         </a>
       </li>
@@ -967,9 +985,9 @@ $(document).ready(function() {
     
       <script>
         var disqus_config = function () {
-          this.page.url = 'https:\/\/harleylau.github.io\/2017\/07\/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AE%80%E5%8D%95%E5%8A%A8%E6%80%81%E5%AD%97%E7%AC%A6%E4%B8%B2sds\/';
+          this.page.url = 'https:\/\/harleylau.github.io\/2017\/07\/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-%E9%93%BE%E8%A1%A8list\/';
           
-            this.page.identifier = '\/2017\/07\/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AE%80%E5%8D%95%E5%8A%A8%E6%80%81%E5%AD%97%E7%AC%A6%E4%B8%B2sds\/'
+            this.page.identifier = '\/2017\/07\/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-%E9%93%BE%E8%A1%A8list\/'
           
         };
         (function() {
