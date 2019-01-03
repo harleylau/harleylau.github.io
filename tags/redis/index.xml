@@ -20,5 +20,14 @@
       <description>&lt;p&gt;使用Redis的 SETNX 命令可以实现分布式锁，本文介绍其实现方法。&lt;/p&gt;</description>
     </item>
     
+    <item>
+      <title>Redis源码剖析–简单动态字符串sds</title>
+      <link>https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AE%80%E5%8D%95%E5%8A%A8%E6%80%81%E5%AD%97%E7%AC%A6%E4%B8%B2sds/</link>
+      <pubDate>Fri, 28 Jul 2017 16:14:49 +0800</pubDate>
+      
+      <guid>https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AE%80%E5%8D%95%E5%8A%A8%E6%80%81%E5%AD%97%E7%AC%A6%E4%B8%B2sds/</guid>
+      <description>&lt;p&gt;Redis 没有直接使用 C 语言传统的字符串表示， 而是自己构建了一种名为简单动态字符串（simple dynamic string，SDS）的抽象类型， 并将 SDS 用作 Redis 的默认字符串表示。&lt;/p&gt;</description>
+    </item>
+    
   </channel>
 </rss>
