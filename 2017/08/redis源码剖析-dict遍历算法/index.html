@@ -7,46 +7,48 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="generator" content="Hugo 0.52 with theme Tranquilpeak 0.4.3-SNAPSHOT">
 <meta name="author" content="Harley">
-<meta name="keywords" content="HBase">
+<meta name="keywords" content="redis">
 <meta name="description" content="
 
-HBase中的rowkey唯一的决定了一行数据，使用HBase的场景多种多样， rowkey设计的好坏很大程度上决定了应用场景中的执行效率。">
+先贴一下整体的代码">
 
 
 <meta property="og:description" content="
 
-HBase中的rowkey唯一的决定了一行数据，使用HBase的场景多种多样， rowkey设计的好坏很大程度上决定了应用场景中的执行效率。">
+先贴一下整体的代码">
 <meta property="og:type" content="article">
-<meta property="og:title" content="HBase Rowkey 设计">
-<meta name="twitter:title" content="HBase Rowkey 设计">
-<meta property="og:url" content="https://harleylau.github.io/2019/01/hbase-rowkey-%E8%AE%BE%E8%AE%A1/">
-<meta property="twitter:url" content="https://harleylau.github.io/2019/01/hbase-rowkey-%E8%AE%BE%E8%AE%A1/">
+<meta property="og:title" content="Redis源码剖析-Dict遍历算法">
+<meta name="twitter:title" content="Redis源码剖析-Dict遍历算法">
+<meta property="og:url" content="https://harleylau.github.io/2017/08/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-dict%E9%81%8D%E5%8E%86%E7%AE%97%E6%B3%95/">
+<meta property="twitter:url" content="https://harleylau.github.io/2017/08/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-dict%E9%81%8D%E5%8E%86%E7%AE%97%E6%B3%95/">
 <meta property="og:site_name" content="Harley">
 <meta property="og:description" content="
 
-HBase中的rowkey唯一的决定了一行数据，使用HBase的场景多种多样， rowkey设计的好坏很大程度上决定了应用场景中的执行效率。">
+先贴一下整体的代码">
 <meta name="twitter:description" content="
 
-HBase中的rowkey唯一的决定了一行数据，使用HBase的场景多种多样， rowkey设计的好坏很大程度上决定了应用场景中的执行效率。">
+先贴一下整体的代码">
 <meta property="og:locale" content="zh-cn">
 
   
-    <meta property="article:published_time" content="2019-01-01T15:39:35">
+    <meta property="article:published_time" content="2017-08-02T16:08:16">
   
   
-    <meta property="article:modified_time" content="2019-01-01T15:39:35">
+    <meta property="article:modified_time" content="2017-08-02T16:08:16">
   
-  
-  
-    
-      <meta property="article:section" content="HBase">
-    
-      <meta property="article:section" content="rowkey">
-    
   
   
     
-      <meta property="article:tag" content="HBase">
+      <meta property="article:section" content="redis">
+    
+      <meta property="article:section" content="源码">
+    
+  
+  
+    
+      <meta property="article:tag" content="redis">
+    
+      <meta property="article:tag" content="源码">
     
   
 
@@ -59,9 +61,6 @@ HBase中的rowkey唯一的决定了一行数据，使用HBase的场景多种多�
 
 
 
-  <meta property="og:image" content="https://harleylau.github.io/img/horizion.jpeg">
-  <meta property="twitter:image" content="https://harleylau.github.io/img/horizion.jpeg">
-
 
 
 
@@ -70,14 +69,14 @@ HBase中的rowkey唯一的决定了一行数据，使用HBase的场景多种多�
   <meta property="twitter:image" content="https://harleylau.github.io/img/harleylau.jpg">
 
 
-    <title>HBase Rowkey 设计</title>
+    <title>Redis源码剖析-Dict遍历算法</title>
 
     <link rel="icon" href="https://harleylau.github.io/favicon.png">
     
 
     
 
-    <link rel="canonical" href="https://harleylau.github.io/2019/01/hbase-rowkey-%E8%AE%BE%E8%AE%A1/">
+    <link rel="canonical" href="https://harleylau.github.io/2017/08/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-dict%E9%81%8D%E5%8E%86%E7%AE%97%E6%B3%95/">
 
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous" />
@@ -235,15 +234,15 @@ HBase中的rowkey唯一的决定了一行数据，使用HBase的场景多种多�
             <div class="post-header main-content-wrap text-left">
   
     <h1 class="post-title" itemprop="headline">
-      HBase Rowkey 设计
+      Redis源码剖析-Dict遍历算法
     </h1>
   
   
   <div class="postShorten-meta post-meta">
     
-      <time itemprop="datePublished" datetime="2019-01-01T15:39:35&#43;08:00">
+      <time itemprop="datePublished" datetime="2017-08-02T16:08:16&#43;08:00">
         
-  一月 1, 2019
+  八月 2, 2017
 
       </time>
     
@@ -252,9 +251,9 @@ HBase中的rowkey唯一的决定了一行数据，使用HBase的场景多种多�
   
     <span>发布在</span>
     
-      <a class="category-link" href="https://harleylau.github.io/categories/hbase">HBase</a>, 
+      <a class="category-link" href="https://harleylau.github.io/categories/redis">redis</a>, 
     
-      <a class="category-link" href="https://harleylau.github.io/categories/rowkey">rowkey</a>
+      <a class="category-link" href="https://harleylau.github.io/categories/%e6%ba%90%e7%a0%81">源码</a>
     
   
 
@@ -266,63 +265,172 @@ HBase中的rowkey唯一的决定了一行数据，使用HBase的场景多种多�
             <div class="main-content-wrap">
               <h1 id="table-of-contents">目录</h1><nav id="TableOfContents">
 <ul>
-<li><a href="#样例场景">样例场景</a></li>
-<li><a href="#热点问题">热点问题</a>
+<li><a href="#dict的反向二进制位遍历">dict的反向二进制位遍历</a>
 <ul>
-<li><a href="#加盐">加盐</a></li>
-<li><a href="#哈希">哈希</a></li>
-<li><a href="#翻转">翻转</a></li>
+<li><a href="#1-当dict稳定的时候">1、当dict稳定的时候</a></li>
+<li><a href="#2-当dict扩大的时候">2、当dict扩大的时候</a></li>
+<li><a href="#3-当dict缩小的时候">3、当dict缩小的时候</a></li>
+<li><a href="#4-正好进行rehash的时候">4、正好进行rehash的时候</a></li>
 </ul></li>
-<li><a href="#访问顺序问题">访问顺序问题</a>
-<ul>
-<li><a href="#翻转时间戳">翻转时间戳</a></li>
-</ul></li>
+<li><a href="#总结">总结</a></li>
 </ul>
 </nav>
 
-<p>HBase中的rowkey唯一的决定了一行数据，使用HBase的场景多种多样， rowkey设计的好坏很大程度上决定了应用场景中的执行效率。</p>
+<p>先贴一下整体的代码</p>
 
-<p>通过具体的一个场景样例，简单的研究一下在Hbase的rowkey设计上的一些原则。</p>
+<pre><code>unsigned long dictScan(dict *d,
+                       unsigned long v,
+                       dictScanFunction *fn,
+                       dictScanBucketFunction* bucketfn,
+                       void *privdata)
+{
+    dictht *t0, *t1;
+    const dictEntry *de, *next;
+    unsigned long m0, m1;
 
-<h1 id="样例场景">样例场景</h1>
+    // 跳过空字典
+    if (dictSize(d) == 0) return 0;
 
-<p>假设当前有一个网上商城系统， 需要实现用户拉取历史订单的需求。当然， 在历史订单量比较少的时候，简单的使用mysql就能很好的支持需求，但是当数据量到一定量级，尤其是对于写多读少的场景的时候，HBase也会成为我们的一个选择。</p>
+    // 如果没有rehash，迭代一个哈希表的字典
+    if (!dictIsRehashing(d)) {
+        t0 = &amp;(d-&gt;ht[0]);
+        m0 = t0-&gt;sizemask;
 
-<p>如果要使用HBase来实现用户历史订单的这么一个需求（据我所知，京东和滴滴的历史订单也是用HBase来支撑的），我们该如何设计rowkey呢。</p>
+        /* Emit entries at cursor */
+        if (bucketfn) bucketfn(privdata, &amp;t0-&gt;table[v &amp; m0]);
+        de = t0-&gt;table[v &amp; m0];
+        while (de) {
+            next = de-&gt;next;
+            fn(privdata, de);
+            de = next;
+        }
+    // 迭代有两个哈希表的字典
+    } else {
+        t0 = &amp;d-&gt;ht[0];
+        t1 = &amp;d-&gt;ht[1];
 
-<p>最直观的， 当然是将用户的ID直接当作rowkey的一部分。当然，只有用户的ID是不够的， 为了表示多个订单， 一般可以将时间戳作为rowkey的一部分，比如{{user_id}}_{{timestamp}}，这样一个订单作为一样插入到HBase中，拉取的时间将用户的ID当作前缀，可以将所有当前用户的订单拉取出来。</p>
+        /* Make sure t0 is the smaller and t1 is the bigger table */
+        // 确保 t0 比 t1 要小
+        if (t0-&gt;size &gt; t1-&gt;size) {
+            t0 = &amp;d-&gt;ht[1];
+            t1 = &amp;d-&gt;ht[0];
+        }
 
-<p>但是这样肯定是有问题的， 我们将其中存在的问题一一列出来并给出相应的解决办法。</p>
+        m0 = t0-&gt;sizemask;
+        m1 = t1-&gt;sizemask;
 
-<h1 id="热点问题">热点问题</h1>
+        /* Emit entries at cursor */
+        if (bucketfn) bucketfn(privdata, &amp;t0-&gt;table[v &amp; m0]);
+        de = t0-&gt;table[v &amp; m0];
+        while (de) {
+            next = de-&gt;next;
+            fn(privdata, de);
+            de = next;
+        }
 
-<p>第一个首先是热点问题，一般用户的ID会存在一定的规律性， 比如自增性。考虑一种场景， 如果商城推出了一项新活动， 吸引了大量新用户来下单。那么这波新用户的用户ID很大可能上是相似的，这样的话，大量的单子就会落到HBase中一个或极少数节点。这就是所谓的热点问题，大量的访问会使得热点region所在的机器承受了大部分压力，引起性能的下降，但是同时其他region有可能是比较闲置的状态。</p>
+        /* Iterate over indices in larger table that are the expansion
+         * of the index pointed to by the cursor in the smaller table */
+        do {
+            /* Emit entries at cursor */
+            if (bucketfn) bucketfn(privdata, &amp;t1-&gt;table[v &amp; m1]);
+            de = t1-&gt;table[v &amp; m1];
+            while (de) {
+                next = de-&gt;next;
+                fn(privdata, de);
+                de = next;
+            }
 
-<p>那么如何尽量的避免这种不均衡的状态呢，当然可选择的方式也是多样的。</p>
+            /* Increment bits not covered by the smaller mask */
+            v = (((v | m0) + 1) &amp; ~m0) | (v &amp; m0);
 
-<h2 id="加盐">加盐</h2>
+            /* Continue while bits covered by mask difference is non-zero */
+        } while (v &amp; (m0 ^ m1));
+    }
 
-<p>加盐就是所谓的salt值，通过在rowkey中加入一个随机值，使得即使用户ID相近，加盐之后仍旧能够分配到不同的region。</p>
+    /* Set unmasked bits so incrementing the reversed cursor
+     * operates on the masked bits of the smaller table */
+    v |= ~m0;
 
-<h2 id="哈希">哈希</h2>
+    /* Increment the reverse cursor */
+    v = rev(v);
+    v++;
+    v = rev(v);
 
-<p>哈希也是一个常用的打散数据的方式，比如在我们的例子中， 固定一种哈希算法，生成rowkey的时候不是直接用用户的ID，而是将用户的ID经过哈希之后的值当作rowkey的一部分，这样即使短时间内用户的ID都是相邻的，他们得到的哈希值也是分散的。在拉取的时候，因为哈希算法固定，能够很快的通过用户的ID找到哈希之后的值。</p>
+    return v;
+}
+</code></pre>
 
-<h2 id="翻转">翻转</h2>
+<p>Redis的dict结构中，有一个遍历dict的函数，因为该遍历函数的算法比较特别，值得单独拿出来研究一下。</p>
 
-<p>用户的ID如果具有自增性， 这个就表示很多用户的ID其实前面部分是相同的，只是后半部分在一直变化。那么对用户的ID进行反转之后，就是前半部分在一直变化了， 这样也能达到打散分布的效果。</p>
+<p>首先考虑最简单的情况， 如果一个dict是稳定，即没有扩大缩小，也没有正好处于rehash的过程中，那么这种情况下的遍历是最简单的， 只需要按照索引值顺序遍历第一个hash表ht[0]就行。</p>
 
-<h1 id="访问顺序问题">访问顺序问题</h1>
+<p>但是如果本次索引的遍历的时候，跟上一个索引遍历的时候，dict已经经过了扩大或者缩小，或者dict正好处于rehash的过程中的时候，遍历过程就变复杂了。</p>
 
-<p>如果用翻转的方式解决热点问题， 现在用户历史订单的rowkey的格式就是{{reverse(user_id)}}_{{timestamp}}。不过这样也会有问题， 一般查看历史订单的时候，都是要求最近的单子显示在最前边， 如果按照这种rowkey的方式去存放数据，由于HBase中的数据都是按照字典序排序的，没有办法按照时间的逆序取数据。</p>
+<p>如果仍旧采用顺序遍历索引的策略，考虑dict经过缩小的情况。如果hash表一共有8个slot，经过扩大变成了4个slot，在计算索引的时候，都是hash值同mask=size-1做与操作。所以如果某个key的hash值最后原来是7的话，在slot=8的时候，应该放到索引为7的slot，但是缩小到4个slot的时候，将被放在slot=3。可以想见，这种情况下，会有大量的key被漏掉。同样，如果经过了扩大，也会有大量的key被重复遍历。</p>
 
-<h2 id="翻转时间戳">翻转时间戳</h2>
+<h1 id="dict的反向二进制位遍历">dict的反向二进制位遍历</h1>
 
-<p>所以通常的做法是翻转时间戳，在上边的的rowkey例子中， 将timestamp替换成Long.Max_Value - timestamp，即rowkey的格式是{{reverse(user_id)}}_{{Long.Max_Value - timestamp}}。</p>
+<p>Redis的遍历方式采用了反向的二进制位遍历。那么什么是反向二进制位遍历呢。按照正常的遍历逻辑，遍历的顺序是按照0-&gt;1-&gt;2-&gt;3-&gt;4&hellip;.</p>
 
-<p>这么做有什么好处呢， 我们可以想见时间越近的单子，Long.Max_Value - timestamp会越小，也就是会排的越前面。 当取历史单子的时候，我们用Long.Max_Value减去当前时间戳得到的数值甚至比最近单子的后缀还要小，将“Long.Max_Value减去当前时间戳” 当作scan的startRow就能逆序取到最新的所有订单列表。</p>
+<p>但是dictScan采用的顺序，以8个slot为例，是0-&gt;4-&gt;2-&gt;6-&gt;1-&gt;5-&gt;3-&gt;7。看着貌似没有规律，但是其实是从高位开始，向低位进位的一种遍历方式，用二进制更能直观的看出来</p>
 
-<p>当然， 在设计的时候还有其他一些规则，比如col_family要进行短，rowkey也要尽量短等等， 不再赘述。</p>
+<pre><code> 000 --&gt; 100 --&gt; 010 --&gt; 110 --&gt; 001 --&gt; 101 --&gt; 011 --&gt; 111 --&gt; 000 
+</code></pre>
+
+<p>那么用这种方式遍历会有什么好处呢，可以按照dict不同状态的示例来说明</p>
+
+<h2 id="1-当dict稳定的时候">1、当dict稳定的时候</h2>
+
+<p>这种情况下，从上面的说明能看出，反向二进制遍历同正向二进制遍历一样，能够遍历到所有的索引，并且不会有重复或遗漏</p>
+
+<h2 id="2-当dict扩大的时候">2、当dict扩大的时候</h2>
+
+<p>假设dict的slot由8个扩大到16个，首先列出两种状态下的遍历顺序：</p>
+
+<pre><code>000 --&gt; 100 --&gt; 010 --&gt; 110 --&gt; 001 --&gt; 101 --&gt; 011 --&gt; 111 --&gt; 000     
+  
+0000 --&gt; 1000 --&gt; 0100 --&gt; 1100 --&gt; 0010 --&gt; 1010 --&gt; 0110 --&gt; 1110 --&gt; 0001 --&gt; 1001 --&gt; 0101 --&gt; 1101 --&gt; 0011 --&gt; 1011 --&gt; 0111 --&gt; 1111 --&gt; 0000    
+</code></pre>
+
+<p>假设在slot=8的时候已经遍历完了010的索引，下一次就需要遍历110的索引。此时dict发生了rehash操作，slot从8个扩展到了16个，</p>
+
+<p>在slot=16的情况下，就需要遍历0110的索引。 此时，在slot=8的时候遍历过的所以值为000，100，010，对应到slot=16的情况下，分别是0000，1000， 0100，1100， 0010， 1010， 正好是所以址0110的前序所以， 这样的话，整个遍历流程，不会造成遍历的重复或者遗漏。</p>
+
+<h2 id="3-当dict缩小的时候">3、当dict缩小的时候</h2>
+
+<p>假设在slot=16的是，已经遍历完了0110的索引，下一个就要遍历1110的索引，此时dict缩小到了slot=8 。此前已经遍历过的所有索引分别为 0000， 1000， 0100， 1100， 0010， 1010， 0110， 对应到slot=8的情况下，分别落到索引000，100，010，110。</p>
+
+<p>此时需要从110的所以开始遍历，但是由于此前在slot=16的时候已经遍历过的0110的索引值也是落到110的索引，所以会造成一部分的key被重复遍历。</p>
+
+<p>原哈希表长度为x，缩小后长度为y，则最多会有x/y – 1个原bucket的节点会被重复迭代。比如由16缩小为8，则最多就有1个bucket节点会重复迭代，要是由32缩小为8，则最多会有3个。</p>
+
+<p>但是，也有可能，正好不重复遍历，比如slot=16的时候遍历到1010，即将遍历0110的时候dict缩小的时候，就不会产生重复。</p>
+
+<p>反向二进制算法保证了dict不会遗漏元素，同时在dict缩小的时候，保证了比较小的元素重复。</p>
+
+<h2 id="4-正好进行rehash的时候">4、正好进行rehash的时候</h2>
+
+<p>当dict正好在进行rehash的时候，当前遍历的索引里边可能数据不全，因为有一部分已经rehash到新表中去了。所以为了不漏掉元素，采取的措施是同时遍历两个hash表的对应索引。</p>
+
+<p>但是rehash的过程中，不管扩大还是缩小，两张表的索引都是不同的，如何对应呢。 方法就是先比较两张hash表的大小，先遍历较小的hash表，遍历完之后，找到大表中所有对应的索引值，全部依次遍历。</p>
+
+<p>举个例子，暂且不管dict当前是在扩大还是缩小，两张hash表的大小肯定是不同的。假设一张表的slot=8，另一张表的slot=32， 两个mask分别为111和11111。 假设当前的hash值同111做与操作之后为010，那么小表中010的索引遍历之后，需要遍历大表的00010，01010， 10010和11010的索引，然后将两者的索引一块返回。</p>
+
+<pre><code>v = (((v | m0) + 1) &amp; ~m0) | (v &amp; m0);
+</code></pre>
+
+<p>那么如何保证大表对应的所有索引都能遍历到呢。代码中可以看到这么一条语句，分析一下。 v | m0 将v的低位全部置为1， (v | m0) + 1则是将v的高位加1，之后再 &amp; ~m0 将所有低位置0， v &amp; m0 就是将v的低位提取出来放到之前的数值之后。 这样就能够： 保持v的低位不变，高位持续加1，遍历所有扩展后的slot</p>
+
+<p>那么高位什么时候停止加1呢，就是while终止的条件</p>
+
+<pre><code>while (v &amp; (m0 ^ m1))
+</code></pre>
+
+<p>由于m0和m1都是全为1的mask，假设m0=111， m1=11111， 那么m0 ^ m1 = 11000， 所以我们能看到当v的高位没有1了，其实就是说到头了，循环就会终止。</p>
+
+<h1 id="总结">总结</h1>
+
+<p>Redis的dictScan通过反向二进制位的遍历顺序，既能防止漏掉遍历元素，也能在必须要重复遍历元素的时候，减少重复元素的个数。 同时在处理rehash操作时的遍历的时候，通过各种位操作的结合，使得rehash过程中不会漏掉元素。</p>
               
             </div>
           </div>
@@ -334,7 +442,9 @@ HBase中的rowkey唯一的决定了一行数据，使用HBase的场景多种多�
                   <div class="post-footer-tags">
                     <span class="text-color-light text-small">标签</span><br/>
                     
-  <a class="tag tag--primary tag--small" href="https://harleylau.github.io/tags/hbase/">HBase</a>
+  <a class="tag tag--primary tag--small" href="https://harleylau.github.io/tags/redis/">redis</a>
+
+  <a class="tag tag--primary tag--small" href="https://harleylau.github.io/tags/%E6%BA%90%E7%A0%81/">源码</a>
 
                   </div>
                 
@@ -347,7 +457,7 @@ HBase中的rowkey唯一的决定了一行数据，使用HBase的场景多种多�
           
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2019/01/%E4%BD%BF%E7%94%A8redis-setnx-%E5%91%BD%E4%BB%A4%E5%AE%9E%E7%8E%B0%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" data-tooltip="使用Redis SETNX 命令实现分布式锁">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2018/12/%E4%BB%8Ehexo%E8%BD%AC%E5%88%B0hugo/" data-tooltip="从hexo转到hugo">
               
                   <i class="fa fa-angle-left"></i>
                   <span class="hide-xs hide-sm text-small icon-ml">下一篇</span>
@@ -355,7 +465,7 @@ HBase中的rowkey唯一的决定了一行数据，使用HBase的场景多种多�
             </li>
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2018/12/%E4%BB%8Ehexo%E8%BD%AC%E5%88%B0hugo/" data-tooltip="从hexo转到hugo">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-dict%E5%AD%97%E5%85%B8/" data-tooltip="Redis源码剖析-Dict字典">
               
                   <span class="hide-xs hide-sm text-small icon-mr">上一篇</span>
                   <i class="fa fa-angle-right"></i>
@@ -373,19 +483,19 @@ HBase中的rowkey唯一的决定了一行数据，使用HBase的场景多种多�
         </li>
         
           <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://harleylau.github.io/2019/01/hbase-rowkey-%E8%AE%BE%E8%AE%A1/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://harleylau.github.io/2017/08/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-dict%E9%81%8D%E5%8E%86%E7%AE%97%E6%B3%95/">
               <i class="fa fa-facebook-official"></i>
             </a>
           </li>
         
           <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://harleylau.github.io/2019/01/hbase-rowkey-%E8%AE%BE%E8%AE%A1/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://harleylau.github.io/2017/08/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-dict%E9%81%8D%E5%8E%86%E7%AE%97%E6%B3%95/">
               <i class="fa fa-twitter"></i>
             </a>
           </li>
         
           <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://harleylau.github.io/2019/01/hbase-rowkey-%E8%AE%BE%E8%AE%A1/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://harleylau.github.io/2017/08/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-dict%E9%81%8D%E5%8E%86%E7%AE%97%E6%B3%95/">
               <i class="fa fa-google-plus"></i>
             </a>
           </li>
@@ -433,7 +543,7 @@ HBase中的rowkey唯一的决定了一行数据，使用HBase的场景多种多�
           
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2019/01/%E4%BD%BF%E7%94%A8redis-setnx-%E5%91%BD%E4%BB%A4%E5%AE%9E%E7%8E%B0%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" data-tooltip="使用Redis SETNX 命令实现分布式锁">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2018/12/%E4%BB%8Ehexo%E8%BD%AC%E5%88%B0hugo/" data-tooltip="从hexo转到hugo">
               
                   <i class="fa fa-angle-left"></i>
                   <span class="hide-xs hide-sm text-small icon-ml">下一篇</span>
@@ -441,7 +551,7 @@ HBase中的rowkey唯一的决定了一行数据，使用HBase的场景多种多�
             </li>
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2018/12/%E4%BB%8Ehexo%E8%BD%AC%E5%88%B0hugo/" data-tooltip="从hexo转到hugo">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-dict%E5%AD%97%E5%85%B8/" data-tooltip="Redis源码剖析-Dict字典">
               
                   <span class="hide-xs hide-sm text-small icon-mr">上一篇</span>
                   <i class="fa fa-angle-right"></i>
@@ -459,19 +569,19 @@ HBase中的rowkey唯一的决定了一行数据，使用HBase的场景多种多�
         </li>
         
           <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://harleylau.github.io/2019/01/hbase-rowkey-%E8%AE%BE%E8%AE%A1/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://harleylau.github.io/2017/08/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-dict%E9%81%8D%E5%8E%86%E7%AE%97%E6%B3%95/">
               <i class="fa fa-facebook-official"></i>
             </a>
           </li>
         
           <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://harleylau.github.io/2019/01/hbase-rowkey-%E8%AE%BE%E8%AE%A1/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://harleylau.github.io/2017/08/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-dict%E9%81%8D%E5%8E%86%E7%AE%97%E6%B3%95/">
               <i class="fa fa-twitter"></i>
             </a>
           </li>
         
           <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://harleylau.github.io/2019/01/hbase-rowkey-%E8%AE%BE%E8%AE%A1/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://harleylau.github.io/2017/08/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-dict%E9%81%8D%E5%8E%86%E7%AE%97%E6%B3%95/">
               <i class="fa fa-google-plus"></i>
             </a>
           </li>
@@ -501,19 +611,19 @@ HBase中的rowkey唯一的决定了一行数据，使用HBase的场景多种多�
   <ul class="share-options">
     
       <li class="share-option">
-        <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fharleylau.github.io%2F2019%2F01%2Fhbase-rowkey-%25E8%25AE%25BE%25E8%25AE%25A1%2F">
+        <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fharleylau.github.io%2F2017%2F08%2Fredis%25E6%25BA%2590%25E7%25A0%2581%25E5%2589%2596%25E6%259E%2590-dict%25E9%2581%258D%25E5%258E%2586%25E7%25AE%2597%25E6%25B3%2595%2F">
           <i class="fa fa-facebook-official"></i><span>分享到 Facebook</span>
         </a>
       </li>
     
       <li class="share-option">
-        <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=https%3A%2F%2Fharleylau.github.io%2F2019%2F01%2Fhbase-rowkey-%25E8%25AE%25BE%25E8%25AE%25A1%2F">
+        <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=https%3A%2F%2Fharleylau.github.io%2F2017%2F08%2Fredis%25E6%25BA%2590%25E7%25A0%2581%25E5%2589%2596%25E6%259E%2590-dict%25E9%2581%258D%25E5%258E%2586%25E7%25AE%2597%25E6%25B3%2595%2F">
           <i class="fa fa-twitter"></i><span>分享到 Twitter</span>
         </a>
       </li>
     
       <li class="share-option">
-        <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=https%3A%2F%2Fharleylau.github.io%2F2019%2F01%2Fhbase-rowkey-%25E8%25AE%25BE%25E8%25AE%25A1%2F">
+        <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=https%3A%2F%2Fharleylau.github.io%2F2017%2F08%2Fredis%25E6%25BA%2590%25E7%25A0%2581%25E5%2589%2596%25E6%259E%2590-dict%25E9%2581%258D%25E5%258E%2586%25E7%25AE%2597%25E6%25B3%2595%2F">
           <i class="fa fa-google-plus"></i><span>分享到 Google&#43;</span>
         </a>
       </li>
@@ -789,9 +899,9 @@ $(document).ready(function() {
     
       <script>
         var disqus_config = function () {
-          this.page.url = 'https:\/\/harleylau.github.io\/2019\/01\/hbase-rowkey-%E8%AE%BE%E8%AE%A1\/';
+          this.page.url = 'https:\/\/harleylau.github.io\/2017\/08\/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-dict%E9%81%8D%E5%8E%86%E7%AE%97%E6%B3%95\/';
           
-            this.page.identifier = '\/2019\/01\/hbase-rowkey-%E8%AE%BE%E8%AE%A1\/'
+            this.page.identifier = '\/2017\/08\/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-dict%E9%81%8D%E5%8E%86%E7%AE%97%E6%B3%95\/'
           
         };
         (function() {

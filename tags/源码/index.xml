@@ -6,10 +6,21 @@
     <description>Recent content in 源码 on Harley</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 31 Jul 2017 16:36:53 +0800</lastBuildDate>
+    <lastBuildDate>Wed, 02 Aug 2017 16:08:16 +0800</lastBuildDate>
     
 	<atom:link href="https://harleylau.github.io/tags/%E6%BA%90%E7%A0%81/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Redis源码剖析-Dict遍历算法</title>
+      <link>https://harleylau.github.io/2017/08/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-dict%E9%81%8D%E5%8E%86%E7%AE%97%E6%B3%95/</link>
+      <pubDate>Wed, 02 Aug 2017 16:08:16 +0800</pubDate>
+      
+      <guid>https://harleylau.github.io/2017/08/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-dict%E9%81%8D%E5%8E%86%E7%AE%97%E6%B3%95/</guid>
+      <description>&lt;!--toc--&gt;
+
+&lt;p&gt;先贴一下整体的代码&lt;/p&gt;</description>
+    </item>
     
     <item>
       <title>Redis源码剖析-Dict字典</title>
@@ -17,7 +28,9 @@
       <pubDate>Mon, 31 Jul 2017 16:36:53 +0800</pubDate>
       
       <guid>https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-dict%E5%AD%97%E5%85%B8/</guid>
-      <description>&lt;p&gt;改换一下策略，不直接介绍源码，打算先整体介绍一下思路，然后再根据源码解释具体的实现。&lt;/p&gt;</description>
+      <description>&lt;!--toc--&gt;
+
+&lt;p&gt;改换一下策略，不直接介绍源码，打算先整体介绍一下思路，然后再根据源码解释具体的实现。&lt;/p&gt;</description>
     </item>
     
     <item>
@@ -26,7 +39,9 @@
       <pubDate>Mon, 31 Jul 2017 12:15:30 +0800</pubDate>
       
       <guid>https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-%E9%93%BE%E8%A1%A8list/</guid>
-      <description>&lt;p&gt;Redis另一个基础的数据结构是链表，C并没有内置的链表结构，因此Redis自己实现了一个列表。&lt;/p&gt;</description>
+      <description>&lt;!--toc--&gt;
+
+&lt;p&gt;Redis另一个基础的数据结构是链表，C并没有内置的链表结构，因此Redis自己实现了一个列表。&lt;/p&gt;</description>
     </item>
     
     <item>
@@ -35,7 +50,9 @@
       <pubDate>Fri, 28 Jul 2017 16:14:49 +0800</pubDate>
       
       <guid>https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AE%80%E5%8D%95%E5%8A%A8%E6%80%81%E5%AD%97%E7%AC%A6%E4%B8%B2sds/</guid>
-      <description>&lt;p&gt;Redis 没有直接使用 C 语言传统的字符串表示， 而是自己构建了一种名为简单动态字符串（simple dynamic string，SDS）的抽象类型， 并将 SDS 用作 Redis 的默认字符串表示。&lt;/p&gt;</description>
+      <description>&lt;!--toc--&gt;
+
+&lt;p&gt;Redis 没有直接使用 C 语言传统的字符串表示， 而是自己构建了一种名为简单动态字符串（simple dynamic string，SDS）的抽象类型， 并将 SDS 用作 Redis 的默认字符串表示。&lt;/p&gt;</description>
     </item>
     
   </channel>

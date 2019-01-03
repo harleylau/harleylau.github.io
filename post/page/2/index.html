@@ -216,6 +216,66 @@
     
     <div class="postShorten-header">
       <h1 class="postShorten-title" itemprop="headline">
+        <a class="link-unstyled" href="https://harleylau.github.io/2017/07/tornado-%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%BA%94%E7%94%A8/">
+          Tornado 线程池应用
+        </a>
+      </h1>
+      
+  <div class="postShorten-meta post-meta">
+    
+      <time itemprop="datePublished" datetime="2017-07-25T08:54:31&#43;08:00">
+        
+  七月 25, 2017
+
+      </time>
+    
+    
+  
+  
+    <span>发布在</span>
+    
+      <a class="category-link" href="https://harleylau.github.io/categories/tornado">Tornado</a>, 
+    
+      <a class="category-link" href="https://harleylau.github.io/categories/%e7%ba%bf%e7%a8%8b%e6%b1%a0">线程池</a>
+    
+  
+
+  </div>
+
+    </div>
+    <div class="postShorten-excerpt" itemprop="articleBody">
+      
+        <p>Tornado是一个异步框架，在异步操作的时候能提升程序的处理性能。但是如果在程序中碰到同步的逻辑，由于GIL的关系，会直接卡死，导致性能急剧下降。</p>
+      
+      <p>
+        <a href="https://harleylau.github.io/2017/07/tornado-%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%BA%94%E7%94%A8/" class="postShorten-excerpt_link link">阅读全文</a>
+        
+      </p>
+    </div>
+  </div>
+  
+    <a href="https://harleylau.github.io/2017/07/tornado-%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%BA%94%E7%94%A8/">
+      <div class="postShorten-thumbnailimg">
+        <img alt="" itemprop="image" src="https://harleylau.github.io/img/tornado.png"/>
+      </div>
+    </a>
+  
+</article>
+
+          
+            
+  
+    
+  
+
+
+  
+
+<article class="postShorten postShorten--thumbnailimg-left" itemscope itemType="http://schema.org/BlogPosting">
+  <div class="postShorten-wrap">
+    
+    <div class="postShorten-header">
+      <h1 class="postShorten-title" itemprop="headline">
         <a class="link-unstyled" href="https://harleylau.github.io/2017/07/json-web-token/">
           Json Web Token
         </a>
@@ -358,7 +418,9 @@
                   Jan 1, 2019
                 </span>
               </span>
-              <div class="media-content hide-xs font-merryweather"><p>HBase中的rowkey唯一的决定了一行数据，使用HBase的场景多种多样， rowkey设计的好坏很大程度上决定了应用场景中的执行效率。</p></div>
+              <div class="media-content hide-xs font-merryweather"><!-- toc -->
+
+<p>HBase中的rowkey唯一的决定了一行数据，使用HBase的场景多种多样， rowkey设计的好坏很大程度上决定了应用场景中的执行效率。</p></div>
             </div>
             <div style="clear:both;"></div>
             <hr>
@@ -385,6 +447,25 @@
           <div class="media">
             
             <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2017/08/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-dict%E9%81%8D%E5%8E%86%E7%AE%97%E6%B3%95/">
+                <h3 class="media-heading">Redis源码剖析-Dict遍历算法</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Aug 8, 2017
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><!--toc-->
+
+<p>先贴一下整体的代码</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
               <a class="link-unstyled" href="https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-dict%E5%AD%97%E5%85%B8/">
                 <h3 class="media-heading">Redis源码剖析-Dict字典</h3>
               </a>
@@ -393,7 +474,9 @@
                   Jul 7, 2017
                 </span>
               </span>
-              <div class="media-content hide-xs font-merryweather"><p>改换一下策略，不直接介绍源码，打算先整体介绍一下思路，然后再根据源码解释具体的实现。</p></div>
+              <div class="media-content hide-xs font-merryweather"><!--toc-->
+
+<p>改换一下策略，不直接介绍源码，打算先整体介绍一下思路，然后再根据源码解释具体的实现。</p></div>
             </div>
             <div style="clear:both;"></div>
             <hr>
@@ -410,7 +493,9 @@
                   Jul 7, 2017
                 </span>
               </span>
-              <div class="media-content hide-xs font-merryweather"><p>Redis另一个基础的数据结构是链表，C并没有内置的链表结构，因此Redis自己实现了一个列表。</p></div>
+              <div class="media-content hide-xs font-merryweather"><!--toc-->
+
+<p>Redis另一个基础的数据结构是链表，C并没有内置的链表结构，因此Redis自己实现了一个列表。</p></div>
             </div>
             <div style="clear:both;"></div>
             <hr>
@@ -427,7 +512,9 @@
                   Jul 7, 2017
                 </span>
               </span>
-              <div class="media-content hide-xs font-merryweather"><p>Redis 没有直接使用 C 语言传统的字符串表示， 而是自己构建了一种名为简单动态字符串（simple dynamic string，SDS）的抽象类型， 并将 SDS 用作 Redis 的默认字符串表示。</p></div>
+              <div class="media-content hide-xs font-merryweather"><!--toc-->
+
+<p>Redis 没有直接使用 C 语言传统的字符串表示， 而是自己构建了一种名为简单动态字符串（simple dynamic string，SDS）的抽象类型， 并将 SDS 用作 Redis 的默认字符串表示。</p></div>
             </div>
             <div style="clear:both;"></div>
             <hr>
@@ -474,7 +561,7 @@
          data-message-zero=""
          data-message-one=""
          data-message-other="">
-         8 posts found
+         9 posts found
       </p>
     </div>
   </div>
