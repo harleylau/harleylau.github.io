@@ -6,10 +6,28 @@
     <description>Recent content in Tags on Harley</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Tue, 01 Jan 2019 15:39:35 +0800</lastBuildDate>
+    <lastBuildDate>Fri, 25 May 2018 14:20:39 +0800</lastBuildDate>
     
 	<atom:link href="https://harleylau.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Base</title>
+      <link>https://harleylau.github.io/tags/base/</link>
+      <pubDate>Fri, 25 May 2018 14:20:39 +0800</pubDate>
+      
+      <guid>https://harleylau.github.io/tags/base/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Cap</title>
+      <link>https://harleylau.github.io/tags/cap/</link>
+      <pubDate>Fri, 25 May 2018 14:20:39 +0800</pubDate>
+      
+      <guid>https://harleylau.github.io/tags/cap/</guid>
+      <description></description>
+    </item>
     
     <item>
       <title>Hbase</title>
@@ -107,6 +125,15 @@
       <pubDate>Mon, 12 Feb 2018 12:17:11 +0800</pubDate>
       
       <guid>https://harleylau.github.io/tags/%E4%BA%8C%E7%BB%B4%E7%A0%81/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>分布式系统</title>
+      <link>https://harleylau.github.io/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/</link>
+      <pubDate>Fri, 25 May 2018 14:20:39 +0800</pubDate>
+      
+      <guid>https://harleylau.github.io/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/</guid>
       <description></description>
     </item>
     
