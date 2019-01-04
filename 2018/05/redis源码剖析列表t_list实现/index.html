@@ -1,0 +1,1357 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="generator" content="Hugo 0.52 with theme Tranquilpeak 0.4.3-SNAPSHOT">
+<meta name="author" content="Harley">
+<meta name="keywords" content="redis">
+<meta name="description" content="
+
+Redis中的列表对象比较特殊，在版本3.2之前，列表底层的编码是 ziplist 和 linkedlist 实现的， 但是在版本3.2之后，重新引入了一个 quicklist 的数据结构，列表的底层都由quicklist实现。">
+
+
+<meta property="og:description" content="
+
+Redis中的列表对象比较特殊，在版本3.2之前，列表底层的编码是 ziplist 和 linkedlist 实现的， 但是在版本3.2之后，重新引入了一个 quicklist 的数据结构，列表的底层都由quicklist实现。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Redis源码剖析–列表t_list实现">
+<meta name="twitter:title" content="Redis源码剖析–列表t_list实现">
+<meta property="og:url" content="https://harleylau.github.io/2018/05/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%88%97%E8%A1%A8t_list%E5%AE%9E%E7%8E%B0/">
+<meta property="twitter:url" content="https://harleylau.github.io/2018/05/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%88%97%E8%A1%A8t_list%E5%AE%9E%E7%8E%B0/">
+<meta property="og:site_name" content="Harley">
+<meta property="og:description" content="
+
+Redis中的列表对象比较特殊，在版本3.2之前，列表底层的编码是 ziplist 和 linkedlist 实现的， 但是在版本3.2之后，重新引入了一个 quicklist 的数据结构，列表的底层都由quicklist实现。">
+<meta name="twitter:description" content="
+
+Redis中的列表对象比较特殊，在版本3.2之前，列表底层的编码是 ziplist 和 linkedlist 实现的， 但是在版本3.2之后，重新引入了一个 quicklist 的数据结构，列表的底层都由quicklist实现。">
+<meta property="og:locale" content="zh-cn">
+
+  
+    <meta property="article:published_time" content="2018-05-10T09:53:08">
+  
+  
+    <meta property="article:modified_time" content="2018-05-10T09:53:08">
+  
+  
+  
+    
+      <meta property="article:section" content="redis">
+    
+      <meta property="article:section" content="源码">
+    
+  
+  
+    
+      <meta property="article:tag" content="redis">
+    
+      <meta property="article:tag" content="源码">
+    
+  
+
+
+<meta name="twitter:card" content="summary">
+
+
+
+
+
+
+
+
+
+
+
+  <meta property="og:image" content="https://harleylau.github.io/img/harleylau.jpg">
+  <meta property="twitter:image" content="https://harleylau.github.io/img/harleylau.jpg">
+
+
+    <title>Redis源码剖析–列表t_list实现</title>
+
+    <link rel="icon" href="https://harleylau.github.io/favicon.png">
+    
+
+    
+
+    <link rel="canonical" href="https://harleylau.github.io/2018/05/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%88%97%E8%A1%A8t_list%E5%AE%9E%E7%8E%B0/">
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.4/jquery.fancybox.min.css" integrity="sha256-vuXZ9LGmmwtjqFX1F+EKin1ThZMub58gKULUyf0qECk=" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.4/helpers/jquery.fancybox-thumbs.min.css" integrity="sha256-SEa4XYAHihTcEP1f5gARTB2K26Uk8PsndQYHQC1f4jU=" crossorigin="anonymous" />
+    
+    
+    <link rel="stylesheet" href="https://harleylau.github.io/css/style-nnm2spxvve8onlujjlegkkytaehyadd4ksxc1hyzzq9a2wvtrgbljqyulomn.min.css" />
+    
+    
+
+    
+      
+    
+    
+  </head>
+
+  <body>
+    <div id="blog">
+      <header id="header" data-behavior="4">
+  <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+  <div class="header-title">
+    <a class="header-title-link" href="https://harleylau.github.io/">Harley</a>
+  </div>
+  
+    
+      <a class="header-right-picture "
+         href="https://harleylau.github.io/#about">
+    
+    
+    
+      
+        <img class="header-picture" src="https://harleylau.github.io/img/harleylau.jpg" alt="作者的图片" />
+      
+    
+    </a>
+  
+</header>
+
+      <nav id="sidebar" data-behavior="4">
+  <div class="sidebar-container">
+    
+      <div class="sidebar-profile">
+        <a href="https://harleylau.github.io/#about">
+          <img class="sidebar-profile-picture" src="https://harleylau.github.io/img/harleylau.jpg" alt="作者的图片" />
+        </a>
+        <h4 class="sidebar-profile-name">Harley</h4>
+        
+      </div>
+    
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://harleylau.github.io/">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-home"></i>
+      
+      <span class="sidebar-button-desc">首页</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://harleylau.github.io/categories">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-bookmark"></i>
+      
+      <span class="sidebar-button-desc">分类</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://harleylau.github.io/tags">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-tags"></i>
+      
+      <span class="sidebar-button-desc">标签</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://harleylau.github.io/archives">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-archive"></i>
+      
+      <span class="sidebar-button-desc">归档</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://harleylau.github.io/#about">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-question"></i>
+      
+      <span class="sidebar-button-desc">关于</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://github.com/harleylau" target="_blank" rel="noopener">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-github"></i>
+      
+      <span class="sidebar-button-desc">GitHub</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://blog.csdn.net/harleylau" target="_blank" rel="noopener">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-code"></i>
+      
+      <span class="sidebar-button-desc">CSDN</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://harleylau.github.io/index.xml">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-rss"></i>
+      
+      <span class="sidebar-button-desc">RSS</span>
+    </a>
+  </li>
+
+
+    </ul>
+  </div>
+</nav>
+
+      
+
+      <div id="main" data-behavior="4"
+        class="
+               hasCoverMetaIn
+               ">
+        <article class="post" itemscope itemType="http://schema.org/BlogPosting">
+          
+          
+            <div class="post-header main-content-wrap text-left">
+  
+    <h1 class="post-title" itemprop="headline">
+      Redis源码剖析–列表t_list实现
+    </h1>
+  
+  
+  <div class="postShorten-meta post-meta">
+    
+      <time itemprop="datePublished" datetime="2018-05-10T09:53:08&#43;08:00">
+        
+  五月 10, 2018
+
+      </time>
+    
+    
+  
+  
+    <span>发布在</span>
+    
+      <a class="category-link" href="https://harleylau.github.io/categories/redis">redis</a>, 
+    
+      <a class="category-link" href="https://harleylau.github.io/categories/%e6%ba%90%e7%a0%81">源码</a>
+    
+  
+
+  </div>
+
+</div>
+          
+          <div class="post-content markdown" itemprop="articleBody">
+            <div class="main-content-wrap">
+              <h1 id="table-of-contents">目录</h1><nav id="TableOfContents">
+<ul>
+<li><a href="#list的结构">List的结构</a></li>
+<li><a href="#list命令">List命令</a></li>
+<li><a href="#list命令实现">List命令实现</a>
+<ul>
+<li><a href="#push命令实现">push命令实现</a></li>
+<li><a href="#阻塞pop操作的实现">阻塞pop操作的实现</a></li>
+<li><a href="#超时解阻塞">超时解阻塞</a></li>
+<li><a href="#插入解阻塞">插入解阻塞</a></li>
+</ul></li>
+</ul>
+</nav>
+
+<p>Redis中的列表对象比较特殊，在版本3.2之前，列表底层的编码是 ziplist 和 linkedlist 实现的， 但是在版本3.2之后，重新引入了一个 quicklist 的数据结构，列表的底层都由quicklist实现。</p>
+
+<p>这边是在看源码和实际验证的时候发现的区别，然后上网查证。由于目前使用的redis基本都在3.2了， 而且老版本肯定会被取代， 所以我们只分析3.2版本之后的实现。对于老版本的列表实现，一笔带过吧。</p>
+
+<p>在老版本中，当列表对象可以同时满足以下两个条件时， 列表对象使用 ziplist 编码：</p>
+
+<ul>
+<li>列表对象保存的所有字符串元素的长度都小于 64 字节；</li>
+<li>列表对象保存的元素数量小于 512 个；</li>
+</ul>
+
+<p>不能满足这两个条件的列表对象需要使用 linkedlist 编码。当这两个条件任何一个不满足的时候，就会有一个格式的转换。</p>
+
+<p>对于quicklist的结构，下节中在具体分析，先来看下list的实现。</p>
+
+<h1 id="list的结构">List的结构</h1>
+
+<pre><code>/* Structure to hold list iteration abstraction. */
+typedef struct {
+    robj *subject;
+    unsigned char encoding;
+    unsigned char direction; /* Iteration direction */
+    quicklistIter *iter;
+} listTypeIterator;
+
+/* Structure for an entry while iterating over a list. */
+typedef struct {
+    listTypeIterator *li;
+    quicklistEntry entry; /* Entry in quicklist */
+} listTypeEntry;
+</code></pre>
+
+<p>List的结构其实就是定义了一个列表的头节点， 以及一个迭代器指针，指针中指定了编码格式和迭代方向。</p>
+
+<h1 id="list命令">List命令</h1>
+
+<table>
+<thead>
+<tr>
+<th>命令</th>
+<th>说明</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td>BLPOP key1 [key2 ] timeout</td>
+<td>移出并获取列表的第一个元素， 如果列表没有元素会阻塞列表直到等待超时或发现可弹出元素为止。</td>
+</tr>
+
+<tr>
+<td>BRPOP key1 [key2 ] timeout</td>
+<td>移出并获取列表的最后一个元素， 如果列表没有元素会阻塞列表直到等待超时或发现可弹出元素为止。</td>
+</tr>
+
+<tr>
+<td>BRPOPLPUSH source destination timeout</td>
+<td>从列表中弹出一个值，将弹出的元素插入到另外一个列表中并返回它；如但果列表没有元素会阻塞列表直到等待超时或发现可弹出元素为止。</td>
+</tr>
+
+<tr>
+<td>LINDEX key index</td>
+<td>通过索引获取列表中的元素</td>
+</tr>
+
+<tr>
+<td>LINSERT key BEFORE</td>
+<td>AFTER pivot value</td>
+</tr>
+
+<tr>
+<td>LLEN key</td>
+<td>获取列表长度</td>
+</tr>
+
+<tr>
+<td>LPOP key</td>
+<td>移出并获取列表的第一个元素</td>
+</tr>
+
+<tr>
+<td>LPUSH key value1 [value2]</td>
+<td>将一个或多个值插入到列表头部</td>
+</tr>
+
+<tr>
+<td>LPUSHX key value</td>
+<td>将一个或多个值插入到已存在的列表头部</td>
+</tr>
+
+<tr>
+<td>LRANGE key start stop</td>
+<td>获取列表指定范围内的元素</td>
+</tr>
+
+<tr>
+<td>LREM key count value</td>
+<td>移除列表元素</td>
+</tr>
+
+<tr>
+<td>LSET key index value</td>
+<td>通过索引设置列表元素的值</td>
+</tr>
+
+<tr>
+<td>LTRIM key start stop</td>
+<td>对一个列表进行修剪(trim)，就是说，让列表只保留指定区间内的元素，不在指定区间之内的元素都将被删除。</td>
+</tr>
+
+<tr>
+<td>RPOP key</td>
+<td>移除并获取列表最后一个元素</td>
+</tr>
+
+<tr>
+<td>RPOPLPUSH source destination</td>
+<td>移除列表的最后一个元素，并将该元素添加到另一个列表并返回</td>
+</tr>
+
+<tr>
+<td>RPUSH key value1 [value2]</td>
+<td>在列表中添加一个或多个值</td>
+</tr>
+
+<tr>
+<td>RPUSHX key value</td>
+<td>为已存在的列表添加值</td>
+</tr>
+</tbody>
+</table>
+
+<h1 id="list命令实现">List命令实现</h1>
+
+<h2 id="push命令实现">push命令实现</h2>
+
+<p>lpush和rpush分别调用的下边的两个函数：</p>
+
+<pre><code>// lpush操作
+void lpushCommand(client *c) {
+    pushGenericCommand(c,LIST_HEAD);
+}
+
+// rpush操作
+void rpushCommand(client *c) {
+    pushGenericCommand(c,LIST_TAIL);
+}
+</code></pre>
+
+<p>可以看到， 这两个操作其实都是调用的pushGenericCommand这个函数实现， 不同的点是指定了是从HEAD的位置push一个数据还是从TAIL的位置push一个数据。接下来来看pushGenericCommand的实现。</p>
+
+<pre><code>void pushGenericCommand(client *c, int where) {
+    int j, pushed = 0;
+    // 现在数据库中查找是否已经存在了该键
+    robj *lobj = lookupKeyWrite(c-&gt;db,c-&gt;argv[1]);
+    // 如果已经存在了该键，验证该键是否是list类型，如果不是的话，返回错误
+    if (lobj &amp;&amp; lobj-&gt;type != OBJ_LIST) {
+        addReply(c,shared.wrongtypeerr);
+        return;
+    }
+    // 遍历剩余的参数
+    for (j = 2; j &lt; c-&gt;argc; j++) {
+        // 如果该键不存在，创建一个quicklist
+        if (!lobj) {
+            lobj = createQuicklistObject();
+            quicklistSetOptions(lobj-&gt;ptr, server.list_max_ziplist_size,
+                                server.list_compress_depth);
+            // 将创建的键添加到对应的db
+            dbAdd(c-&gt;db,c-&gt;argv[1],lobj);
+        }
+        // 执行push操作
+        listTypePush(lobj,c-&gt;argv[j],where);
+        // 个数加1
+        pushed++;
+    }
+    // 返回添加的节点数量
+    addReplyLongLong(c, (lobj ? listTypeLength(lobj) : 0));
+    // 至少有一个添加成功则进行操作
+    if (pushed) {
+        char *event = (where == LIST_HEAD) ? &quot;lpush&quot; : &quot;rpush&quot;;
+        // 发送键修改信号
+        signalModifiedKey(c-&gt;db,c-&gt;argv[1]);
+        // 发送事件通知
+        notifyKeyspaceEvent(NOTIFY_LIST,event,c-&gt;argv[1],c-&gt;db-&gt;id);
+    }
+    // 服务器的脏数据个数增加
+    server.dirty += pushed;
+}
+</code></pre>
+
+<p>内部最终还是调用了一个listTypePush的函数：</p>
+
+<pre><code>/* The function pushes an element to the specified list object 'subject',
+ * at head or tail position as specified by 'where'.
+ *
+ * There is no need for the caller to increment the refcount of 'value' as
+ * the function takes care of it if needed. */
+void listTypePush(robj *subject, robj *value, int where) {
+    // 判断类型是否为quciklist，不是的话返回错误
+    if (subject-&gt;encoding == OBJ_ENCODING_QUICKLIST) {
+        int pos = (where == LIST_HEAD) ? QUICKLIST_HEAD : QUICKLIST_TAIL;
+        // 解码数据
+        value = getDecodedObject(value);
+        // 得到数据的长度
+        size_t len = sdslen(value-&gt;ptr);
+        // 调用quicklistPush插入数据
+        quicklistPush(subject-&gt;ptr, value-&gt;ptr, len, pos);
+        // 将数据项对象的引用次数减1，也就是释放value
+        decrRefCount(value);
+    } else {
+        serverPanic(&quot;Unknown list encoding&quot;);
+    }
+}
+</code></pre>
+
+<p>pop的操作其实跟push的操作很相似，比较容易读懂。List的操作比较有特点的一项是阻塞操作，可以来分析一下。</p>
+
+<h2 id="阻塞pop操作的实现">阻塞pop操作的实现</h2>
+
+<p>首先，一样是调用了最上层的两个函数：</p>
+
+<pre><code>// blpop
+void blpopCommand(client *c) {
+    blockingPopGenericCommand(c,LIST_HEAD);
+}
+// brpop
+void brpopCommand(client *c) {
+    blockingPopGenericCommand(c,LIST_TAIL);
+}
+</code></pre>
+
+<p>他们其实都是调用blockingPopGenericCommand来实现的。</p>
+
+<pre><code>/* Blocking RPOP/LPOP */
+void blockingPopGenericCommand(client *c, int where) {
+    robj *o;
+    mstime_t timeout;
+    int j;
+
+    // 取出timeout参数
+    if (getTimeoutFromObjectOrReply(c,c-&gt;argv[c-&gt;argc-1],&amp;timeout,UNIT_SECONDS)
+        != C_OK) return;
+    // 遍历参数
+    for (j = 1; j &lt; c-&gt;argc-1; j++) {
+        // 查看数据库中是否存在该键
+        o = lookupKeyWrite(c-&gt;db,c-&gt;argv[j]);
+        if (o != NULL) {
+            // 如果存在，判断该键是否是list类型，不是的话报错
+            if (o-&gt;type != OBJ_LIST) {
+                addReply(c,shared.wrongtypeerr);
+                return;
+            } else {
+                // 当前列表非空，直接执行pop操作
+                if (listTypeLength(o) != 0) {
+                    /* Non empty list, this is like a non normal [LR]POP. */
+                    char *event = (where == LIST_HEAD) ? &quot;lpop&quot; : &quot;rpop&quot;;
+                    robj *value = listTypePop(o,where);
+                    serverAssert(value != NULL);
+
+                    addReplyMultiBulkLen(c,2);
+                    addReplyBulk(c,c-&gt;argv[j]);
+                    addReplyBulk(c,value);
+                    decrRefCount(value);
+                    notifyKeyspaceEvent(NOTIFY_LIST,event,
+                                        c-&gt;argv[j],c-&gt;db-&gt;id);
+                    // 如果当前key弹出一个值之后为空，删除这个列表
+                    if (listTypeLength(o) == 0) {
+                        dbDelete(c-&gt;db,c-&gt;argv[j]);
+                        notifyKeyspaceEvent(NOTIFY_GENERIC,&quot;del&quot;,
+                                            c-&gt;argv[j],c-&gt;db-&gt;id);
+                    }
+                    signalModifiedKey(c-&gt;db,c-&gt;argv[j]);
+                    server.dirty++;
+
+                    /* Replicate it as an [LR]POP instead of B[LR]POP. */
+                    rewriteClientCommandVector(c,2,
+                        (where == LIST_HEAD) ? shared.lpop : shared.rpop,
+                        c-&gt;argv[j]);
+                    return;
+                }
+            }
+        }
+    }
+
+    /* If we are inside a MULTI/EXEC and the list is empty the only thing
+     * we can do is treating it as a timeout (even with timeout 0). */
+    if (c-&gt;flags &amp; CLIENT_MULTI) {
+        addReply(c,shared.nullmultibulk);
+        return;
+    }
+
+    /* If the list is empty or the key does not exists we must block */
+    // 参数中的所有键都不存在，则阻塞这些键
+    blockForKeys(c, c-&gt;argv + 1, c-&gt;argc - 2, timeout, NULL);
+}
+</code></pre>
+
+<p>可以看到， 当指定的list存在于当前数据库中且list不为空，就会执行一次普通的pop操作；但是当指定的list键不存在，或者该list为空，就会阻塞该操作。就是上边代码中的最后一句。</p>
+
+<p>接下去，就是看redis如何处理这个被阻塞的操作。</p>
+
+<pre><code>/* Set a client in blocking mode for the specified key, with the specified
+ * timeout */
+ // 设置键的阻塞状态
+void blockForKeys(client *c, robj **keys, int numkeys, mstime_t timeout, robj *target) {
+    dictEntry *de;
+    list *l;
+    int j;
+
+    c-&gt;bpop.timeout = timeout;
+    c-&gt;bpop.target = target;
+
+    if (target != NULL) incrRefCount(target);
+
+    // 遍历所有的key
+    for (j = 0; j &lt; numkeys; j++) {
+        /* If the key already exists in the dict ignore it. */
+        // 如果当前键存在，则忽略；反之则添加该键
+        // bpop.keys记录所有造成客户端阻塞的键
+        if (dictAdd(c-&gt;bpop.keys,keys[j],NULL) != DICT_OK) continue;
+        //当前的key引用计数加1
+        incrRefCount(keys[j]);
+
+        /* And in the other &quot;side&quot;, to map keys -&gt; clients */
+        // blocking_keys是一个字典，其键为造成阻塞的键，值是一个链表，记录所有被该键阻塞的客户端
+        // 查找当前造成阻塞的键
+        de = dictFind(c-&gt;db-&gt;blocking_keys,keys[j]);
+        if (de == NULL) {
+            // 如果不存在，需要新创建一个， 并加入到blocking_keys中
+            int retval;
+
+            /* For every key we take a list of clients blocked for it */
+            l = listCreate();
+            // 将键和新创建的列表加入
+            retval = dictAdd(c-&gt;db-&gt;blocking_keys,keys[j],l);
+            incrRefCount(keys[j]);
+            serverAssertWithInfo(c,keys[j],retval == DICT_OK);
+        } else {
+            // 如果存在，获取该键的值，即客户端列表
+            l = dictGetVal(de);
+        }
+        // 将当前的客户端加入的该键的阻塞列表中
+        listAddNodeTail(l,c);
+    }
+    // 阻塞该客户端
+    blockClient(c,BLOCKED_LIST);
+}
+</code></pre>
+
+<p>从上边的代码中，可以看到客户端分别用来c-&gt;bpop.xxxx 和 c-&gt;db-&gt;blocking_keys用来保存被阻塞的键，以及阻塞的键和客户端的对应关系。</p>
+
+<p>他们的定义如下：</p>
+
+<pre><code>// server.h
+typedef struct client {
+    //client当前使用的数据库
+    redisDb *db;   /* Pointer to currently SELECTed DB. */
+
+    //阻塞状态
+    blockingState bpop;     /* blocking state */
+    //其他成员省略
+} client;
+
+// 阻塞状态结构体
+typedef struct blockingState {
+    mstime_t timeout;      // 阻塞超时时间
+    dict *keys;           // 记录所有造成客户端阻塞的键
+    robj *target;         // 目标选项，target在执行RPOPLPUSH命令时使用，
+    /* BLOCKED_WAIT */
+    int numreplicas;        /* Number of replicas we are waiting for ACK. */
+    long long reploffset;   /* Replication offset to reach. */
+} blockingState;
+typedef struct redisDb {
+    dict *blocking_keys;        // 记录所有造成阻塞的键，及其相应的客户端
+    // ...其他参数省略
+} redisDb;
+
+typedef struct redisDb {
+    //正处于阻塞状态的键
+    dict *blocking_keys;        /* Keys with clients waiting for data (BLPOP) */
+    //可以解除阻塞的键
+    dict *ready_keys;           /* Blocked keys that received a PUSH */
+} redisDb;
+</code></pre>
+
+<p>redisDb里边利用了一个名为blocking_keys的dict来存储每个阻塞的键，以及等待该键的客户端的对应关系。</p>
+
+<p>做完这些之后，这个客户端就被阻塞了。 那么这个客户端如何从阻塞状态重新回复到非阻塞状态呢。 一个当时是等待的时间超过了timeout的时间，从阻塞状态恢复； 另一个则是其他的客户端往这个列表中插入了数据，正好是当前阻塞的客户端所需要的，当前客户端收到信号之后，从阻塞状态中恢复。</p>
+
+<p>根据我的理解， 如果是客户端超时被解阻塞，调用的是这个函数：</p>
+
+<h2 id="超时解阻塞">超时解阻塞</h2>
+
+<pre><code>//解阻塞一个正在阻塞中的client
+void unblockClientWaitingData(client *c) {
+    dictEntry *de;
+    dictIterator *di;
+    list *l;
+
+    serverAssertWithInfo(c,NULL,dictSize(c-&gt;bpop.keys) != 0);
+    //创建一个字典的迭代器，指向的是造成client阻塞的键所组成的字典
+    di = dictGetIterator(c-&gt;bpop.keys);
+    /* The client may wait for multiple keys, so unblock it for every key. */
+    //因为client可能被多个key所阻塞，所以要遍历所有的键
+    while((de = dictNext(di)) != NULL) {
+        robj *key = dictGetKey(de); //获得key对象
+
+        /* Remove this client from the list of clients waiting for this key. */
+        //根据key找到对应的列表类型值，值保存着被阻塞的client，从中找c-&gt;db-&gt;blocking_keys中寻找
+        l = dictFetchValue(c-&gt;db-&gt;blocking_keys,key);
+        serverAssertWithInfo(c,key,l != NULL);
+        // 将阻塞的client从列表中移除
+        listDelNode(l,listSearchKey(l,c));
+        /* If the list is empty we need to remove it to avoid wasting memory */
+        //如果当前列表为空了，则从c-&gt;db-&gt;blocking_keys中将key删除
+        if (listLength(l) == 0)
+            dictDelete(c-&gt;db-&gt;blocking_keys,key);
+    }
+    dictReleaseIterator(di);    //释放迭代器
+
+    /* Cleanup the client structure */
+    //清空bpop.keys的所有节点
+    dictEmpty(c-&gt;bpop.keys,NULL);
+    //如果保存有新添加的元素，则应该释放
+    if (c-&gt;bpop.target) {
+        decrRefCount(c-&gt;bpop.target);
+        c-&gt;bpop.target = NULL;
+    }
+}
+</code></pre>
+
+<p>如果是其他的客户端插入了一个数据，则是调用下边的函数：</p>
+
+<h2 id="插入解阻塞">插入解阻塞</h2>
+
+<pre><code>// 如果客户端因为等待某个 key 被阻塞，那么将此key加入到server.ready_keys中
+// 这个列表最终会被 handleClientsBlockedOnLists() 函数处理。
+void signalListAsReady(redisDb *db, robj *key) {
+    readyList *rl;
+    // 如果在所有造成客户端阻塞的键中找不到此键，则不作处理
+    if (dictFind(db-&gt;blocking_keys,key) == NULL) return;
+    // 这个键已经存在于ready_keys中了，则不作处理
+    if (dictFind(db-&gt;ready_keys,key) != NULL) return;
+    
+    // 创建一个新的readylists结构，保存键和数据库
+    // 然后将该结构添加到server.ready_keys中
+    rl = zmalloc(sizeof(*rl));
+    rl-&gt;key = key;
+    rl-&gt;db = db;
+    // 该键的索引加1
+    incrRefCount(key);
+    listAddNodeTail(server.ready_keys,rl);
+    // 同样，将key添加到db-&gt;ready_keys中
+    incrRefCount(key);
+    serverAssert(dictAdd(db-&gt;ready_keys,key,NULL) == DICT_OK);
+}
+</code></pre>
+
+<p>在将所有可用的key加入到ready_keys之后，会有统一的函数去检查哪些客户端等待着这些key，然后将他们解阻塞</p>
+
+<pre><code>/* 遍历server.ready_keys中所有已经准备好的key，同时在c-&gt;db-&gt;blocking_keys中
+ 遍历所有由此键造成阻塞的客户端，如果key不为空的话，就从key中弹出一个元素返回给客户端并解除该客户端的阻塞状态，直到server.ready_keys为空，或没有因该key而阻塞的客户端为止 */
+/* This function should be called by Redis every time a single command,
+ * a MULTI/EXEC block, or a Lua script, terminated its execution after
+ * being called by a client.
+ *
+ * All the keys with at least one client blocked that received at least
+ * one new element via some PUSH operation are accumulated into
+ * the server.ready_keys list. This function will run the list and will
+ * serve clients accordingly. Note that the function will iterate again and
+ * again as a result of serving BRPOPLPUSH we can have new blocking clients
+ * to serve because of the PUSH side of BRPOPLPUSH. */
+void handleClientsBlockedOnLists(void) {
+    while(listLength(server.ready_keys) != 0) {
+        list *l;
+
+        /* Point server.ready_keys to a fresh list and save the current one
+         * locally. This way as we run the old list we are free to call
+         * signalListAsReady() that may push new elements in server.ready_keys
+         * when handling clients blocked into BRPOPLPUSH. */
+        l = server.ready_keys;
+        server.ready_keys = listCreate();
+
+        while(listLength(l) != 0) {
+            listNode *ln = listFirst(l);
+            readyList *rl = ln-&gt;value;
+
+            /* First of all remove this key from db-&gt;ready_keys so that
+             * we can safely call signalListAsReady() against this key. */
+            dictDelete(rl-&gt;db-&gt;ready_keys,rl-&gt;key);
+
+            /* If the key exists and it's a list, serve blocked clients
+             * with data. */
+            robj *o = lookupKeyWrite(rl-&gt;db,rl-&gt;key);
+            if (o != NULL &amp;&amp; o-&gt;type == OBJ_LIST) {
+                dictEntry *de;
+
+                /* We serve clients in the same order they blocked for
+                 * this key, from the first blocked to the last. */
+                de = dictFind(rl-&gt;db-&gt;blocking_keys,rl-&gt;key);
+                if (de) {
+                    list *clients = dictGetVal(de);
+                    int numclients = listLength(clients);
+
+                    while(numclients--) {
+                        listNode *clientnode = listFirst(clients);
+                        client *receiver = clientnode-&gt;value;
+                        robj *dstkey = receiver-&gt;bpop.target;
+                        int where = (receiver-&gt;lastcmd &amp;&amp;
+                                     receiver-&gt;lastcmd-&gt;proc == blpopCommand) ?
+                                    LIST_HEAD : LIST_TAIL;
+                        robj *value = listTypePop(o,where);
+
+                        if (value) {
+                            /* Protect receiver-&gt;bpop.target, that will be
+                             * freed by the next unblockClient()
+                             * call. */
+                            if (dstkey) incrRefCount(dstkey);
+                            unblockClient(receiver);
+
+                            if (serveClientBlockedOnList(receiver,
+                                rl-&gt;key,dstkey,rl-&gt;db,value,
+                                where) == C_ERR)
+                            {
+                                /* If we failed serving the client we need
+                                 * to also undo the POP operation. */
+                                    listTypePush(o,value,where);
+                            }
+
+                            if (dstkey) decrRefCount(dstkey);
+                            decrRefCount(value);
+                        } else {
+                            break;
+                        }
+                    }
+                }
+
+                if (listTypeLength(o) == 0) {
+                    dbDelete(rl-&gt;db,rl-&gt;key);
+                }
+                /* We don't call signalModifiedKey() as it was already called
+                 * when an element was pushed on the list. */
+            }
+
+            /* Free this item. */
+            decrRefCount(rl-&gt;key);
+            zfree(rl);
+            listDelNode(l,ln);
+        }
+        listRelease(l); /* We have the new list on place at this point. */
+    }
+}
+</code></pre>
+
+<p>补一张从<a href="http://czrzchao.com/redisSourceBPOP">http://czrzchao.com/redisSourceBPOP</a> 转过来的图，很好的说明了阻塞中使用的结构：
+<img src="https://harleylau.github.io/img/bpop.png" alt="阻塞命令数据结构" /></p>
+
+<ul>
+<li>redisServer都是遍历需求，因此采用list作为存储结构。其中ready_keys需要key加db才能确定一个唯一阻塞值，因此list元素为一个简单的结构体。</li>
+<li>redisDb的blocking_keys用于存储单个db的阻塞key，有精确查找需求，采用dict作为基础数据结构。由于db的阻塞key和client为1对多关系，blocking_keys的value为clients的list。</li>
+<li>redisDb的ready_keys只是起到一个单纯的去重逻辑，db是key阻塞的单位，因此去重逻辑放在db结构体中最为合适。采用dict存储，将value置为NULL，只用到dict的索引的。</li>
+<li>client中的flags和btype用于记录阻塞的一些状态标志，bpop为一个复杂结构体，保存着阻塞超时时间和阻塞keys等，其中keys为dict数据结构，value为NULL，同db的ready_keys。</li>
+</ul>
+              
+            </div>
+          </div>
+          <div id="post-footer" class="post-footer main-content-wrap">
+            
+              
+                
+                
+                  <div class="post-footer-tags">
+                    <span class="text-color-light text-small">标签</span><br/>
+                    
+  <a class="tag tag--primary tag--small" href="https://harleylau.github.io/tags/redis/">redis</a>
+
+  <a class="tag tag--primary tag--small" href="https://harleylau.github.io/tags/%E6%BA%90%E7%A0%81/">源码</a>
+
+                  </div>
+                
+              
+            
+            <div class="post-actions-wrap">
+  
+      <nav >
+        <ul class="post-actions post-action-nav">
+          
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2018/05/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E7%9A%84cap%E7%90%86%E8%AE%BA%E5%92%8Cbase%E7%90%86%E8%AE%BA/" data-tooltip="分布式系统的CAP理论和BASE理论">
+              
+                  <i class="fa fa-angle-left"></i>
+                  <span class="hide-xs hide-sm text-small icon-ml">下一篇</span>
+                </a>
+            </li>
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2018/05/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%AD%97%E7%AC%A6%E4%B8%B2t_string%E5%AE%9E%E7%8E%B0/" data-tooltip="Redis源码剖析–字符串t_string实现">
+              
+                  <span class="hide-xs hide-sm text-small icon-mr">上一篇</span>
+                  <i class="fa fa-angle-right"></i>
+                </a>
+            </li>
+          
+        </ul>
+      </nav>
+    <ul class="post-actions post-action-share" >
+      
+        <li class="post-action hide-lg hide-md hide-sm">
+          <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions">
+            <i class="fa fa-share-alt"></i>
+          </a>
+        </li>
+        
+          <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://harleylau.github.io/2018/05/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%88%97%E8%A1%A8t_list%E5%AE%9E%E7%8E%B0/">
+              <i class="fa fa-facebook-official"></i>
+            </a>
+          </li>
+        
+          <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://harleylau.github.io/2018/05/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%88%97%E8%A1%A8t_list%E5%AE%9E%E7%8E%B0/">
+              <i class="fa fa-twitter"></i>
+            </a>
+          </li>
+        
+          <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://harleylau.github.io/2018/05/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%88%97%E8%A1%A8t_list%E5%AE%9E%E7%8E%B0/">
+              <i class="fa fa-google-plus"></i>
+            </a>
+          </li>
+        
+      
+      
+        <li class="post-action">
+          <a class="post-action-btn btn btn--default" href="#disqus_thread">
+            <i class="fa fa-comment-o"></i>
+          </a>
+        </li>
+      
+      <li class="post-action">
+        
+          <a class="post-action-btn btn btn--default" href="#table-of-contents">
+        
+          <i class="fa fa-list"></i>
+        </a>
+      </li>
+    </ul>
+  
+</div>
+
+            
+              
+                <div id="disqus_thread">
+  <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+              
+            
+          </div>
+        </article>
+        <footer id="footer" class="main-content-wrap">
+  <span class="copyrights">
+    &copy; 2019 Harley. All Rights Reserved
+  </span>
+</footer>
+
+      </div>
+      <div id="bottom-bar" class="post-bottom-bar" data-behavior="4">
+        <div class="post-actions-wrap">
+  
+      <nav >
+        <ul class="post-actions post-action-nav">
+          
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2018/05/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E7%9A%84cap%E7%90%86%E8%AE%BA%E5%92%8Cbase%E7%90%86%E8%AE%BA/" data-tooltip="分布式系统的CAP理论和BASE理论">
+              
+                  <i class="fa fa-angle-left"></i>
+                  <span class="hide-xs hide-sm text-small icon-ml">下一篇</span>
+                </a>
+            </li>
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2018/05/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%AD%97%E7%AC%A6%E4%B8%B2t_string%E5%AE%9E%E7%8E%B0/" data-tooltip="Redis源码剖析–字符串t_string实现">
+              
+                  <span class="hide-xs hide-sm text-small icon-mr">上一篇</span>
+                  <i class="fa fa-angle-right"></i>
+                </a>
+            </li>
+          
+        </ul>
+      </nav>
+    <ul class="post-actions post-action-share" >
+      
+        <li class="post-action hide-lg hide-md hide-sm">
+          <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions">
+            <i class="fa fa-share-alt"></i>
+          </a>
+        </li>
+        
+          <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://harleylau.github.io/2018/05/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%88%97%E8%A1%A8t_list%E5%AE%9E%E7%8E%B0/">
+              <i class="fa fa-facebook-official"></i>
+            </a>
+          </li>
+        
+          <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://harleylau.github.io/2018/05/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%88%97%E8%A1%A8t_list%E5%AE%9E%E7%8E%B0/">
+              <i class="fa fa-twitter"></i>
+            </a>
+          </li>
+        
+          <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://harleylau.github.io/2018/05/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%88%97%E8%A1%A8t_list%E5%AE%9E%E7%8E%B0/">
+              <i class="fa fa-google-plus"></i>
+            </a>
+          </li>
+        
+      
+      
+        <li class="post-action">
+          <a class="post-action-btn btn btn--default" href="#disqus_thread">
+            <i class="fa fa-comment-o"></i>
+          </a>
+        </li>
+      
+      <li class="post-action">
+        
+          <a class="post-action-btn btn btn--default" href="#table-of-contents">
+        
+          <i class="fa fa-list"></i>
+        </a>
+      </li>
+    </ul>
+  
+</div>
+
+      </div>
+      <div id="share-options-bar" class="share-options-bar" data-behavior="4">
+  <i id="btn-close-shareoptions" class="fa fa-close"></i>
+  <ul class="share-options">
+    
+      <li class="share-option">
+        <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fharleylau.github.io%2F2018%2F05%2Fredis%25E6%25BA%2590%25E7%25A0%2581%25E5%2589%2596%25E6%259E%2590%25E5%2588%2597%25E8%25A1%25A8t_list%25E5%25AE%259E%25E7%258E%25B0%2F">
+          <i class="fa fa-facebook-official"></i><span>分享到 Facebook</span>
+        </a>
+      </li>
+    
+      <li class="share-option">
+        <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=https%3A%2F%2Fharleylau.github.io%2F2018%2F05%2Fredis%25E6%25BA%2590%25E7%25A0%2581%25E5%2589%2596%25E6%259E%2590%25E5%2588%2597%25E8%25A1%25A8t_list%25E5%25AE%259E%25E7%258E%25B0%2F">
+          <i class="fa fa-twitter"></i><span>分享到 Twitter</span>
+        </a>
+      </li>
+    
+      <li class="share-option">
+        <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=https%3A%2F%2Fharleylau.github.io%2F2018%2F05%2Fredis%25E6%25BA%2590%25E7%25A0%2581%25E5%2589%2596%25E6%259E%2590%25E5%2588%2597%25E8%25A1%25A8t_list%25E5%25AE%259E%25E7%258E%25B0%2F">
+          <i class="fa fa-google-plus"></i><span>分享到 Google&#43;</span>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+<div id="share-options-mask" class="share-options-mask"></div>
+    </div>
+    
+    <div id="about">
+  <div id="about-card">
+    <div id="about-btn-close">
+      <i class="fa fa-remove"></i>
+    </div>
+    
+      <img id="about-card-picture" src="https://harleylau.github.io/img/harleylau.jpg" alt="作者的图片" />
+    
+    <h4 id="about-card-name">Harley</h4>
+    
+    
+    
+      <div id="about-card-location">
+        <i class="fa fa-map-marker"></i>
+        <br/>
+        China
+      </div>
+    
+  </div>
+</div>
+
+    <div id="algolia-search-modal" class="modal-container">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="close-button"><i class="fa fa-close"></i></span>
+      <a href="https://algolia.com" target="_blank" rel="noopener" class="searchby-algolia text-color-light link-unstyled">
+        <span class="searchby-algolia-text text-color-light text-small">by</span>
+        <img class="searchby-algolia-logo" src="https://www.algolia.com/static_assets/images/press/downloads/algolia-light.svg">
+      </a>
+      <i class="search-icon fa fa-search"></i>
+      <form id="algolia-search-form">
+        <input type="text" id="algolia-search-input" name="search"
+          class="form-control input--large search-input" placeholder="搜索" />
+      </form>
+    </div>
+    <div class="modal-body">
+      <div class="no-result text-color-light text-center"></div>
+      <div class="results">
+        
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2019/01/%E4%BD%BF%E7%94%A8redis-setnx-%E5%91%BD%E4%BB%A4%E5%AE%9E%E7%8E%B0%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/">
+                <h3 class="media-heading">使用Redis SETNX 命令实现分布式锁</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Jan 1, 2019
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>使用Redis的 SETNX 命令可以实现分布式锁，本文介绍其实现方法。</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2019/01/hbase-rowkey-%E8%AE%BE%E8%AE%A1/">
+                <h3 class="media-heading">HBase Rowkey 设计</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Jan 1, 2019
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><!-- toc -->
+
+<p>HBase中的rowkey唯一的决定了一行数据，使用HBase的场景多种多样， rowkey设计的好坏很大程度上决定了应用场景中的执行效率。</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2018/12/%E4%BB%8Ehexo%E8%BD%AC%E5%88%B0hugo/">
+                <h3 class="media-heading">从hexo转到hugo</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Dec 12, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather">之前的博客都是用hexo生成的，也不是不好用， 只是对于js并不是很熟悉。正好最近一直在用golang，也顺便把原来的博客从hexo转到hugo上来。
+接下去会慢慢的把之前的文章都重新部署一下。</div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2018/05/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E7%9A%84cap%E7%90%86%E8%AE%BA%E5%92%8Cbase%E7%90%86%E8%AE%BA/">
+                <h3 class="media-heading">分布式系统的CAP理论和BASE理论</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  May 5, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><!--toc-->
+
+<p>现在分布式系统的应用越来越广， 这是一个很容易理解的趋势， 因为毕竟单机的性能是有限的， 在量级还不大的时候， 我们能够通过升级机器的性能来支撑服务。但是当量级到达一定的瓶颈， 单机的性能总会有撑不住的时候， 这个时候就需要使用分布式系统了。</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2018/05/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%88%97%E8%A1%A8t_list%E5%AE%9E%E7%8E%B0/">
+                <h3 class="media-heading">Redis源码剖析–列表t_list实现</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  May 5, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><!--toc-->
+
+<p>Redis中的列表对象比较特殊，在版本3.2之前，列表底层的编码是 ziplist 和 linkedlist 实现的， 但是在版本3.2之后，重新引入了一个 quicklist 的数据结构，列表的底层都由quicklist实现。</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2018/05/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%AD%97%E7%AC%A6%E4%B8%B2t_string%E5%AE%9E%E7%8E%B0/">
+                <h3 class="media-heading">Redis源码剖析–字符串t_string实现</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  May 5, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><!--toc-->
+
+<p>介绍完Redis的底层数据结构之后， 介绍我们平时使用Redis的时候可以直接看到五种数据结构：字符串、哈希、链表、集合和有序集合。</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2018/04/nginx%E5%86%85%E7%BD%AE%E7%9A%84%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1%E7%AD%96%E7%95%A5-%E5%8A%A0%E6%9D%83%E8%BD%AE%E8%AF%A2-weighted-round-robin/">
+                <h3 class="media-heading">Nginx内置的负载均衡策略 加权轮询 (Weighted Round Robin)</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Apr 4, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>Nginx中设置反向代理的时候，能够指定反向代理中每一个后端服务器所占的比重， 起到负载均衡的作用， 看一个反向代理的例子：</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2018/04/rsa%E7%AE%97%E6%B3%95padding%E6%96%B9%E5%BC%8F/">
+                <h3 class="media-heading">RSA算法padding方式</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Apr 4, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>在开发过程中，发现iOS端经过RSA加密的密文传到服务端之后， 服务端无法解析，本来想通过比较同一段明文的加密结果，来判断服务端和iOS端加密方式的区别，结果发现加密结果一直不一样。然后服务端尝试多次加密同一段明文，得到的结果也不一样。 </p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2018/04/nginx%E4%B8%8Blimit_req%E6%A8%A1%E5%9D%97%E9%99%90%E5%88%B6%E8%AE%BF%E9%97%AE%E9%A2%91%E6%AC%A1/">
+                <h3 class="media-heading">Nginx下limit_req模块限制访问频次</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Apr 4, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>最近实际开发过程中，发现部分服务资源访问503 Service Temporarily Unavailable，查找后证实是在对nginx做了限速以后，限速做的太低了超过访问次数直接拒绝访问返回503错误。
+nginx 可以使用ngx_http_limit_req对服务器资源请求进行限制。</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2018/04/tornado%E5%B9%B6%E8%A1%8C%E6%89%A7%E8%A1%8C%E5%A4%9A%E4%B8%AA%E5%BC%82%E6%AD%A5%E8%AF%B7%E6%B1%82/">
+                <h3 class="media-heading">Tornado并行执行多个异步请求</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Apr 4, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><!--toc-->
+
+<p>Tornado实现后台逻辑的时候，可能遇到这样的情况： 需要同时请求多个第三方数据，比如同时从多个网址请求数据，而这几个第三方数据相互没有关联。 最简单的方式是写多个yield，第一个yield返回结果之后，继续请求第二个yield。</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+      </div>
+    </div>
+    <div class="modal-footer">
+      <p class="results-count text-medium"
+         data-message-zero=""
+         data-message-one=""
+         data-message-other="">
+         26 posts found
+      </p>
+    </div>
+  </div>
+</div>
+    
+  
+    
+    <div id="cover" style="background-image:url('https://harleylau.github.io/images/cover.jpg');"></div>
+  
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js" integrity="sha256-/BfiIkHlHoVihZdc6TFuj7MmJ0TWcWsMXkeDFwhi0zw=" crossorigin="anonymous"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.7/js/jquery.fancybox.min.js" integrity="sha256-GEAnjcTqVP+vBp3SSc8bEDQqvWAZMiHyUSIorrWwH50=" crossorigin="anonymous"></script>
+
+
+<script src="https://harleylau.github.io/js/script-qi9wbxp2ya2j6p7wx1i6tgavftewndznf4v0hy2gvivk1rxgc3lm7njqb6bz.min.js"></script>
+
+
+<script lang="javascript">
+window.onload = updateMinWidth;
+window.onresize = updateMinWidth;
+document.getElementById("sidebar").addEventListener("transitionend", updateMinWidth);
+function updateMinWidth() {
+  var sidebar = document.getElementById("sidebar");
+  var main = document.getElementById("main");
+  main.style.minWidth = "";
+  var w1 = getComputedStyle(main).getPropertyValue("min-width");
+  var w2 = getComputedStyle(sidebar).getPropertyValue("width");
+  var w3 = getComputedStyle(sidebar).getPropertyValue("left");
+  main.style.minWidth = `calc(${w1} - ${w2} - ${w3})`;
+}
+</script>
+
+<script>
+$(document).ready(function() {
+  hljs.configure({ classPrefix: '', useBR: false });
+  $('pre.code-highlight > code, pre > code').each(function(i, block) {
+    if (!$(this).hasClass('codeblock')) {
+      $(this).addClass('codeblock');
+    }
+    hljs.highlightBlock(block);
+  });
+});
+</script>
+
+
+  
+    
+      <script>
+        var disqus_config = function () {
+          this.page.url = 'https:\/\/harleylau.github.io\/2018\/05\/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%88%97%E8%A1%A8t_list%E5%AE%9E%E7%8E%B0\/';
+          
+            this.page.identifier = '\/2018\/05\/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%88%97%E8%A1%A8t_list%E5%AE%9E%E7%8E%B0\/'
+          
+        };
+        (function() {
+          
+          
+          if (window.location.hostname == "localhost") {
+            return;
+          }
+          var d = document, s = d.createElement('script');
+          var disqus_shortname = 'harleylau';
+          s.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+
+          s.setAttribute('data-timestamp', +new Date());
+          (d.head || d.body).appendChild(s);
+        })();
+      </script>
+    
+  
+
+
+
+
+    
+  </body>
+</html>
+

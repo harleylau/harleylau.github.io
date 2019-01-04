@@ -21,6 +21,17 @@
     </item>
     
     <item>
+      <title>Redis源码剖析–列表t_list实现</title>
+      <link>https://harleylau.github.io/2018/05/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%88%97%E8%A1%A8t_list%E5%AE%9E%E7%8E%B0/</link>
+      <pubDate>Thu, 10 May 2018 09:53:08 +0800</pubDate>
+      
+      <guid>https://harleylau.github.io/2018/05/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%88%97%E8%A1%A8t_list%E5%AE%9E%E7%8E%B0/</guid>
+      <description>&lt;!--toc--&gt;
+
+&lt;p&gt;Redis中的列表对象比较特殊，在版本3.2之前，列表底层的编码是 ziplist 和 linkedlist 实现的， 但是在版本3.2之后，重新引入了一个 quicklist 的数据结构，列表的底层都由quicklist实现。&lt;/p&gt;</description>
+    </item>
+    
+    <item>
       <title>Redis源码剖析–字符串t_string实现</title>
       <link>https://harleylau.github.io/2018/05/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%AD%97%E7%AC%A6%E4%B8%B2t_string%E5%AE%9E%E7%8E%B0/</link>
       <pubDate>Wed, 09 May 2018 10:12:07 +0800</pubDate>
