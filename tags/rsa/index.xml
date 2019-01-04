@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Rsa on Harley</title>
+    <link>https://harleylau.github.io/tags/rsa/</link>
+    <description>Recent content in Rsa on Harley</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Fri, 04 Jan 2019 10:24:14 +0800</lastBuildDate>
+    
+	<atom:link href="https://harleylau.github.io/tags/rsa/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>RSA算法padding方式</title>
+      <link>https://harleylau.github.io/2019/01/rsa%E7%AE%97%E6%B3%95padding%E6%96%B9%E5%BC%8F/</link>
+      <pubDate>Fri, 04 Jan 2019 10:24:14 +0800</pubDate>
+      
+      <guid>https://harleylau.github.io/2019/01/rsa%E7%AE%97%E6%B3%95padding%E6%96%B9%E5%BC%8F/</guid>
+      <description>&lt;p&gt;在开发过程中，发现iOS端经过RSA加密的密文传到服务端之后， 服务端无法解析，本来想通过比较同一段明文的加密结果，来判断服务端和iOS端加密方式的区别，结果发现加密结果一直不一样。然后服务端尝试多次加密同一段明文，得到的结果也不一样。 &lt;/p&gt;</description>
+    </item>
+    
+  </channel>
+</rss>
