@@ -220,6 +220,62 @@
     
     <div class="postShorten-header">
       <h1 class="postShorten-title" itemprop="headline">
+        <a class="link-unstyled" href="https://harleylau.github.io/2017/09/tornado%E6%89%93%E5%8D%B0block%E6%97%A5%E5%BF%97/">
+          Tornado–打印block日志
+        </a>
+      </h1>
+      
+  <div class="postShorten-meta post-meta">
+    
+      <time itemprop="datePublished" datetime="2017-09-07T11:21:02&#43;08:00">
+        
+  九月 7, 2017
+
+      </time>
+    
+    
+  
+  
+    <span>发布在</span>
+    
+      <a class="category-link" href="https://harleylau.github.io/categories/tornado">Tornado</a>
+    
+  
+
+  </div>
+
+    </div>
+    <div class="postShorten-excerpt" itemprop="articleBody">
+      
+        <p>Tornado在使用过程，碰到过性能瓶颈。 当碰到Tornado中有比较耗时的任务的时候，请求一多就会阻塞整个服务。这个时候就需要查看到底是什么任务阻塞了服务，然后针对性的进行优化。</p>
+      
+      <p>
+        <a href="https://harleylau.github.io/2017/09/tornado%E6%89%93%E5%8D%B0block%E6%97%A5%E5%BF%97/" class="postShorten-excerpt_link link">阅读全文</a>
+        
+      </p>
+    </div>
+  </div>
+  
+</article>
+
+          
+            
+  
+    
+      
+        
+      
+    
+  
+
+
+  
+
+<article class="postShorten postShorten--thumbnailimg-bottom" itemscope itemType="http://schema.org/BlogPosting">
+  <div class="postShorten-wrap">
+    
+    <div class="postShorten-header">
+      <h1 class="postShorten-title" itemprop="headline">
         <a class="link-unstyled" href="https://harleylau.github.io/2017/09/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%8E%8B%E7%BC%A9%E5%88%97%E8%A1%A8/">
           Redis源码剖析–压缩列表
         </a>
@@ -564,66 +620,6 @@ Redis的列表键，哈希键，有序集合的底层实现都用到了ziplist�
 </article>
 
           
-            
-  
-    
-      
-        
-      
-    
-  
-
-
-  
-
-<article class="postShorten postShorten--thumbnailimg-bottom" itemscope itemType="http://schema.org/BlogPosting">
-  <div class="postShorten-wrap">
-    
-    <div class="postShorten-header">
-      <h1 class="postShorten-title" itemprop="headline">
-        <a class="link-unstyled" href="https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AE%80%E5%8D%95%E5%8A%A8%E6%80%81%E5%AD%97%E7%AC%A6%E4%B8%B2sds/">
-          Redis源码剖析–简单动态字符串sds
-        </a>
-      </h1>
-      
-  <div class="postShorten-meta post-meta">
-    
-      <time itemprop="datePublished" datetime="2017-07-28T16:14:49&#43;08:00">
-        
-  七月 28, 2017
-
-      </time>
-    
-    
-  
-  
-    <span>发布在</span>
-    
-      <a class="category-link" href="https://harleylau.github.io/categories/redis">redis</a>, 
-    
-      <a class="category-link" href="https://harleylau.github.io/categories/%e6%ba%90%e7%a0%81">源码</a>
-    
-  
-
-  </div>
-
-    </div>
-    <div class="postShorten-excerpt" itemprop="articleBody">
-      
-        <!--toc-->
-
-<p>Redis 没有直接使用 C 语言传统的字符串表示， 而是自己构建了一种名为简单动态字符串（simple dynamic string，SDS）的抽象类型， 并将 SDS 用作 Redis 的默认字符串表示。</p>
-      
-      <p>
-        <a href="https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AE%80%E5%8D%95%E5%8A%A8%E6%80%81%E5%AD%97%E7%AC%A6%E4%B8%B2sds/" class="postShorten-excerpt_link link">阅读全文</a>
-        
-      </p>
-    </div>
-  </div>
-  
-</article>
-
-          
           
   <div class="pagination-bar">
     <ul class="pagination">
@@ -757,6 +753,25 @@ Redis的列表键，哈希键，有序集合的底层实现都用到了ziplist�
           <div class="media">
             
             <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2018/05/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%AD%97%E7%AC%A6%E4%B8%B2t_string%E5%AE%9E%E7%8E%B0/">
+                <h3 class="media-heading">Redis源码剖析–字符串t_string实现</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  May 5, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><!--toc-->
+
+<p>介绍完Redis的底层数据结构之后， 介绍我们平时使用Redis的时候可以直接看到五种数据结构：字符串、哈希、链表、集合和有序集合。</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
               <a class="link-unstyled" href="https://harleylau.github.io/2018/04/nginx%E5%86%85%E7%BD%AE%E7%9A%84%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1%E7%AD%96%E7%95%A5-%E5%8A%A0%E6%9D%83%E8%BD%AE%E8%AF%A2-weighted-round-robin/">
                 <h3 class="media-heading">Nginx内置的负载均衡策略 加权轮询 (Weighted Round Robin)</h3>
               </a>
@@ -765,9 +780,7 @@ Redis的列表键，哈希键，有序集合的底层实现都用到了ziplist�
                   Apr 4, 2018
                 </span>
               </span>
-              <div class="media-content hide-xs font-merryweather"><!--toc-->
-
-<p>Nginx中设置反向代理的时候，能够指定反向代理中每一个后端服务器所占的比重， 起到负载均衡的作用， 看一个反向代理的例子：</p></div>
+              <div class="media-content hide-xs font-merryweather"><p>Nginx中设置反向代理的时候，能够指定反向代理中每一个后端服务器所占的比重， 起到负载均衡的作用， 看一个反向代理的例子：</p></div>
             </div>
             <div style="clear:both;"></div>
             <hr>
@@ -863,23 +876,6 @@ nginx 可以使用ngx_http_limit_req对服务器资源请求进行限制。</p><
             <hr>
           </div>
         
-          <div class="media">
-            
-            <div class="media-body">
-              <a class="link-unstyled" href="https://harleylau.github.io/2017/11/https%E9%80%9A%E9%85%8D%E8%AF%81%E4%B9%A6/">
-                <h3 class="media-heading">HTTPS通配证书</h3>
-              </a>
-              <span class="media-meta">
-                <span class="media-date text-small">
-                  Nov 11, 2017
-                </span>
-              </span>
-              <div class="media-content hide-xs font-merryweather"><p>HTTPS的通配证书有一些限制条件</p></div>
-            </div>
-            <div style="clear:both;"></div>
-            <hr>
-          </div>
-        
       </div>
     </div>
     <div class="modal-footer">
@@ -887,7 +883,7 @@ nginx 可以使用ngx_http_limit_req对服务器资源请求进行限制。</p><
          data-message-zero=""
          data-message-one=""
          data-message-other="">
-         23 posts found
+         24 posts found
       </p>
     </div>
   </div>

@@ -21,6 +21,17 @@
     </item>
     
     <item>
+      <title>Redis源码剖析–字符串t_string实现</title>
+      <link>https://harleylau.github.io/2018/05/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%AD%97%E7%AC%A6%E4%B8%B2t_string%E5%AE%9E%E7%8E%B0/</link>
+      <pubDate>Wed, 09 May 2018 10:12:07 +0800</pubDate>
+      
+      <guid>https://harleylau.github.io/2018/05/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%AD%97%E7%AC%A6%E4%B8%B2t_string%E5%AE%9E%E7%8E%B0/</guid>
+      <description>&lt;!--toc--&gt;
+
+&lt;p&gt;介绍完Redis的底层数据结构之后， 介绍我们平时使用Redis的时候可以直接看到五种数据结构：字符串、哈希、链表、集合和有序集合。&lt;/p&gt;</description>
+    </item>
+    
+    <item>
       <title>Redis源码剖析–对象Object</title>
       <link>https://harleylau.github.io/2017/09/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%AF%B9%E8%B1%A1object/</link>
       <pubDate>Thu, 07 Sep 2017 18:20:21 +0800</pubDate>

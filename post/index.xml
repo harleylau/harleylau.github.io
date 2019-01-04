@@ -42,14 +42,23 @@
     </item>
     
     <item>
+      <title>Redis源码剖析–字符串t_string实现</title>
+      <link>https://harleylau.github.io/2018/05/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%AD%97%E7%AC%A6%E4%B8%B2t_string%E5%AE%9E%E7%8E%B0/</link>
+      <pubDate>Wed, 09 May 2018 10:12:07 +0800</pubDate>
+      
+      <guid>https://harleylau.github.io/2018/05/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%AD%97%E7%AC%A6%E4%B8%B2t_string%E5%AE%9E%E7%8E%B0/</guid>
+      <description>&lt;!--toc--&gt;
+
+&lt;p&gt;介绍完Redis的底层数据结构之后， 介绍我们平时使用Redis的时候可以直接看到五种数据结构：字符串、哈希、链表、集合和有序集合。&lt;/p&gt;</description>
+    </item>
+    
+    <item>
       <title>Nginx内置的负载均衡策略 加权轮询 (Weighted Round Robin)</title>
       <link>https://harleylau.github.io/2018/04/nginx%E5%86%85%E7%BD%AE%E7%9A%84%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1%E7%AD%96%E7%95%A5-%E5%8A%A0%E6%9D%83%E8%BD%AE%E8%AF%A2-weighted-round-robin/</link>
       <pubDate>Mon, 30 Apr 2018 23:18:49 +0800</pubDate>
       
       <guid>https://harleylau.github.io/2018/04/nginx%E5%86%85%E7%BD%AE%E7%9A%84%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1%E7%AD%96%E7%95%A5-%E5%8A%A0%E6%9D%83%E8%BD%AE%E8%AF%A2-weighted-round-robin/</guid>
-      <description>&lt;!--toc--&gt;
-
-&lt;p&gt;Nginx中设置反向代理的时候，能够指定反向代理中每一个后端服务器所占的比重， 起到负载均衡的作用， 看一个反向代理的例子：&lt;/p&gt;</description>
+      <description>&lt;p&gt;Nginx中设置反向代理的时候，能够指定反向代理中每一个后端服务器所占的比重， 起到负载均衡的作用， 看一个反向代理的例子：&lt;/p&gt;</description>
     </item>
     
     <item>

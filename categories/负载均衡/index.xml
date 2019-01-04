@@ -17,9 +17,7 @@
       <pubDate>Mon, 30 Apr 2018 23:18:49 +0800</pubDate>
       
       <guid>https://harleylau.github.io/2018/04/nginx%E5%86%85%E7%BD%AE%E7%9A%84%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1%E7%AD%96%E7%95%A5-%E5%8A%A0%E6%9D%83%E8%BD%AE%E8%AF%A2-weighted-round-robin/</guid>
-      <description>&lt;!--toc--&gt;
-
-&lt;p&gt;Nginx中设置反向代理的时候，能够指定反向代理中每一个后端服务器所占的比重， 起到负载均衡的作用， 看一个反向代理的例子：&lt;/p&gt;</description>
+      <description>&lt;p&gt;Nginx中设置反向代理的时候，能够指定反向代理中每一个后端服务器所占的比重， 起到负载均衡的作用， 看一个反向代理的例子：&lt;/p&gt;</description>
     </item>
     
   </channel>
