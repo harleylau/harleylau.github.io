@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="generator" content="Hugo 0.52 with theme Tranquilpeak 0.4.3-SNAPSHOT">
+<meta name="author" content="Harley">
+<meta name="keywords" content="Nginx">
+<meta name="description" content="
+
+Nginx中设置反向代理的时候，能够指定反向代理中每一个后端服务器所占的比重， 起到负载均衡的作用， 看一个反向代理的例子：">
+
+
+<meta property="og:description" content="
+
+Nginx中设置反向代理的时候，能够指定反向代理中每一个后端服务器所占的比重， 起到负载均衡的作用， 看一个反向代理的例子：">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Nginx内置的负载均衡策略 加权轮询 (Weighted Round Robin)">
+<meta name="twitter:title" content="Nginx内置的负载均衡策略 加权轮询 (Weighted Round Robin)">
+<meta property="og:url" content="https://harleylau.github.io/2018/04/nginx%E5%86%85%E7%BD%AE%E7%9A%84%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1%E7%AD%96%E7%95%A5-%E5%8A%A0%E6%9D%83%E8%BD%AE%E8%AF%A2-weighted-round-robin/">
+<meta property="twitter:url" content="https://harleylau.github.io/2018/04/nginx%E5%86%85%E7%BD%AE%E7%9A%84%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1%E7%AD%96%E7%95%A5-%E5%8A%A0%E6%9D%83%E8%BD%AE%E8%AF%A2-weighted-round-robin/">
+<meta property="og:site_name" content="Harley">
+<meta property="og:description" content="
+
+Nginx中设置反向代理的时候，能够指定反向代理中每一个后端服务器所占的比重， 起到负载均衡的作用， 看一个反向代理的例子：">
+<meta name="twitter:description" content="
+
+Nginx中设置反向代理的时候，能够指定反向代理中每一个后端服务器所占的比重， 起到负载均衡的作用， 看一个反向代理的例子：">
+<meta property="og:locale" content="zh-cn">
+
+  
+    <meta property="article:published_time" content="2018-04-30T23:18:49">
+  
+  
+    <meta property="article:modified_time" content="2018-04-30T23:18:49">
+  
+  
+  
+    
+      <meta property="article:section" content="Nginx">
+    
+      <meta property="article:section" content="负载均衡">
+    
+  
+  
+    
+      <meta property="article:tag" content="Nginx">
+    
+      <meta property="article:tag" content="负载均衡">
+    
+  
+
+
+<meta name="twitter:card" content="summary">
+
+
+
+
+
+
+
+
+
+
+
+  <meta property="og:image" content="https://harleylau.github.io/img/harleylau.jpg">
+  <meta property="twitter:image" content="https://harleylau.github.io/img/harleylau.jpg">
+
+
+    <title>Nginx内置的负载均衡策略 加权轮询 (Weighted Round Robin)</title>
+
+    <link rel="icon" href="https://harleylau.github.io/favicon.png">
+    
+
+    
+
+    <link rel="canonical" href="https://harleylau.github.io/2018/04/nginx%E5%86%85%E7%BD%AE%E7%9A%84%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1%E7%AD%96%E7%95%A5-%E5%8A%A0%E6%9D%83%E8%BD%AE%E8%AF%A2-weighted-round-robin/">
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.4/jquery.fancybox.min.css" integrity="sha256-vuXZ9LGmmwtjqFX1F+EKin1ThZMub58gKULUyf0qECk=" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.4/helpers/jquery.fancybox-thumbs.min.css" integrity="sha256-SEa4XYAHihTcEP1f5gARTB2K26Uk8PsndQYHQC1f4jU=" crossorigin="anonymous" />
+    
+    
+    <link rel="stylesheet" href="https://harleylau.github.io/css/style-nnm2spxvve8onlujjlegkkytaehyadd4ksxc1hyzzq9a2wvtrgbljqyulomn.min.css" />
+    
+    
+
+    
+      
+    
+    
+  </head>
+
+  <body>
+    <div id="blog">
+      <header id="header" data-behavior="4">
+  <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+  <div class="header-title">
+    <a class="header-title-link" href="https://harleylau.github.io/">Harley</a>
+  </div>
+  
+    
+      <a class="header-right-picture "
+         href="https://harleylau.github.io/#about">
+    
+    
+    
+      
+        <img class="header-picture" src="https://harleylau.github.io/img/harleylau.jpg" alt="作者的图片" />
+      
+    
+    </a>
+  
+</header>
+
+      <nav id="sidebar" data-behavior="4">
+  <div class="sidebar-container">
+    
+      <div class="sidebar-profile">
+        <a href="https://harleylau.github.io/#about">
+          <img class="sidebar-profile-picture" src="https://harleylau.github.io/img/harleylau.jpg" alt="作者的图片" />
+        </a>
+        <h4 class="sidebar-profile-name">Harley</h4>
+        
+      </div>
+    
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://harleylau.github.io/">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-home"></i>
+      
+      <span class="sidebar-button-desc">首页</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://harleylau.github.io/categories">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-bookmark"></i>
+      
+      <span class="sidebar-button-desc">分类</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://harleylau.github.io/tags">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-tags"></i>
+      
+      <span class="sidebar-button-desc">标签</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://harleylau.github.io/archives">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-archive"></i>
+      
+      <span class="sidebar-button-desc">归档</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://harleylau.github.io/#about">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-question"></i>
+      
+      <span class="sidebar-button-desc">关于</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://github.com/harleylau" target="_blank" rel="noopener">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-github"></i>
+      
+      <span class="sidebar-button-desc">GitHub</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://blog.csdn.net/harleylau" target="_blank" rel="noopener">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-code"></i>
+      
+      <span class="sidebar-button-desc">CSDN</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://harleylau.github.io/index.xml">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-rss"></i>
+      
+      <span class="sidebar-button-desc">RSS</span>
+    </a>
+  </li>
+
+
+    </ul>
+  </div>
+</nav>
+
+      
+
+      <div id="main" data-behavior="4"
+        class="
+               hasCoverMetaIn
+               ">
+        <article class="post" itemscope itemType="http://schema.org/BlogPosting">
+          
+          
+            <div class="post-header main-content-wrap text-left">
+  
+    <h1 class="post-title" itemprop="headline">
+      Nginx内置的负载均衡策略 加权轮询 (Weighted Round Robin)
+    </h1>
+  
+  
+  <div class="postShorten-meta post-meta">
+    
+      <time itemprop="datePublished" datetime="2018-04-30T23:18:49&#43;08:00">
+        
+  四月 30, 2018
+
+      </time>
+    
+    
+  
+  
+    <span>发布在</span>
+    
+      <a class="category-link" href="https://harleylau.github.io/categories/nginx">Nginx</a>, 
+    
+      <a class="category-link" href="https://harleylau.github.io/categories/%e8%b4%9f%e8%bd%bd%e5%9d%87%e8%a1%a1">负载均衡</a>
+    
+  
+
+  </div>
+
+</div>
+          
+          <div class="post-content markdown" itemprop="articleBody">
+            <div class="main-content-wrap">
+              <h1 id="table-of-contents">目录</h1>
+
+<p>Nginx中设置反向代理的时候，能够指定反向代理中每一个后端服务器所占的比重， 起到负载均衡的作用， 看一个反向代理的例子：</p>
+
+<pre><code>upstream backend {  
+        server a weight=5;  
+        server b weight=3;  
+        server c weight=1;  
+    }
+</code></pre>
+
+<p>例子中， 设置了三台后台服务器，所占的比重分别为5，3，1。 那么如何做到在收到请求的时候， 按照比例分配到后台的三台服务器呢。 能想到的最简单的方法当然是：如果当前权重大于0，就发往这台服务器，然后权重减1， 但是这种方法分发的请求结果就是[a,a,a,a,a,b,b,b,c]， 虽然达到了目标的比例，但是有一段时间请求都发往了a， 另一段都发往了b，这显然不是一种好的处理方式，对每台机器来说相当于忙一阵，闲一阵，并没有平均的收到请求。</p>
+
+<p>那么nginx中是如何来做负载均衡，让每台机器收到的请求频率更为平均的呢。 答案是一个叫weighted round robin (WRR)的算法，对于算法的数据解释和证明， 有时间可以单独讨论一下，先直接看看nignx是如何实现这个算法的。 </p>
+
+<p>nginx中从几台服务器中选取一台有效服务器的过程放在一个叫ngx_http_upstream_get_peer的函数中， 先直接看一下整体的函数：</p>
+
+<pre><code>/* 根据后端服务器的权重来选择一台后端服务器处理请求 */
+static ngx_http_upstream_rr_peer_t *
+ngx_http_upstream_get_peer(ngx_http_upstream_rr_peer_data_t *rrp)
+{
+    time_t                        now;
+    uintptr_t                     m;
+    ngx_int_t                     total;
+    ngx_uint_t                    i, n;
+    ngx_http_upstream_rr_peer_t  *peer, *best;
+ 
+    now = ngx_time();
+ 
+    best = NULL;
+    total = 0;
+ 
+    /* 遍历后端服务器列表 */
+    for (i = 0; i &lt; rrp-&gt;peers-&gt;number; i++) {
+ 
+        /* 计算当前后端服务器在位图中的位置 n */
+        n = i / (8 * sizeof(uintptr_t));
+        m = (uintptr_t) 1 &lt;&lt; i % (8 * sizeof(uintptr_t));
+ 
+        /* 当前后端服务器在位图中已经有记录，则不再次被选择，即 continue 检查下一个后端服务器 */
+        if (rrp-&gt;tried[n] &amp; m) {
+            continue;
+        }
+ 
+        /* 若当前后端服务器在位图中没有记录，则可能被选中，接着计算其权重 */
+        peer = &amp;rrp-&gt;peers-&gt;peer[i];
+ 
+        /* 检查当前后端服务器的 down 标志位，若为 1 表示不参与策略选择，则 continue 检查下一个后端服务器 */
+        if (peer-&gt;down) {
+            continue;
+        }
+ 
+        /*
+         * 当前后端服务器的 down 标志位为 0,接着检查当前后端服务器连接失败的次数是否已经达到 max_fails；
+         * 且睡眠的时间还没到 fail_timeout，则当前后端服务器不被选择，continue 检查下一个后端服务器；
+         */
+        if (peer-&gt;max_fails
+            &amp;&amp; peer-&gt;fails &gt;= peer-&gt;max_fails
+            &amp;&amp; now - peer-&gt;checked &lt;= peer-&gt;fail_timeout)
+        {
+            continue;
+        }
+ 
+        /* 若当前后端服务器可能被选中，则计算其权重 */
+ 
+        /*
+         * 在上面初始化过程中 current_weight = 0，effective_weight = weight；
+         * 此时，设置当前后端服务器的权重 current_weight 的值为原始值加上 effective_weight；
+         * 设置总的权重为原始值加上 effective_weight；
+         */
+        peer-&gt;current_weight += peer-&gt;effective_weight;
+        total += peer-&gt;effective_weight;
+ 
+        /* 服务器正常，调整 effective_weight 的值 */
+        if (peer-&gt;effective_weight &lt; peer-&gt;weight) {
+            peer-&gt;effective_weight++;
+        }
+ 
+        /* 若当前后端服务器的权重 current_weight 大于目前 best 服务器的权重，则当前后端服务器被选中 */
+        if (best == NULL || peer-&gt;current_weight &gt; best-&gt;current_weight) {
+            best = peer;
+        }
+    }
+ 
+    if (best == NULL) {
+        return NULL;
+    }
+ 
+    /* 计算被选中后端服务器在服务器列表中的位置 i */
+    i = best - &amp;rrp-&gt;peers-&gt;peer[0];
+ 
+    /* 记录被选中后端服务器在 ngx_http_upstream_rr_peer_data_t 结构体 current 成员的值，在释放后端服务器时会用到该值 */
+    rrp-&gt;current = i;
+ 
+    /* 计算被选中后端服务器在位图中的位置 */
+    n = i / (8 * sizeof(uintptr_t));
+    m = (uintptr_t) 1 &lt;&lt; i % (8 * sizeof(uintptr_t));
+ 
+    /* 在位图相应的位置记录被选中后端服务器 */
+    rrp-&gt;tried[n] |= m;
+ 
+    /* 更新被选中后端服务器的权重 */
+    best-&gt;current_weight -= total;
+ 
+    if (now - best-&gt;checked &gt; best-&gt;fail_timeout) {
+        best-&gt;checked = now;
+    }
+ 
+    /* 返回被选中的后端服务器 */
+    return best;
+}
+</code></pre>
+
+<p>在函数中，nginx其实还做了其他很多检查之类的动作，比如查看当前服务器是否被选中过，是否有效等等。 如果单纯只关注选择算法，可以将其他过程剔除掉，只剩下：</p>
+
+<pre><code>/* 根据后端服务器的权重来选择一台后端服务器处理请求 */
+static ngx_http_upstream_rr_peer_t *
+ngx_http_upstream_get_peer(ngx_http_upstream_rr_peer_data_t *rrp)
+{
+    ....
+    best = NULL;
+    total = 0;
+ 
+    /* 遍历后端服务器列表 */
+    for (i = 0; i &lt; rrp-&gt;peers-&gt;number; i++) {
+ 
+        ........
+ 
+        /* 若当前后端服务器可能被选中，则计算其权重 */
+ 
+        /*
+         * 在上面初始化过程中 current_weight = 0，effective_weight = weight；
+         * 此时，设置当前后端服务器的权重 current_weight 的值为原始值加上 effective_weight；
+         * 设置总的权重为原始值加上 effective_weight；
+         */
+        peer-&gt;current_weight += peer-&gt;effective_weight;
+        total += peer-&gt;effective_weight;
+ 
+        /* 服务器正常，调整 effective_weight 的值 */
+        if (peer-&gt;effective_weight &lt; peer-&gt;weight) {
+            peer-&gt;effective_weight++;
+        }
+ 
+        /* 若当前后端服务器的权重 current_weight 大于目前 best 服务器的权重，则当前后端服务器被选中 */
+        if (best == NULL || peer-&gt;current_weight &gt; best-&gt;current_weight) {
+            best = peer;
+        }
+    }
+ 
+    if (best == NULL) {
+        return NULL;
+    }
+ 
+    ........
+ 
+    /* 更新被选中后端服务器的权重 */
+    best-&gt;current_weight -= total;
+ 
+    if (now - best-&gt;checked &gt; best-&gt;fail_timeout) {
+        best-&gt;checked = now;
+    }
+ 
+    /* 返回被选中的后端服务器 */
+    return best;
+}
+</code></pre>
+
+<p>每个后端peer都有三个权重变量</p>
+
+<p>(1) weight</p>
+
+<p>配置文件中指定的该后端的权重，这个值是固定不变的。</p>
+
+<p>(2) effective_weight</p>
+
+<p>后端的有效权重，初始值为weight。</p>
+
+<p>为什么要出来一个effective_weight，而不是直接用weight呢？是因为如果当前的服务器发生了错误的时候，可以减小effective_weight，让这台机器被选中的概率降低。 当然，如果服务器都正常的话， effective_weight会一直等于weight。</p>
+
+<p>如果发生过错误的服务器后来又恢复了正常， 在选取的过程中也会逐步增加effective_weight，最终又恢复到weight。</p>
+
+<p>(3) current_weight</p>
+
+<p>后端当前的权重，一开始为0，每次选择的时候都会调整， 对于每个后端，让它的current_weight增加它的effective_weight，</p>
+
+<p>同时累加所有后端的effective_weight，保存为total。</p>
+
+<p>如果该后端的current_weight是最大的，就选定这个后端，然后把它的current_weight减去total。</p>
+
+<p>如果该后端没有被选定，那么current_weight不用减小。</p>
+
+<p> </p>
+
+<p>弄清了三个weight字段的含义后，加权轮询算法可描述为：</p>
+
+<p>1.对于每个请求，遍历集群中的所有可用后端，对于每个后端peer执行：</p>
+
+<p>    peer-&gt;current_weight += peer-&gt;effecitve_weight。</p>
+
+<p>    同时累加所有peer的effective_weight，保存为total。</p>
+
+<p>2.从集群中选出current_weight最大的peer，作为本次选定的后端。</p>
+
+<p>3.对于本次选定的后端，执行：peer-&gt;current_weight -= total。</p>
+
+<p>可以直接对照上边的源代码理解。 </p>
+
+<p> </p>
+
+<p>拿一开始的配置当例子</p>
+
+<pre><code>upstream backend {
+
+    server a weight=5;
+
+    server b weight=3;
+
+    server c weight=1;
+
+}
+</code></pre>
+
+<p>初始的时候 current_weight = { 0, 0, 0 }， effective_weight = { 5, 3, 1 }。假设服务器中途一直不发生故障，total一直是所有effective_weight的总和，即9.</p>
+
+<table>
+<thead>
+<tr>
+<th>序号</th>
+<th>current_weight选择前</th>
+<th>加上effective_weight后</th>
+<th>选择</th>
+<th>减去total之后</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td>1</td>
+<td>{ 0, 0, 0 }     </td>
+<td>{ 5, 3, 1 }</td>
+<td>a</td>
+<td> { -4, 3, 1 }</td>
+</tr>
+
+<tr>
+<td>2</td>
+<td>{ -4, 3, 1 }</td>
+<td>{1, 6, 2 }</td>
+<td>b</td>
+<td>{ 1, -3, 2 }</td>
+</tr>
+
+<tr>
+<td>3</td>
+<td>{ 1, -3, 2 }</td>
+<td>{6, 0, 3 }</td>
+<td>a</td>
+<td>{ -3, 0, 3 }</td>
+</tr>
+
+<tr>
+<td>4</td>
+<td>{ -3, 0, 3 }</td>
+<td>{ 2, 3, 4 }</td>
+<td>c</td>
+<td>{ 2, 3, -5 }</td>
+</tr>
+
+<tr>
+<td>5</td>
+<td>{ 2, 3, -5 }</td>
+<td>{ 7, 6, -4 }</td>
+<td>a</td>
+<td>{ -2, 6, -4 }</td>
+</tr>
+
+<tr>
+<td>6</td>
+<td>{ -2, 6, -4 }</td>
+<td>{ 3, 9, -3 }</td>
+<td>b</td>
+<td>{ 3, 0, -3 }</td>
+</tr>
+
+<tr>
+<td>7</td>
+<td>{ 3, 0, -3 }</td>
+<td>{ 8, 3, -2 }</td>
+<td>a</td>
+<td>{ -1, 3, -2 }</td>
+</tr>
+
+<tr>
+<td>8</td>
+<td>{ -1, 3, -2 }</td>
+<td>{ 4, 6, -1 }</td>
+<td>b</td>
+<td>{ 4, -3, -1 }</td>
+</tr>
+
+<tr>
+<td>9</td>
+<td>{ 4, -3, -1 }</td>
+<td>{ 9, 0, 0 }</td>
+<td>a</td>
+<td>{ 0, 0, 0 }</td>
+</tr>
+</tbody>
+</table>
+
+<p>可以看到9个请求是一个轮回，完整的序列是[a, b, a, c, a, b, a, b, a] ， 相对是一个很平均的过程，可以验证个算法的有效性。</p>
+              
+            </div>
+          </div>
+          <div id="post-footer" class="post-footer main-content-wrap">
+            
+              
+                
+                
+                  <div class="post-footer-tags">
+                    <span class="text-color-light text-small">标签</span><br/>
+                    
+  <a class="tag tag--primary tag--small" href="https://harleylau.github.io/tags/nginx/">Nginx</a>
+
+  <a class="tag tag--primary tag--small" href="https://harleylau.github.io/tags/%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1/">负载均衡</a>
+
+                  </div>
+                
+              
+            
+            <div class="post-actions-wrap">
+  
+      <nav >
+        <ul class="post-actions post-action-nav">
+          
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2018/12/%E4%BB%8Ehexo%E8%BD%AC%E5%88%B0hugo/" data-tooltip="从hexo转到hugo">
+              
+                  <i class="fa fa-angle-left"></i>
+                  <span class="hide-xs hide-sm text-small icon-ml">下一篇</span>
+                </a>
+            </li>
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2018/04/rsa%E7%AE%97%E6%B3%95padding%E6%96%B9%E5%BC%8F/" data-tooltip="RSA算法padding方式">
+              
+                  <span class="hide-xs hide-sm text-small icon-mr">上一篇</span>
+                  <i class="fa fa-angle-right"></i>
+                </a>
+            </li>
+          
+        </ul>
+      </nav>
+    <ul class="post-actions post-action-share" >
+      
+        <li class="post-action hide-lg hide-md hide-sm">
+          <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions">
+            <i class="fa fa-share-alt"></i>
+          </a>
+        </li>
+        
+          <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://harleylau.github.io/2018/04/nginx%E5%86%85%E7%BD%AE%E7%9A%84%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1%E7%AD%96%E7%95%A5-%E5%8A%A0%E6%9D%83%E8%BD%AE%E8%AF%A2-weighted-round-robin/">
+              <i class="fa fa-facebook-official"></i>
+            </a>
+          </li>
+        
+          <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://harleylau.github.io/2018/04/nginx%E5%86%85%E7%BD%AE%E7%9A%84%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1%E7%AD%96%E7%95%A5-%E5%8A%A0%E6%9D%83%E8%BD%AE%E8%AF%A2-weighted-round-robin/">
+              <i class="fa fa-twitter"></i>
+            </a>
+          </li>
+        
+          <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://harleylau.github.io/2018/04/nginx%E5%86%85%E7%BD%AE%E7%9A%84%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1%E7%AD%96%E7%95%A5-%E5%8A%A0%E6%9D%83%E8%BD%AE%E8%AF%A2-weighted-round-robin/">
+              <i class="fa fa-google-plus"></i>
+            </a>
+          </li>
+        
+      
+      
+        <li class="post-action">
+          <a class="post-action-btn btn btn--default" href="#disqus_thread">
+            <i class="fa fa-comment-o"></i>
+          </a>
+        </li>
+      
+      <li class="post-action">
+        
+          <a class="post-action-btn btn btn--default" href="#table-of-contents">
+        
+          <i class="fa fa-list"></i>
+        </a>
+      </li>
+    </ul>
+  
+</div>
+
+            
+              
+                <div id="disqus_thread">
+  <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+              
+            
+          </div>
+        </article>
+        <footer id="footer" class="main-content-wrap">
+  <span class="copyrights">
+    &copy; 2019 Harley. All Rights Reserved
+  </span>
+</footer>
+
+      </div>
+      <div id="bottom-bar" class="post-bottom-bar" data-behavior="4">
+        <div class="post-actions-wrap">
+  
+      <nav >
+        <ul class="post-actions post-action-nav">
+          
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2018/12/%E4%BB%8Ehexo%E8%BD%AC%E5%88%B0hugo/" data-tooltip="从hexo转到hugo">
+              
+                  <i class="fa fa-angle-left"></i>
+                  <span class="hide-xs hide-sm text-small icon-ml">下一篇</span>
+                </a>
+            </li>
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2018/04/rsa%E7%AE%97%E6%B3%95padding%E6%96%B9%E5%BC%8F/" data-tooltip="RSA算法padding方式">
+              
+                  <span class="hide-xs hide-sm text-small icon-mr">上一篇</span>
+                  <i class="fa fa-angle-right"></i>
+                </a>
+            </li>
+          
+        </ul>
+      </nav>
+    <ul class="post-actions post-action-share" >
+      
+        <li class="post-action hide-lg hide-md hide-sm">
+          <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions">
+            <i class="fa fa-share-alt"></i>
+          </a>
+        </li>
+        
+          <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://harleylau.github.io/2018/04/nginx%E5%86%85%E7%BD%AE%E7%9A%84%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1%E7%AD%96%E7%95%A5-%E5%8A%A0%E6%9D%83%E8%BD%AE%E8%AF%A2-weighted-round-robin/">
+              <i class="fa fa-facebook-official"></i>
+            </a>
+          </li>
+        
+          <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://harleylau.github.io/2018/04/nginx%E5%86%85%E7%BD%AE%E7%9A%84%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1%E7%AD%96%E7%95%A5-%E5%8A%A0%E6%9D%83%E8%BD%AE%E8%AF%A2-weighted-round-robin/">
+              <i class="fa fa-twitter"></i>
+            </a>
+          </li>
+        
+          <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://harleylau.github.io/2018/04/nginx%E5%86%85%E7%BD%AE%E7%9A%84%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1%E7%AD%96%E7%95%A5-%E5%8A%A0%E6%9D%83%E8%BD%AE%E8%AF%A2-weighted-round-robin/">
+              <i class="fa fa-google-plus"></i>
+            </a>
+          </li>
+        
+      
+      
+        <li class="post-action">
+          <a class="post-action-btn btn btn--default" href="#disqus_thread">
+            <i class="fa fa-comment-o"></i>
+          </a>
+        </li>
+      
+      <li class="post-action">
+        
+          <a class="post-action-btn btn btn--default" href="#table-of-contents">
+        
+          <i class="fa fa-list"></i>
+        </a>
+      </li>
+    </ul>
+  
+</div>
+
+      </div>
+      <div id="share-options-bar" class="share-options-bar" data-behavior="4">
+  <i id="btn-close-shareoptions" class="fa fa-close"></i>
+  <ul class="share-options">
+    
+      <li class="share-option">
+        <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fharleylau.github.io%2F2018%2F04%2Fnginx%25E5%2586%2585%25E7%25BD%25AE%25E7%259A%2584%25E8%25B4%259F%25E8%25BD%25BD%25E5%259D%2587%25E8%25A1%25A1%25E7%25AD%2596%25E7%2595%25A5-%25E5%258A%25A0%25E6%259D%2583%25E8%25BD%25AE%25E8%25AF%25A2-weighted-round-robin%2F">
+          <i class="fa fa-facebook-official"></i><span>分享到 Facebook</span>
+        </a>
+      </li>
+    
+      <li class="share-option">
+        <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=https%3A%2F%2Fharleylau.github.io%2F2018%2F04%2Fnginx%25E5%2586%2585%25E7%25BD%25AE%25E7%259A%2584%25E8%25B4%259F%25E8%25BD%25BD%25E5%259D%2587%25E8%25A1%25A1%25E7%25AD%2596%25E7%2595%25A5-%25E5%258A%25A0%25E6%259D%2583%25E8%25BD%25AE%25E8%25AF%25A2-weighted-round-robin%2F">
+          <i class="fa fa-twitter"></i><span>分享到 Twitter</span>
+        </a>
+      </li>
+    
+      <li class="share-option">
+        <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=https%3A%2F%2Fharleylau.github.io%2F2018%2F04%2Fnginx%25E5%2586%2585%25E7%25BD%25AE%25E7%259A%2584%25E8%25B4%259F%25E8%25BD%25BD%25E5%259D%2587%25E8%25A1%25A1%25E7%25AD%2596%25E7%2595%25A5-%25E5%258A%25A0%25E6%259D%2583%25E8%25BD%25AE%25E8%25AF%25A2-weighted-round-robin%2F">
+          <i class="fa fa-google-plus"></i><span>分享到 Google&#43;</span>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+<div id="share-options-mask" class="share-options-mask"></div>
+    </div>
+    
+    <div id="about">
+  <div id="about-card">
+    <div id="about-btn-close">
+      <i class="fa fa-remove"></i>
+    </div>
+    
+      <img id="about-card-picture" src="https://harleylau.github.io/img/harleylau.jpg" alt="作者的图片" />
+    
+    <h4 id="about-card-name">Harley</h4>
+    
+    
+    
+      <div id="about-card-location">
+        <i class="fa fa-map-marker"></i>
+        <br/>
+        China
+      </div>
+    
+  </div>
+</div>
+
+    <div id="algolia-search-modal" class="modal-container">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="close-button"><i class="fa fa-close"></i></span>
+      <a href="https://algolia.com" target="_blank" rel="noopener" class="searchby-algolia text-color-light link-unstyled">
+        <span class="searchby-algolia-text text-color-light text-small">by</span>
+        <img class="searchby-algolia-logo" src="https://www.algolia.com/static_assets/images/press/downloads/algolia-light.svg">
+      </a>
+      <i class="search-icon fa fa-search"></i>
+      <form id="algolia-search-form">
+        <input type="text" id="algolia-search-input" name="search"
+          class="form-control input--large search-input" placeholder="搜索" />
+      </form>
+    </div>
+    <div class="modal-body">
+      <div class="no-result text-color-light text-center"></div>
+      <div class="results">
+        
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2019/01/%E4%BD%BF%E7%94%A8redis-setnx-%E5%91%BD%E4%BB%A4%E5%AE%9E%E7%8E%B0%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/">
+                <h3 class="media-heading">使用Redis SETNX 命令实现分布式锁</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Jan 1, 2019
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>使用Redis的 SETNX 命令可以实现分布式锁，本文介绍其实现方法。</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2019/01/hbase-rowkey-%E8%AE%BE%E8%AE%A1/">
+                <h3 class="media-heading">HBase Rowkey 设计</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Jan 1, 2019
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><!-- toc -->
+
+<p>HBase中的rowkey唯一的决定了一行数据，使用HBase的场景多种多样， rowkey设计的好坏很大程度上决定了应用场景中的执行效率。</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2018/12/%E4%BB%8Ehexo%E8%BD%AC%E5%88%B0hugo/">
+                <h3 class="media-heading">从hexo转到hugo</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Dec 12, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather">之前的博客都是用hexo生成的，也不是不好用， 只是对于js并不是很熟悉。正好最近一直在用golang，也顺便把原来的博客从hexo转到hugo上来。
+接下去会慢慢的把之前的文章都重新部署一下。</div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2018/04/nginx%E5%86%85%E7%BD%AE%E7%9A%84%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1%E7%AD%96%E7%95%A5-%E5%8A%A0%E6%9D%83%E8%BD%AE%E8%AF%A2-weighted-round-robin/">
+                <h3 class="media-heading">Nginx内置的负载均衡策略 加权轮询 (Weighted Round Robin)</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Apr 4, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><!--toc-->
+
+<p>Nginx中设置反向代理的时候，能够指定反向代理中每一个后端服务器所占的比重， 起到负载均衡的作用， 看一个反向代理的例子：</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2018/04/rsa%E7%AE%97%E6%B3%95padding%E6%96%B9%E5%BC%8F/">
+                <h3 class="media-heading">RSA算法padding方式</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Apr 4, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>在开发过程中，发现iOS端经过RSA加密的密文传到服务端之后， 服务端无法解析，本来想通过比较同一段明文的加密结果，来判断服务端和iOS端加密方式的区别，结果发现加密结果一直不一样。然后服务端尝试多次加密同一段明文，得到的结果也不一样。 </p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2018/04/nginx%E4%B8%8Blimit_req%E6%A8%A1%E5%9D%97%E9%99%90%E5%88%B6%E8%AE%BF%E9%97%AE%E9%A2%91%E6%AC%A1/">
+                <h3 class="media-heading">Nginx下limit_req模块限制访问频次</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Apr 4, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>最近实际开发过程中，发现部分服务资源访问503 Service Temporarily Unavailable，查找后证实是在对nginx做了限速以后，限速做的太低了超过访问次数直接拒绝访问返回503错误。
+nginx 可以使用ngx_http_limit_req对服务器资源请求进行限制。</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2018/04/tornado%E5%B9%B6%E8%A1%8C%E6%89%A7%E8%A1%8C%E5%A4%9A%E4%B8%AA%E5%BC%82%E6%AD%A5%E8%AF%B7%E6%B1%82/">
+                <h3 class="media-heading">Tornado并行执行多个异步请求</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Apr 4, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><!--toc-->
+
+<p>Tornado实现后台逻辑的时候，可能遇到这样的情况： 需要同时请求多个第三方数据，比如同时从多个网址请求数据，而这几个第三方数据相互没有关联。 最简单的方式是写多个yield，第一个yield返回结果之后，继续请求第二个yield。</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2018/02/tornado-websocket%E5%AE%9E%E7%8E%B0%E4%BA%8C%E7%BB%B4%E7%A0%81%E6%89%AB%E6%8F%8F/">
+                <h3 class="media-heading">Tornado Websocket实现二维码扫描</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Feb 2, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><!--toc--></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2018/02/tornado%E4%B9%8Bwebsocket/">
+                <h3 class="media-heading">Tornado之WebSocket</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Feb 2, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><!--toc-->
+
+<p>WebSocket是HTML5开始提供的一种浏览器与服务器间进行全双工通讯的网络技术。 WebSocket通信协议于2011年被IETF定为标准RFC 6455，WebSocketAPI被W3C定为标准。 在WebSocket API中，浏览器和服务器只需要要做一个握手的动作，然后，浏览器和服务器之间就形成了一条快速通道。两者之间就直接可以数据互相传送。</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2017/11/https%E9%80%9A%E9%85%8D%E8%AF%81%E4%B9%A6/">
+                <h3 class="media-heading">HTTPS通配证书</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Nov 11, 2017
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>HTTPS的通配证书有一些限制条件</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+      </div>
+    </div>
+    <div class="modal-footer">
+      <p class="results-count text-medium"
+         data-message-zero=""
+         data-message-one=""
+         data-message-other="">
+         23 posts found
+      </p>
+    </div>
+  </div>
+</div>
+    
+  
+    
+    <div id="cover" style="background-image:url('https://harleylau.github.io/images/cover.jpg');"></div>
+  
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js" integrity="sha256-/BfiIkHlHoVihZdc6TFuj7MmJ0TWcWsMXkeDFwhi0zw=" crossorigin="anonymous"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.7/js/jquery.fancybox.min.js" integrity="sha256-GEAnjcTqVP+vBp3SSc8bEDQqvWAZMiHyUSIorrWwH50=" crossorigin="anonymous"></script>
+
+
+<script src="https://harleylau.github.io/js/script-qi9wbxp2ya2j6p7wx1i6tgavftewndznf4v0hy2gvivk1rxgc3lm7njqb6bz.min.js"></script>
+
+
+<script lang="javascript">
+window.onload = updateMinWidth;
+window.onresize = updateMinWidth;
+document.getElementById("sidebar").addEventListener("transitionend", updateMinWidth);
+function updateMinWidth() {
+  var sidebar = document.getElementById("sidebar");
+  var main = document.getElementById("main");
+  main.style.minWidth = "";
+  var w1 = getComputedStyle(main).getPropertyValue("min-width");
+  var w2 = getComputedStyle(sidebar).getPropertyValue("width");
+  var w3 = getComputedStyle(sidebar).getPropertyValue("left");
+  main.style.minWidth = `calc(${w1} - ${w2} - ${w3})`;
+}
+</script>
+
+<script>
+$(document).ready(function() {
+  hljs.configure({ classPrefix: '', useBR: false });
+  $('pre.code-highlight > code, pre > code').each(function(i, block) {
+    if (!$(this).hasClass('codeblock')) {
+      $(this).addClass('codeblock');
+    }
+    hljs.highlightBlock(block);
+  });
+});
+</script>
+
+
+  
+    
+      <script>
+        var disqus_config = function () {
+          this.page.url = 'https:\/\/harleylau.github.io\/2018\/04\/nginx%E5%86%85%E7%BD%AE%E7%9A%84%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1%E7%AD%96%E7%95%A5-%E5%8A%A0%E6%9D%83%E8%BD%AE%E8%AF%A2-weighted-round-robin\/';
+          
+            this.page.identifier = '\/2018\/04\/nginx%E5%86%85%E7%BD%AE%E7%9A%84%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1%E7%AD%96%E7%95%A5-%E5%8A%A0%E6%9D%83%E8%BD%AE%E8%AF%A2-weighted-round-robin\/'
+          
+        };
+        (function() {
+          
+          
+          if (window.location.hostname == "localhost") {
+            return;
+          }
+          var d = document, s = d.createElement('script');
+          var disqus_shortname = 'harleylau';
+          s.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+
+          s.setAttribute('data-timestamp', +new Date());
+          (d.head || d.body).appendChild(s);
+        })();
+      </script>
+    
+  
+
+
+
+
+    
+  </body>
+</html>
+
