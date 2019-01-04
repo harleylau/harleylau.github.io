@@ -7,36 +7,40 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="generator" content="Hugo 0.52 with theme Tranquilpeak 0.4.3-SNAPSHOT">
 <meta name="author" content="Harley">
-<meta name="keywords" content="JWT">
-<meta name="description" content="JSON Web Token（JWT）是一个非常轻巧的规范。这个规范允许我们使用JWT在用户和服务器之间传递安全可靠的信息。">
+<meta name="keywords" content="redis">
+<meta name="description" content="">
 
 
-<meta property="og:description" content="JSON Web Token（JWT）是一个非常轻巧的规范。这个规范允许我们使用JWT在用户和服务器之间传递安全可靠的信息。">
+<meta property="og:description" content="">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Json Web Token">
-<meta name="twitter:title" content="Json Web Token">
-<meta property="og:url" content="https://harleylau.github.io/2017/07/json-web-token/">
-<meta property="twitter:url" content="https://harleylau.github.io/2017/07/json-web-token/">
+<meta property="og:title" content="Redis源码剖析–quicklist">
+<meta name="twitter:title" content="Redis源码剖析–quicklist">
+<meta property="og:url" content="https://harleylau.github.io/2018/05/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90quicklist/">
+<meta property="twitter:url" content="https://harleylau.github.io/2018/05/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90quicklist/">
 <meta property="og:site_name" content="Harley">
-<meta property="og:description" content="JSON Web Token（JWT）是一个非常轻巧的规范。这个规范允许我们使用JWT在用户和服务器之间传递安全可靠的信息。">
-<meta name="twitter:description" content="JSON Web Token（JWT）是一个非常轻巧的规范。这个规范允许我们使用JWT在用户和服务器之间传递安全可靠的信息。">
+<meta property="og:description" content="">
+<meta name="twitter:description" content="">
 <meta property="og:locale" content="zh-cn">
 
   
-    <meta property="article:published_time" content="2017-07-25T08:46:38">
+    <meta property="article:published_time" content="2018-05-31T09:43:09">
   
   
-    <meta property="article:modified_time" content="2017-07-25T08:46:38">
+    <meta property="article:modified_time" content="2018-05-31T09:43:09">
   
-  
-  
-    
-      <meta property="article:section" content="JWT">
-    
   
   
     
-      <meta property="article:tag" content="JWT">
+      <meta property="article:section" content="redis">
+    
+      <meta property="article:section" content="源码">
+    
+  
+  
+    
+      <meta property="article:tag" content="redis">
+    
+      <meta property="article:tag" content="源码">
     
   
 
@@ -49,9 +53,6 @@
 
 
 
-  <meta property="og:image" content="https://harleylau.github.io/img/jwt.png">
-  <meta property="twitter:image" content="https://harleylau.github.io/img/jwt.png">
-
 
 
 
@@ -60,14 +61,14 @@
   <meta property="twitter:image" content="https://harleylau.github.io/img/harleylau.jpg">
 
 
-    <title>Json Web Token</title>
+    <title>Redis源码剖析–quicklist</title>
 
     <link rel="icon" href="https://harleylau.github.io/favicon.png">
     
 
     
 
-    <link rel="canonical" href="https://harleylau.github.io/2017/07/json-web-token/">
+    <link rel="canonical" href="https://harleylau.github.io/2018/05/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90quicklist/">
 
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous" />
@@ -225,15 +226,15 @@
             <div class="post-header main-content-wrap text-left">
   
     <h1 class="post-title" itemprop="headline">
-      Json Web Token
+      Redis源码剖析–quicklist
     </h1>
   
   
   <div class="postShorten-meta post-meta">
     
-      <time itemprop="datePublished" datetime="2017-07-25T08:46:38&#43;08:00">
+      <time itemprop="datePublished" datetime="2018-05-31T09:43:09&#43;08:00">
         
-  七月 25, 2017
+  五月 31, 2018
 
       </time>
     
@@ -242,7 +243,9 @@
   
     <span>发布在</span>
     
-      <a class="category-link" href="https://harleylau.github.io/categories/jwt">JWT</a>
+      <a class="category-link" href="https://harleylau.github.io/categories/redis">redis</a>, 
+    
+      <a class="category-link" href="https://harleylau.github.io/categories/%e6%ba%90%e7%a0%81">源码</a>
     
   
 
@@ -252,120 +255,229 @@
           
           <div class="post-content markdown" itemprop="articleBody">
             <div class="main-content-wrap">
-              <p>JSON Web Token（JWT）是一个非常轻巧的规范。这个规范允许我们使用JWT在用户和服务器之间传递安全可靠的信息。</p>
-
-<h1 id="table-of-contents">目录</h1><nav id="TableOfContents">
+              <h1 id="table-of-contents">目录</h1><nav id="TableOfContents">
 <ul>
-<li><a href="#token-auth机制">Token Auth机制</a>
+<li><a href="#quicklist概述">quicklist概述</a></li>
+<li><a href="#quicklist实现">quicklist实现</a></li>
+<li><a href="#quicklist操作">quicklist操作</a>
 <ul>
-<li><a href="#相比cookie的优势">相比cookie的优势</a></li>
-<li><a href="#相比session的优势">相比session的优势</a></li>
+<li><a href="#创建quicklist">创建quicklist</a></li>
+<li><a href="#quicklist的push操作">quicklist的push操作</a></li>
 </ul></li>
-<li><a href="#jwt的组成">JWT的组成</a>
-<ul>
-<li><a href="#头部-header">头部（Header）</a></li>
-<li><a href="#有效载荷-payload">有效载荷（payload）</a></li>
-<li><a href="#签名-signature">签名（signature）</a></li>
-</ul></li>
-<li><a href="#jwt安全性">JWT安全性</a></li>
 </ul>
 </nav>
 
-<h1 id="token-auth机制">Token Auth机制</h1>
+<h1 id="quicklist概述">quicklist概述</h1>
 
-<p>JSON Web Token（JWT）是一个非常轻巧的规范。这个规范允许我们使用JWT在用户和服务器之间传递安全可靠的信息。</p>
+<p>上一节中，我们有说到Redis中的列表对象在版本3.2之前，列表底层的编码是 ziplist 和 linkedlist 实现的， 但是在版本3.2之后，重新引入了一个 quicklist 的数据结构，列表的底层都由quicklist实现。</p>
 
-<p>JWT通过用户发送用户名和密码给服务器，服务器验证通过之后，生成签名的token给客户端。客户端存储这个token，之后请求帐号相关的信息时带上token，服务端验证token之后，进行相应的处理。</p>
+<p>在早期的设计中， 当列表对象中元素的长度比较小或者数量比较少的时候，采用ziplist来存储，当列表对象中元素的长度比较大或者数量比较多的时候，则会转而使用双向列表linkedlist来存储。</p>
 
-<h2 id="相比cookie的优势">相比cookie的优势</h2>
-
-<p><strong>支持跨域站点访问</strong></p>
-
-<p>Cookie是不允许垮域访问的，可以通过设置顶级域名的方式实现部分跨域，但是跨站点的访问仍然不支持。</p>
-
-<p>Token没有站点的限制，跨域站点的时候仍旧能够使用。</p>
-
-<p><strong>安全性更高</strong></p>
-
-<p>不需要考虑对CSRF（跨站请求伪造）的防范；</p>
-
-<h2 id="相比session的优势">相比session的优势</h2>
-
-<p><strong>节省服务器空间</strong></p>
-
-<p>session验证方式需要在服务端保存每个session，会占用服务器空间。如果单纯用DB存储，还有性能上的劣势；用redis等存储则不太经济。</p>
-
-<p>Token方式将成本分摊到各个客户端，所需要的仅仅是一个解编码的过程。</p>
-
-<h1 id="jwt的组成">JWT的组成</h1>
-
-<p>JWT由三部分组成，分别是头部、载荷和签名。三个部分中间用点分隔开，并且都使用 Base64 编码。</p>
-
-<p>总体JWT示例：</p>
-
-<pre><code>eyJ0eXAiOiAiSldUIiwiYWxnIjogIkhTMjU2In0.eyJpc3MiOiAiaGFybGV5IiwiaWF0IjogMTUwMDk1NTk1MCwiZXhwIjogMTUwMDk1Nzk4NywidXNlcl9pZCI6ICI3ODk4IiwidXNlcl9yb2xlIjoiQWRtaW4ifQ.b0998815569be8f4ca8518030c3d586cc5bdff12dd7ad0004a1c38fa735ce18a
-</code></pre>
-
-<h2 id="头部-header">头部（Header）</h2>
-
-<p>header 部分主要包括两部分，一个是 Token 的类型，另一个是使用的算法，
-比如Token类型是 JWT，使用的算法是 HS256。</p>
-
-<pre><code>{
-&quot;typ&quot;: &quot;JWT&quot;,
-&quot;alg&quot;: &quot;HS256&quot;
-}
-</code></pre>
-
-<p>经过base64编码之后的值为
-eyJ0eXAiOiAiSldUIiwiYWxnIjogIkhTMjU2In0</p>
-
-<h2 id="有效载荷-payload">有效载荷（payload）</h2>
-
-<p>有效载荷内部的数据可以自己定义，JWT规范也给出了一些标准字段，比如</p>
+<p>这两种存储方式都各有优缺点</p>
 
 <ul>
-<li>iss: 该JWT的签发者</li>
-<li>sub: 该JWT所面向的用户</li>
-<li>aud: 接收该JWT的一方</li>
-<li>exp(expires): 什么时候过期，这里是一个Unix时间戳</li>
-<li>iat(issued at): 在什么时候签发的</li>
-<li>jti(JWT ID）: 唯一的JWT ID</li>
+<li>双向链表linkedlist便于在表的两端进行push和pop操作，在插入节点上复杂度很低，但是它的内存开销比较大。首先，它在每个节点上除了要保存数据之外，还要额外保存两个指针；其次，双向链表的各个节点是单独的内存块，地址不连续，节点多了容易产生内存碎片。</li>
+<li>ziplist存储在一段连续的内存上，所以存储效率很高。但是，它不利于修改操作，插入和删除操作需要频繁的申请和释放内存。特别是当ziplist长度很长的时候，一次realloc可能会导致大批量的数据拷贝。</li>
 </ul>
 
-<p>比如payload内容如下：</p>
+<p>早期版本在这边选择的折中方案是两种数据类型的转换，但是在3.2版本之后，不知道出于什么原因， 猜测会不会因为转换也是个费时且复杂的操作，引入了一种新的数据格式，结合了双向列表linkedlist和ziplist的特点，称之为quicklist。所有的节点都用quicklist存储，省去了到临界条件是的格式转换。</p>
 
-<pre><code>{
-    &quot;iss&quot;: &quot;harley&quot;,
-    &quot;iat&quot;: 1500955950,
-    &quot;exp&quot;: 1500957987,
-    &quot;user_id&quot;: &quot;7898&quot;,
-    &quot;user_role&quot;: &quot;Admin&quot;
+<p>那么quicklist是一种什么样的格式呢？简单的说，我们仍旧可以将其看作一个双向列表，但是列表的每个节点都是一个ziplist，其实就是linkedlist和ziplist的结合。quicklist中的每个节点ziplist都能够存储多个数据元素。</p>
+
+<h1 id="quicklist实现">quicklist实现</h1>
+
+<p>接下去我们看下quicklist的具体实现。</p>
+
+<p>quicklist的定义如下：</p>
+
+<pre><code>typedef struct quicklist {
+    quicklistNode *head;        // 指向quicklist的头部
+    quicklistNode *tail;        // 指向quicklist的尾部
+    unsigned long count;        // 列表中所有数据项的个数总和
+    unsigned int len;           // quicklist节点的个数，即ziplist的个数
+    int fill : 16;              // ziplist大小限定，由list-max-ziplist-size给定
+    unsigned int compress : 16; // 节点压缩深度设置，由list-compress-depth给定
+} quicklist;
+</code></pre>
+
+<p>可以看到，这边其实有两个统计值，count用来统计所有数据项的个数总和，len用来统计quicklist的节点个数， 因为每个节点ziplist都能存储多个数据项，所以有了这两个统计值。</p>
+
+<p>另外，插一点，quicklist的这个结构体在源码中说是占用了32byte的空间，怎么计算的呢？这边涉及到了位域的概念，所谓”位域“是把一个字节中的二进位划分为几 个不同的区域， 并说明每个区域的位数。每个域有一个域名，允许在程序中按域名进行操作。比如这个“int fill : 16” 表示不用整个int存储fill，而是只用了其中的16位来存储。</p>
+
+<p>好了，回到正题。</p>
+
+<p>quicklist的节点node的定义如下：</p>
+
+<pre><code>typedef struct quicklistNode {
+    struct quicklistNode *prev;  // 指向上一个ziplist节点
+    struct quicklistNode *next;  // 指向下一个ziplist节点
+    unsigned char *zl;           // 数据指针，如果没有被压缩，就指向ziplist结构，反之指向quicklistLZF结构 
+    unsigned int sz;             // 表示指向ziplist结构的总长度(内存占用长度)
+    unsigned int count : 16;     // 表示ziplist中的数据项个数
+    unsigned int encoding : 2;   // 编码方式，1--ziplist，2--quicklistLZF
+    unsigned int container : 2;  // 预留字段，存放数据的方式，1--NONE，2--ziplist
+    unsigned int recompress : 1; // 解压标记，当查看一个被压缩的数据时，需要暂时解压，标记此参数为1，之后再重新进行压缩
+    unsigned int attempted_compress : 1; // 测试相关
+    unsigned int extra : 10; // 扩展字段，暂时没用
+} quicklistNode;
+</code></pre>
+
+<p>这样， 我们就可以知道整个quicklist的结构</p>
+
+<p><img src="https://harleylau.github.io/img/quicklist.jpg" alt="quicklist结构" /></p>
+
+<p>图上显示了两种ziplist的结构，一种是经过压缩的，一种是未经压缩的。</p>
+
+<h1 id="quicklist操作">quicklist操作</h1>
+
+<h2 id="创建quicklist">创建quicklist</h2>
+
+<pre><code>/* Create a new quicklist.
+ * Free with quicklistRelease(). */
+quicklist *quicklistCreate(void) {
+    struct quicklist *quicklist;
+
+    quicklist = zmalloc(sizeof(*quicklist));  // 分配空间
+    quicklist-&gt;head = quicklist-&gt;tail = NULL;  // 头尾指针为空
+    quicklist-&gt;len = 0;            // 列表长度为0
+    quicklist-&gt;count = 0;           // 数据项总和为0
+    quicklist-&gt;compress = 0;        // 设定压缩深度
+    quicklist-&gt;fill = -2;           // 设定ziplist大小
+    return quicklist;
 }
 </code></pre>
 
-<p>base64加密后的结果为</p>
+<p>quicklist中的节点创建</p>
 
-<pre><code>eyJpc3MiOiAiaGFybGV5IiwiaWF0IjogMTUwMDk1NTk1MCwiZXhwIjogMTUwMDk1Nzk4NywidXNlcl9pZCI6ICI3ODk4IiwidXNlcl9yb2xlIjoiQWRtaW4ifQ
+<pre><code>REDIS_STATIC quicklistNode *quicklistCreateNode(void) {
+    quicklistNode *node;
+    node = zmalloc(sizeof(*node));      // 分配空间
+    node-&gt;zl = NULL;                    // 初始化指向ziplist的指针
+    node-&gt;count = 0;                    // 数据项个数为0
+    node-&gt;sz = 0;                       // ziplist大小为0
+    node-&gt;next = node-&gt;prev = NULL;     // 前后指针为空
+    node-&gt;encoding = QUICKLIST_NODE_ENCODING_RAW;  // 节点编码方式
+    node-&gt;container = QUICKLIST_NODE_CONTAINER_ZIPLIST;     // 数据存放方式
+    node-&gt;recompress = 0;               // 初始化压缩标记
+    return node;
+}
 </code></pre>
 
-<h2 id="签名-signature">签名（signature）</h2>
+<h2 id="quicklist的push操作">quicklist的push操作</h2>
 
-<p>签名部分保证了token的安全性，signature的生成过程依赖前两部分的内容。
-将Header和payload连接在一起，得到</p>
+<p>quicklist的push操作其实就是在双向列表的头节点或尾节点上插入一个新的元素。从上面我们知道，quicklist的每个节点都是一个ziplist，所以这个push操作就涉及到一个问题，当前节点的ziplist是否能够放进新元素。</p>
 
-<pre><code>eyJ0eXAiOiAiSldUIiwiYWxnIjogIkhTMjU2In0.eyJpc3MiOiAiaGFybGV5IiwiaWF0IjogMTUwMDk1NTk1MCwiZXhwIjogMTUwMDk1Nzk4NywidXNlcl9pZCI6ICI3ODk4IiwidXNlcl9yb2xlIjoiQWRtaW4ifQ
+<ul>
+<li>如果ziplist能够放入新元素，即大小没有超过限制（list-max-ziplist-size），那么直接调用ziplistPush函数压入</li>
+<li>如果ziplist不能放入新元素，则新建一个quicklist节点，即新的ziplist，新的数据项会被插入到新的ziplist，新的quicklist节点插入到原有的quicklist上</li>
+</ul>
+
+<pre><code>/* Wrapper to allow argument-based switching between HEAD/TAIL pop */
+void quicklistPush(quicklist *quicklist, void *value, const size_t sz,
+                   int where) {
+    if (where == QUICKLIST_HEAD) {
+        quicklistPushHead(quicklist, value, sz);
+    } else if (where == QUICKLIST_TAIL) {
+        quicklistPushTail(quicklist, value, sz);
+    }
+}
 </code></pre>
 
-<p>将上面拼接完的字符串用HS256算法进行加密。在加密的时候，还需要提供一个密钥。假设密钥为secret，那么就可以得到我们加密后的内容b0998815569be8f4ca8518030c3d586cc5bdff12dd7ad0004a1c38fa735ce18a</p>
+<p>函数里边， 根据是头部插入还是尾部插入调用不同的函数。先看头部插入的情况：</p>
 
-<p>加在后面得到完成JWT</p>
+<pre><code>/* Add new entry to head node of quicklist.
+ *
+ * Returns 0 if used existing head.
+ * Returns 1 if new head created. */
+int quicklistPushHead(quicklist *quicklist, void *value, size_t sz) {
+    quicklistNode *orig_head = quicklist-&gt;head;
+    if (likely(
+            // 判断头部节点是否能够插入新元素
+            _quicklistNodeAllowInsert(quicklist-&gt;head, quicklist-&gt;fill, sz))) {
+        quicklist-&gt;head-&gt;zl =
+            // 如果能够插入，则执行ziplistPush插入新元素的当前节点的ziplist
+            ziplistPush(quicklist-&gt;head-&gt;zl, value, sz, ZIPLIST_HEAD);
+        // 更新头部大小
+        quicklistNodeUpdateSz(quicklist-&gt;head);
+    } else {
+        // 否则的话，需要创建新的quicklist节点
+        quicklistNode *node = quicklistCreateNode();
+        // 将新节点压入新创建的ziplist中，并与新创建的quicklist节点关联起来
+        node-&gt;zl = ziplistPush(ziplistNew(), value, sz, ZIPLIST_HEAD);
+        // 更新头部信息
+        quicklistNodeUpdateSz(node);
+        // 将新创建的节点插入到quicklist中
+        _quicklistInsertNodeBefore(quicklist, quicklist-&gt;head, node);
+    }
+    // 更新quicklist的数据项个数
+    quicklist-&gt;count++;
+    // 更新头结点的数据项个数
+    quicklist-&gt;head-&gt;count++;
+    return (orig_head != quicklist-&gt;head);
+}
+</code></pre>
 
-<h1 id="jwt安全性">JWT安全性</h1>
+<p>在尾部插入数据的操作也是类似的， 不多具体介绍， 我们再看一下判断当前ziplist节点是否能插入的函数。</p>
 
-<p>JWT最后的签名部分对Header和payload进行了加密，如果Header和payload被篡改，最后的signature必然是不一样的。 由于加密时的secret是保密的，篡改者无法得到正确的签名。</p>
+<pre><code>REDIS_STATIC int _quicklistNodeAllowInsert(const quicklistNode *node,
+                                           const int fill, const size_t sz) {   // 判断当前node是否还能插入数据
+    if (unlikely(!node))
+        return 0;
 
-<p>但同时要注意的是，由于header和payload部分并未加密，所以不能把敏感信息放入其中。</p>
+    int ziplist_overhead;
+    /* size of previous offset */
+    if (sz &lt; 254)   // 小于254时后一个节点的pre只有1字节,否则为5字节
+        ziplist_overhead = 1;
+    else
+        ziplist_overhead = 5;
+
+    /* size of forward offset */
+    if (sz &lt; 64)    // 小于64字节当前节点的encoding为1
+        ziplist_overhead += 1;
+    else if (likely(sz &lt; 16384))    // 小于16384 encoding为2字节
+        ziplist_overhead += 2;
+    else    // encoding为5字节
+        ziplist_overhead += 5;
+
+    /* new_sz overestimates if 'sz' encodes to an integer type */
+    unsigned int new_sz = node-&gt;sz + sz + ziplist_overhead; // 忽略了连锁更新的情况
+    if (likely(_quicklistNodeSizeMeetsOptimizationRequirement(new_sz, fill)))   // // 校验fill为负数是否超过单存储限制
+        return 1;
+    else if (!sizeMeetsSafetyLimit(new_sz)) // 校验单个节点是否超过8kb，主要防止fill为正数时单个节点内存过大
+        return 0;
+    else if ((int)node-&gt;count &lt; fill)   // fill为正数是否超过存储限制
+        return 1;
+    else
+        return 0;
+}
+</code></pre>
+
+<p>quicklist还能在指定的位置插入数据，quicklistInsertAfter和quicklistInsertBefore就是分别在指定位置后面和前面插入数据项。当然，和在头尾节点插入一样， 任意位置插入也是需要判断当前插入节点是否能够放得下当前的元素的，这边的情况会比头尾节点更为复杂，比如在当前节点放不下的时候，还需要检查一下旁边的节点是否能够放下这个数据，能够放下的话可以放置在旁边的节点上，如果也不行的话，就是需要新建一个ziplist节点。</p>
+
+<p>写到最后，发现虽然通篇在说每个节点ziplist能够容纳多个元素，但是没有具体介绍配置的参数。不过，从上边的分析也能看出来，这个是有quicklist的结构中的fill字段指定的， 这个fill字段会读取配置中的list-max-ziplist-size参数值。</p>
+
+<p>这个参数它可以取正值，也可以取负值。</p>
+
+<p>当取正值的时候，表示按照数据项个数来限定每个quicklist节点上的ziplist长度。比如，当这个参数配置成3的时候，表示每个quicklist节点的ziplist最多包含3个数据项。</p>
+
+<p>当取负值的时候，表示按照占用字节数来限定每个quicklist节点上的ziplist长度。这时，它只能取-1到-5这五个值，每个值含义如下：</p>
+
+<ul>
+<li>-5: 每个quicklist节点上的ziplist大小不能超过64 Kb。（注：1kb =&gt; 1024 bytes）</li>
+<li>-4: 每个quicklist节点上的ziplist大小不能超过32 Kb。</li>
+<li>-3: 每个quicklist节点上的ziplist大小不能超过16 Kb。</li>
+<li>-2: 每个quicklist节点上的ziplist大小不能超过8 Kb。（-2是Redis给出的默认值）</li>
+<li>-1: 每个quicklist节点上的ziplist大小不能超过4 Kb。</li>
+</ul>
+
+<p>还有一个参数list-compress-depth表示列表两头不压缩的节点的个数</p>
+
+<ul>
+<li>0 特殊值，表示不压缩</li>
+<li>1 表示quicklist两端各有一个节点不压缩，中间的节点压缩</li>
+<li>2 表示quicklist两端各有两个节点不压缩，中间的节点压缩</li>
+<li>3 表示quicklist两端各有三个节点不压缩，中间的节点压缩</li>
+</ul>
               
             </div>
           </div>
@@ -377,7 +489,9 @@ eyJ0eXAiOiAiSldUIiwiYWxnIjogIkhTMjU2In0</p>
                   <div class="post-footer-tags">
                     <span class="text-color-light text-small">标签</span><br/>
                     
-  <a class="tag tag--primary tag--small" href="https://harleylau.github.io/tags/jwt/">JWT</a>
+  <a class="tag tag--primary tag--small" href="https://harleylau.github.io/tags/redis/">redis</a>
+
+  <a class="tag tag--primary tag--small" href="https://harleylau.github.io/tags/%E6%BA%90%E7%A0%81/">源码</a>
 
                   </div>
                 
@@ -390,7 +504,7 @@ eyJ0eXAiOiAiSldUIiwiYWxnIjogIkhTMjU2In0</p>
           
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2017/07/tornado-%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%BA%94%E7%94%A8/" data-tooltip="Tornado 线程池应用">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2018/12/%E4%BB%8Ehexo%E8%BD%AC%E5%88%B0hugo/" data-tooltip="从hexo转到hugo">
               
                   <i class="fa fa-angle-left"></i>
                   <span class="hide-xs hide-sm text-small icon-ml">下一篇</span>
@@ -398,7 +512,7 @@ eyJ0eXAiOiAiSldUIiwiYWxnIjogIkhTMjU2In0</p>
             </li>
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--disabled">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2018/05/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E7%9A%84cap%E7%90%86%E8%AE%BA%E5%92%8Cbase%E7%90%86%E8%AE%BA/" data-tooltip="分布式系统的CAP理论和BASE理论">
               
                   <span class="hide-xs hide-sm text-small icon-mr">上一篇</span>
                   <i class="fa fa-angle-right"></i>
@@ -416,19 +530,19 @@ eyJ0eXAiOiAiSldUIiwiYWxnIjogIkhTMjU2In0</p>
         </li>
         
           <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://harleylau.github.io/2017/07/json-web-token/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://harleylau.github.io/2018/05/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90quicklist/">
               <i class="fa fa-facebook-official"></i>
             </a>
           </li>
         
           <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://harleylau.github.io/2017/07/json-web-token/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://harleylau.github.io/2018/05/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90quicklist/">
               <i class="fa fa-twitter"></i>
             </a>
           </li>
         
           <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://harleylau.github.io/2017/07/json-web-token/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://harleylau.github.io/2018/05/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90quicklist/">
               <i class="fa fa-google-plus"></i>
             </a>
           </li>
@@ -476,7 +590,7 @@ eyJ0eXAiOiAiSldUIiwiYWxnIjogIkhTMjU2In0</p>
           
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2017/07/tornado-%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%BA%94%E7%94%A8/" data-tooltip="Tornado 线程池应用">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2018/12/%E4%BB%8Ehexo%E8%BD%AC%E5%88%B0hugo/" data-tooltip="从hexo转到hugo">
               
                   <i class="fa fa-angle-left"></i>
                   <span class="hide-xs hide-sm text-small icon-ml">下一篇</span>
@@ -484,7 +598,7 @@ eyJ0eXAiOiAiSldUIiwiYWxnIjogIkhTMjU2In0</p>
             </li>
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--disabled">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2018/05/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E7%9A%84cap%E7%90%86%E8%AE%BA%E5%92%8Cbase%E7%90%86%E8%AE%BA/" data-tooltip="分布式系统的CAP理论和BASE理论">
               
                   <span class="hide-xs hide-sm text-small icon-mr">上一篇</span>
                   <i class="fa fa-angle-right"></i>
@@ -502,19 +616,19 @@ eyJ0eXAiOiAiSldUIiwiYWxnIjogIkhTMjU2In0</p>
         </li>
         
           <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://harleylau.github.io/2017/07/json-web-token/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://harleylau.github.io/2018/05/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90quicklist/">
               <i class="fa fa-facebook-official"></i>
             </a>
           </li>
         
           <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://harleylau.github.io/2017/07/json-web-token/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://harleylau.github.io/2018/05/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90quicklist/">
               <i class="fa fa-twitter"></i>
             </a>
           </li>
         
           <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://harleylau.github.io/2017/07/json-web-token/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://harleylau.github.io/2018/05/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90quicklist/">
               <i class="fa fa-google-plus"></i>
             </a>
           </li>
@@ -544,19 +658,19 @@ eyJ0eXAiOiAiSldUIiwiYWxnIjogIkhTMjU2In0</p>
   <ul class="share-options">
     
       <li class="share-option">
-        <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fharleylau.github.io%2F2017%2F07%2Fjson-web-token%2F">
+        <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fharleylau.github.io%2F2018%2F05%2Fredis%25E6%25BA%2590%25E7%25A0%2581%25E5%2589%2596%25E6%259E%2590quicklist%2F">
           <i class="fa fa-facebook-official"></i><span>分享到 Facebook</span>
         </a>
       </li>
     
       <li class="share-option">
-        <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=https%3A%2F%2Fharleylau.github.io%2F2017%2F07%2Fjson-web-token%2F">
+        <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=https%3A%2F%2Fharleylau.github.io%2F2018%2F05%2Fredis%25E6%25BA%2590%25E7%25A0%2581%25E5%2589%2596%25E6%259E%2590quicklist%2F">
           <i class="fa fa-twitter"></i><span>分享到 Twitter</span>
         </a>
       </li>
     
       <li class="share-option">
-        <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=https%3A%2F%2Fharleylau.github.io%2F2017%2F07%2Fjson-web-token%2F">
+        <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=https%3A%2F%2Fharleylau.github.io%2F2018%2F05%2Fredis%25E6%25BA%2590%25E7%25A0%2581%25E5%2589%2596%25E6%259E%2590quicklist%2F">
           <i class="fa fa-google-plus"></i><span>分享到 Google&#43;</span>
         </a>
       </li>
@@ -848,9 +962,9 @@ $(document).ready(function() {
     
       <script>
         var disqus_config = function () {
-          this.page.url = 'https:\/\/harleylau.github.io\/2017\/07\/json-web-token\/';
+          this.page.url = 'https:\/\/harleylau.github.io\/2018\/05\/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90quicklist\/';
           
-            this.page.identifier = '\/2017\/07\/json-web-token\/'
+            this.page.identifier = '\/2018\/05\/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90quicklist\/'
           
         };
         (function() {
