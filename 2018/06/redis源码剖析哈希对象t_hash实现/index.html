@@ -8,33 +8,25 @@
 <meta name="generator" content="Hugo 0.52 with theme Tranquilpeak 0.4.3-SNAPSHOT">
 <meta name="author" content="Harley">
 <meta name="keywords" content="redis">
-<meta name="description" content="
-
-先贴一下整体的代码">
+<meta name="description" content="">
 
 
-<meta property="og:description" content="
-
-先贴一下整体的代码">
+<meta property="og:description" content="">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Redis源码剖析-Dict遍历算法">
-<meta name="twitter:title" content="Redis源码剖析-Dict遍历算法">
-<meta property="og:url" content="https://harleylau.github.io/2017/08/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-dict%E9%81%8D%E5%8E%86%E7%AE%97%E6%B3%95/">
-<meta property="twitter:url" content="https://harleylau.github.io/2017/08/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-dict%E9%81%8D%E5%8E%86%E7%AE%97%E6%B3%95/">
+<meta property="og:title" content="Redis源码剖析–哈希对象t_hash实现">
+<meta name="twitter:title" content="Redis源码剖析–哈希对象t_hash实现">
+<meta property="og:url" content="https://harleylau.github.io/2018/06/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%93%88%E5%B8%8C%E5%AF%B9%E8%B1%A1t_hash%E5%AE%9E%E7%8E%B0/">
+<meta property="twitter:url" content="https://harleylau.github.io/2018/06/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%93%88%E5%B8%8C%E5%AF%B9%E8%B1%A1t_hash%E5%AE%9E%E7%8E%B0/">
 <meta property="og:site_name" content="Harley">
-<meta property="og:description" content="
-
-先贴一下整体的代码">
-<meta name="twitter:description" content="
-
-先贴一下整体的代码">
+<meta property="og:description" content="">
+<meta name="twitter:description" content="">
 <meta property="og:locale" content="zh-cn">
 
   
-    <meta property="article:published_time" content="2017-08-02T16:08:16">
+    <meta property="article:published_time" content="2018-06-04T10:29:07">
   
   
-    <meta property="article:modified_time" content="2017-08-02T16:08:16">
+    <meta property="article:modified_time" content="2018-06-04T10:29:07">
   
   
   
@@ -69,14 +61,14 @@
   <meta property="twitter:image" content="https://harleylau.github.io/img/harleylau.jpg">
 
 
-    <title>Redis源码剖析-Dict遍历算法</title>
+    <title>Redis源码剖析–哈希对象t_hash实现</title>
 
     <link rel="icon" href="https://harleylau.github.io/favicon.png">
     
 
     
 
-    <link rel="canonical" href="https://harleylau.github.io/2017/08/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-dict%E9%81%8D%E5%8E%86%E7%AE%97%E6%B3%95/">
+    <link rel="canonical" href="https://harleylau.github.io/2018/06/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%93%88%E5%B8%8C%E5%AF%B9%E8%B1%A1t_hash%E5%AE%9E%E7%8E%B0/">
 
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous" />
@@ -234,15 +226,15 @@
             <div class="post-header main-content-wrap text-left">
   
     <h1 class="post-title" itemprop="headline">
-      Redis源码剖析-Dict遍历算法
+      Redis源码剖析–哈希对象t_hash实现
     </h1>
   
   
   <div class="postShorten-meta post-meta">
     
-      <time itemprop="datePublished" datetime="2017-08-02T16:08:16&#43;08:00">
+      <time itemprop="datePublished" datetime="2018-06-04T10:29:07&#43;08:00">
         
-  八月 2, 2017
+  六月 4, 2018
 
       </time>
     
@@ -265,172 +257,383 @@
             <div class="main-content-wrap">
               <h1 id="table-of-contents">目录</h1><nav id="TableOfContents">
 <ul>
-<li><a href="#dict的反向二进制位遍历">dict的反向二进制位遍历</a>
+<li><a href="#hash对象概述">hash对象概述</a></li>
+<li><a href="#ziplist-编码的哈希对象">ziplist 编码的哈希对象</a></li>
+<li><a href="#hashtable-编码的哈希对象">hashtable 编码的哈希对象</a></li>
+<li><a href="#hashtable-的实现">hashtable 的实现</a>
 <ul>
-<li><a href="#1-当dict稳定的时候">1、当dict稳定的时候</a></li>
-<li><a href="#2-当dict扩大的时候">2、当dict扩大的时候</a></li>
-<li><a href="#3-当dict缩小的时候">3、当dict缩小的时候</a></li>
-<li><a href="#4-正好进行rehash的时候">4、正好进行rehash的时候</a></li>
+<li><a href="#hset-实现分析">HSET 实现分析</a></li>
+<li><a href="#转换函数">转换函数</a></li>
+<li><a href="#迭代器">迭代器</a></li>
 </ul></li>
-<li><a href="#总结">总结</a></li>
 </ul>
 </nav>
 
-<p>先贴一下整体的代码</p>
+<h1 id="hash对象概述">hash对象概述</h1>
 
-<pre><code>unsigned long dictScan(dict *d,
-                       unsigned long v,
-                       dictScanFunction *fn,
-                       dictScanBucketFunction* bucketfn,
-                       void *privdata)
-{
-    dictht *t0, *t1;
-    const dictEntry *de, *next;
-    unsigned long m0, m1;
+<p>哈希对象的实现有点类似于版本3.2之前的列表对象实现，它的底层编码也有两种格式：ziplist 和 hashtable。</p>
 
-    // 跳过空字典
-    if (dictSize(d) == 0) return 0;
+<p>当哈希对象可以同时满足以下两个条件时， 哈希对象使用 ziplist 编码：</p>
 
-    // 如果没有rehash，迭代一个哈希表的字典
-    if (!dictIsRehashing(d)) {
-        t0 = &amp;(d-&gt;ht[0]);
-        m0 = t0-&gt;sizemask;
+<p>哈希对象保存的所有键值对的键和值的字符串长度都小于 64 字节；
+哈希对象保存的键值对数量小于 512 个；
+不能满足这两个条件的哈希对象需要使用 hashtable 编码。</p>
 
-        /* Emit entries at cursor */
-        if (bucketfn) bucketfn(privdata, &amp;t0-&gt;table[v &amp; m0]);
-        de = t0-&gt;table[v &amp; m0];
-        while (de) {
-            next = de-&gt;next;
-            fn(privdata, de);
-            de = next;
-        }
-    // 迭代有两个哈希表的字典
-    } else {
-        t0 = &amp;d-&gt;ht[0];
-        t1 = &amp;d-&gt;ht[1];
+<p>当然，这两个阈值都是可以用户自行设置的：</p>
 
-        /* Make sure t0 is the smaller and t1 is the bigger table */
-        // 确保 t0 比 t1 要小
-        if (t0-&gt;size &gt; t1-&gt;size) {
-            t0 = &amp;d-&gt;ht[1];
-            t1 = &amp;d-&gt;ht[0];
-        }
+<pre><code>/* redis.conf文件中的阈值 */
+hash-max-ziplist-value 64 // ziplist中最大能存放的值长度
+hash-max-ziplist-entries 512 // ziplist中最多能存放的entry节点数量
+</code></pre>
 
-        m0 = t0-&gt;sizemask;
-        m1 = t1-&gt;sizemask;
+<p>对于使用 ziplist 编码的列表对象来说， 当使用 ziplist 编码所需的两个条件的任意一个不能被满足时， 对象的编码转换操作就会被执行： 原本保存在压缩列表里的所有键值对都会被转移并保存到字典里面， 对象的编码也会从 ziplist 变为 hashtable 。并且这个转换过程也是一个不可逆的过程。</p>
 
-        /* Emit entries at cursor */
-        if (bucketfn) bucketfn(privdata, &amp;t0-&gt;table[v &amp; m0]);
-        de = t0-&gt;table[v &amp; m0];
-        while (de) {
-            next = de-&gt;next;
-            fn(privdata, de);
-            de = next;
-        }
+<p>哈希对象的结构如下：</p>
 
-        /* Iterate over indices in larger table that are the expansion
-         * of the index pointed to by the cursor in the smaller table */
-        do {
-            /* Emit entries at cursor */
-            if (bucketfn) bucketfn(privdata, &amp;t1-&gt;table[v &amp; m1]);
-            de = t1-&gt;table[v &amp; m1];
-            while (de) {
-                next = de-&gt;next;
-                fn(privdata, de);
-                de = next;
+<pre><code>typedef struct redisObject {
+    unsigned type:4; // hash类型
+    unsigned encoding:4;  // //对象的编码类型，分别为 OBJ_ENCODING_ZIPLIST 或 OBJ_ENCODING_HT
+    unsigned lru:LRU_BITS;  // 上一次操作的时间
+    int refcount; // 引用计数，便于内存管理
+    void *ptr;  // 指向底层的数据结构
+} robj;
+</code></pre>
+
+<h1 id="ziplist-编码的哈希对象">ziplist 编码的哈希对象</h1>
+
+<p>当哈希对象底层采用ziplist的实现的时候，每次插入一个新的键值对，程序会先将保存了键的压缩列表节点推入到压缩列表表尾， 然后再将保存了值的压缩列表节点推入到压缩列表表尾。类似下图所示</p>
+
+<pre><code>|zlbytes | zltail | zllen |   entry1  |  entry2  |   entry3  |   entry4  | zlend |
+                                ↓          ↓           ↓           ↓    
+                          |    key1   |  value1  |    key2   |   value2  |
+</code></pre>
+
+<h1 id="hashtable-编码的哈希对象">hashtable 编码的哈希对象</h1>
+
+<p>当哈希对象底层采用hashtable实现的时候，哈希对象中的指针ptr会指向一个dict，哈希对象中的每个键值对都使用一个字典键值对来保存， 每个键和值都是一个字符串对象。</p>
+
+<h1 id="hashtable-的实现">hashtable 的实现</h1>
+
+<table>
+<thead>
+<tr>
+<th>命令</th>
+<th>ziplist 编码实现方法</th>
+<th>hashtable 编码的实现方法</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td>HSET</td>
+<td>首先调用 ziplistPush 函数， 将键推入到压缩列表的表尾， 然后再次调用 ziplistPush 函数， 将值推入到压缩列表的表尾。</td>
+<td>调用 dictAdd 函数， 将新节点添加到字典里面。</td>
+</tr>
+
+<tr>
+<td>HGET</td>
+<td>首先调用 ziplistFind 函数， 在压缩列表中查找指定键所对应的节点， 然后调用 ziplistNext 函数， 将指针移动到键节点旁边的值节点， 最后返回值节点。</td>
+<td>调用 dictFind 函数， 在字典中查找给定键， 然后调用 dictGetVal 函数， 返回该键所对应的值。</td>
+</tr>
+
+<tr>
+<td>HEXISTS</td>
+<td>调用 ziplistFind 函数， 在压缩列表中查找指定键所对应的节点， 如果找到的话说明键值对存在， 没找到的话就说明键值对不存在。</td>
+<td>调用 dictFind 函数， 在字典中查找给定键， 如果找到的话说明键值对存在， 没找到的话就说明键值对不存在。</td>
+</tr>
+
+<tr>
+<td>HDEL</td>
+<td>调用 ziplistFind 函数， 在压缩列表中查找指定键所对应的节点， 然后将相应的键节点、 以及键节点旁边的值节点都删除掉。</td>
+<td>调用 dictDelete 函数， 将指定键所对应的键值对从字典中删除掉。</td>
+</tr>
+
+<tr>
+<td>HLEN</td>
+<td>调用 ziplistLen 函数， 取得压缩列表包含节点的总数量， 将这个数量除以 2 ， 得出的结果就是压缩列表保存的键值对的数量。</td>
+<td>调用 dictSize 函数， 返回字典包含的键值对数量， 这个数量就是哈希对象包含的键值对数量。</td>
+</tr>
+
+<tr>
+<td>HGETALL</td>
+<td>遍历整个压缩列表， 用 ziplistGet 函数返回所有键和值（都是节点）。</td>
+<td>遍历整个字典， 用 dictGetKey 函数返回字典的键， 用 dictGetVal 函数返回字典的值。</td>
+</tr>
+</tbody>
+</table>
+
+<h2 id="hset-实现分析">HSET 实现分析</h2>
+
+<pre><code>/* Add a new field, overwrite the old with the new value if it already exists.
+ * Return 0 on insert and 1 on update.
+ *
+ * By default, the key and value SDS strings are copied if needed, so the
+ * caller retains ownership of the strings passed. However this behavior
+ * can be effected by passing appropriate flags (possibly bitwise OR-ed):
+ *
+ * HASH_SET_TAKE_FIELD -- The SDS field ownership passes to the function.
+ * HASH_SET_TAKE_VALUE -- The SDS value ownership passes to the function.
+ *
+ * When the flags are used the caller does not need to release the passed
+ * SDS string(s). It's up to the function to use the string to create a new
+ * entry or to free the SDS string before returning to the caller.
+ *
+ * HASH_SET_COPY corresponds to no flags passed, and means the default
+ * semantics of copying the values if needed.
+ *
+ */
+#define HASH_SET_TAKE_FIELD (1&lt;&lt;0)
+#define HASH_SET_TAKE_VALUE (1&lt;&lt;1)
+#define HASH_SET_COPY 0
+int hashTypeSet(robj *o, sds field, sds value, int flags) {
+    int update = 0;
+	// 如果底层是ziplist编码
+    if (o-&gt;encoding == OBJ_ENCODING_ZIPLIST) {
+        unsigned char *zl, *fptr, *vptr;
+
+        zl = o-&gt;ptr;
+        // 得到ziplist的head
+        fptr = ziplistIndex(zl, ZIPLIST_HEAD);
+        if (fptr != NULL) {
+        		// 查看是否已经存在了该field
+            fptr = ziplistFind(fptr, (unsigned char*)field, sdslen(field), 1);
+            if (fptr != NULL) {
+                /* Grab pointer to the value (fptr points to the field) */
+                // 如果已经存在，取ziplist的next，即对应的value
+                vptr = ziplistNext(zl, fptr);
+                serverAssert(vptr != NULL);
+                // 标记这次为更新操作
+                update = 1;
+
+                /* 删除旧的值 */
+                zl = ziplistDelete(zl, &amp;vptr);
+
+                /* 插入新的值 */
+                zl = ziplistInsert(zl, vptr, (unsigned char*)value,
+                        sdslen(value));
             }
+        }
 
-            /* Increment bits not covered by the smaller mask */
-            v = (((v | m0) + 1) &amp; ~m0) | (v &amp; m0);
+        if (!update) {
+        	// 如果不是一个更新操作，需要把键值对插入到ziplist的尾部
+            /* Push new field/value pair onto the tail of the ziplist */
+            // 先插入键
+            zl = ziplistPush(zl, (unsigned char*)field, sdslen(field),
+                    ZIPLIST_TAIL);
+            // 后插入值
+            zl = ziplistPush(zl, (unsigned char*)value, sdslen(value),
+                    ZIPLIST_TAIL);
+        }
+        o-&gt;ptr = zl;
 
-            /* Continue while bits covered by mask difference is non-zero */
-        } while (v &amp; (m0 ^ m1));
+        /* 检查ziplist中存放的节点个数，如果超过512(默认值)则转换成OBJ_ENCODING_HT编码 */
+        if (hashTypeLength(o) &gt; server.hash_max_ziplist_entries)
+            hashTypeConvert(o, OBJ_ENCODING_HT);
+    } else if (o-&gt;encoding == OBJ_ENCODING_HT) {
+    	// 如果底层是hashtable编码实现
+    	// 在dict中查找对应的field
+        dictEntry *de = dictFind(o-&gt;ptr,field);
+        if (de) {
+        		// 如果已经存在，执行更新操作
+            sdsfree(dictGetVal(de));
+            if (flags &amp; HASH_SET_TAKE_VALUE) {
+                dictGetVal(de) = value;
+                value = NULL;
+            } else {
+                dictGetVal(de) = sdsdup(value);
+            }
+            update = 1;
+        } else {
+        		// 如果不存在，dictAdd添加键值对
+            sds f,v;
+            if (flags &amp; HASH_SET_TAKE_FIELD) {
+                f = field;
+                field = NULL;
+            } else {
+                f = sdsdup(field);
+            }
+            if (flags &amp; HASH_SET_TAKE_VALUE) {
+                v = value;
+                value = NULL;
+            } else {
+                v = sdsdup(value);
+            }
+            dictAdd(o-&gt;ptr,f,v);
+        }
+    } else {
+        serverPanic(&quot;Unknown hash encoding&quot;);
     }
 
-    /* Set unmasked bits so incrementing the reversed cursor
-     * operates on the masked bits of the smaller table */
-    v |= ~m0;
-
-    /* Increment the reverse cursor */
-    v = rev(v);
-    v++;
-    v = rev(v);
-
-    return v;
+    /* Free SDS strings we did not referenced elsewhere if the flags
+     * want this function to be responsible. */
+    if (flags &amp; HASH_SET_TAKE_FIELD &amp;&amp; field) sdsfree(field);
+    if (flags &amp; HASH_SET_TAKE_VALUE &amp;&amp; value) sdsfree(value);
+    return update;
 }
 </code></pre>
 
-<p>Redis的dict结构中，有一个遍历dict的函数，因为该遍历函数的算法比较特别，值得单独拿出来研究一下。</p>
+<p>这边相比之前的版本多了一个flag的参数， 针对这个flag有对应的三个宏定义</p>
 
-<p>首先考虑最简单的情况， 如果一个dict是稳定，即没有扩大缩小，也没有正好处于rehash的过程中，那么这种情况下的遍历是最简单的， 只需要按照索引值顺序遍历第一个hash表ht[0]就行。</p>
-
-<p>但是如果本次索引的遍历的时候，跟上一个索引遍历的时候，dict已经经过了扩大或者缩小，或者dict正好处于rehash的过程中的时候，遍历过程就变复杂了。</p>
-
-<p>如果仍旧采用顺序遍历索引的策略，考虑dict经过缩小的情况。如果hash表一共有8个slot，经过扩大变成了4个slot，在计算索引的时候，都是hash值同mask=size-1做与操作。所以如果某个key的hash值最后原来是7的话，在slot=8的时候，应该放到索引为7的slot，但是缩小到4个slot的时候，将被放在slot=3。可以想见，这种情况下，会有大量的key被漏掉。同样，如果经过了扩大，也会有大量的key被重复遍历。</p>
-
-<h1 id="dict的反向二进制位遍历">dict的反向二进制位遍历</h1>
-
-<p>Redis的遍历方式采用了反向的二进制位遍历。那么什么是反向二进制位遍历呢。按照正常的遍历逻辑，遍历的顺序是按照0-&gt;1-&gt;2-&gt;3-&gt;4&hellip;.</p>
-
-<p>但是dictScan采用的顺序，以8个slot为例，是0-&gt;4-&gt;2-&gt;6-&gt;1-&gt;5-&gt;3-&gt;7。看着貌似没有规律，但是其实是从高位开始，向低位进位的一种遍历方式，用二进制更能直观的看出来</p>
-
-<pre><code> 000 --&gt; 100 --&gt; 010 --&gt; 110 --&gt; 001 --&gt; 101 --&gt; 011 --&gt; 111 --&gt; 000 
+<pre><code>#define HASH_SET_TAKE_FIELD (1&lt;&lt;0)
+#define HASH_SET_TAKE_VALUE (1&lt;&lt;1)
+#define HASH_SET_COPY 0
 </code></pre>
 
-<p>那么用这种方式遍历会有什么好处呢，可以按照dict不同状态的示例来说明</p>
+<p>这几个宏用于定义用于传进去的field与value是以拷贝的方法赋值，还是直接将找到的field与value直接以指针赋值的方式设置值。</p>
 
-<h2 id="1-当dict稳定的时候">1、当dict稳定的时候</h2>
+<ul>
+<li>若flag为HASH_SET_COPY，field与value没有释放掉空间</li>
+<li>若以HASH_SET_TAKE_VALUE则value的值会释放掉</li>
+<li>若以HASH_SET_TAKE_FIELD则field的值会释放掉</li>
+</ul>
 
-<p>这种情况下，从上面的说明能看出，反向二进制遍历同正向二进制遍历一样，能够遍历到所有的索引，并且不会有重复或遗漏</p>
+<p>这样我们就能理解在hashtable编码格式中，更新和插入的操作中，会根据flag来区别对待：是dictGetVal(de) = value 之后value置空还是 dictGetVal(de) = sdsdup(value)。 并且在函数的最后，也需要根据flag值来判断是否需要释放对应的field和value。</p>
 
-<h2 id="2-当dict扩大的时候">2、当dict扩大的时候</h2>
+<h2 id="转换函数">转换函数</h2>
 
-<p>假设dict的slot由8个扩大到16个，首先列出两种状态下的遍历顺序：</p>
+<p>上面我们能够看到ziplist在一定条件下会抓换成hashtable的编码，并且目前仍旧是一个不可逆的过程， 看一下转换的函数</p>
 
-<pre><code>000 --&gt; 100 --&gt; 010 --&gt; 110 --&gt; 001 --&gt; 101 --&gt; 011 --&gt; 111 --&gt; 000     
+<pre><code>void hashTypeConvertZiplist(robj *o, int enc) {  
+    //用于类型的转化，根据enc，一般是从ziplist转化为dict  
+    serverAssert(o-&gt;encoding == OBJ_ENCODING_ZIPLIST);  
   
-0000 --&gt; 1000 --&gt; 0100 --&gt; 1100 --&gt; 0010 --&gt; 1010 --&gt; 0110 --&gt; 1110 --&gt; 0001 --&gt; 1001 --&gt; 0101 --&gt; 1101 --&gt; 0011 --&gt; 1011 --&gt; 0111 --&gt; 1111 --&gt; 0000    
+    if (enc == OBJ_ENCODING_ZIPLIST) {  
+        //原来就是ziplist则不转换  
+        /* Nothing to do... */  
+  
+    } else if (enc == OBJ_ENCODING_HT) {  
+  
+        hashTypeIterator *hi;  
+        dict *dict;  
+        int ret;  
+  
+        hi = hashTypeInitIterator(o);  
+        dict = dictCreate(&amp;hashDictType, NULL);  
+        //初始化迭代器，创建新的表  
+  
+        while (hashTypeNext(hi) != C_ERR) {  
+            sds key, value;  
+            //不断找到key-value并且插入。  
+  
+            key = hashTypeCurrentObjectNewSds(hi,OBJ_HASH_KEY);  
+            value = hashTypeCurrentObjectNewSds(hi,OBJ_HASH_VALUE);  
+            ret = dictAdd(dict, key, value);  
+            if (ret != DICT_OK) {  
+                serverLogHexDump(LL_WARNING,&quot;ziplist with dup elements dump&quot;,  
+                    o-&gt;ptr,ziplistBlobLen(o-&gt;ptr));  
+                serverPanic(&quot;Ziplist corruption detected&quot;);  
+            }  
+        }  
+        hashTypeReleaseIterator(hi);  
+        //释放迭代器  
+        zfree(o-&gt;ptr);  
+        o-&gt;encoding = OBJ_ENCODING_HT;//将robj中的元素重新赋值  
+        o-&gt;ptr = dict;  
+  
+    } else {  
+        serverPanic(&quot;Unknown hash encoding&quot;);  
+    }  
+}  
+  
+void hashTypeConvert(robj *o, int enc) {  
+    //类型转换api  
+    if (o-&gt;encoding == OBJ_ENCODING_ZIPLIST) {  
+        hashTypeConvertZiplist(o, enc);  
+    } else if (o-&gt;encoding == OBJ_ENCODING_HT) {  
+        serverPanic(&quot;Not implemented&quot;);  
+    } else {  
+        serverPanic(&quot;Unknown hash encoding&quot;);  
+    }  
+}  
 </code></pre>
 
-<p>假设在slot=8的时候已经遍历完了010的索引，下一次就需要遍历110的索引。此时dict发生了rehash操作，slot从8个扩展到了16个，</p>
+<h2 id="迭代器">迭代器</h2>
 
-<p>在slot=16的情况下，就需要遍历0110的索引。 此时，在slot=8的时候遍历过的所以值为000，100，010，对应到slot=16的情况下，分别是0000，1000， 0100，1100， 0010， 1010， 正好是所以址0110的前序所以， 这样的话，整个遍历流程，不会造成遍历的重复或者遗漏。</p>
+<p>在转换的过程中， 看到又引入了一个迭代器的概念， 我们来具体看一下相关的实现。</p>
 
-<h2 id="3-当dict缩小的时候">3、当dict缩小的时候</h2>
+<p>迭代器的定义如下</p>
 
-<p>假设在slot=16的是，已经遍历完了0110的索引，下一个就要遍历1110的索引，此时dict缩小到了slot=8 。此前已经遍历过的所有索引分别为 0000， 1000， 0100， 1100， 0010， 1010， 0110， 对应到slot=8的情况下，分别落到索引000，100，010，110。</p>
-
-<p>此时需要从110的所以开始遍历，但是由于此前在slot=16的时候已经遍历过的0110的索引值也是落到110的索引，所以会造成一部分的key被重复遍历。</p>
-
-<p>原哈希表长度为x，缩小后长度为y，则最多会有x/y – 1个原bucket的节点会被重复迭代。比如由16缩小为8，则最多就有1个bucket节点会重复迭代，要是由32缩小为8，则最多会有3个。</p>
-
-<p>但是，也有可能，正好不重复遍历，比如slot=16的时候遍历到1010，即将遍历0110的时候dict缩小的时候，就不会产生重复。</p>
-
-<p>反向二进制算法保证了dict不会遗漏元素，同时在dict缩小的时候，保证了比较小的元素重复。</p>
-
-<h2 id="4-正好进行rehash的时候">4、正好进行rehash的时候</h2>
-
-<p>当dict正好在进行rehash的时候，当前遍历的索引里边可能数据不全，因为有一部分已经rehash到新表中去了。所以为了不漏掉元素，采取的措施是同时遍历两个hash表的对应索引。</p>
-
-<p>但是rehash的过程中，不管扩大还是缩小，两张表的索引都是不同的，如何对应呢。 方法就是先比较两张hash表的大小，先遍历较小的hash表，遍历完之后，找到大表中所有对应的索引值，全部依次遍历。</p>
-
-<p>举个例子，暂且不管dict当前是在扩大还是缩小，两张hash表的大小肯定是不同的。假设一张表的slot=8，另一张表的slot=32， 两个mask分别为111和11111。 假设当前的hash值同111做与操作之后为010，那么小表中010的索引遍历之后，需要遍历大表的00010，01010， 10010和11010的索引，然后将两者的索引一块返回。</p>
-
-<pre><code>v = (((v | m0) + 1) &amp; ~m0) | (v &amp; m0);
+<pre><code>typedef struct {
+    robj *subject;  // 指向的hash对象
+    int encoding;  // 编码类型
+    // 用于迭代ziplist结构
+    unsigned char *fptr, *vptr; // 域指针和值指针
+    // 用于迭代dict结构
+    dictIterator *di; // 字典迭代器
+    dictEntry *de;  // 指向当前迭代字典节点的指针
+} hashTypeIterator;
 </code></pre>
 
-<p>那么如何保证大表对应的所有索引都能遍历到呢。代码中可以看到这么一条语句，分析一下。 v | m0 将v的低位全部置为1， (v | m0) + 1则是将v的高位加1，之后再 &amp; ~m0 将所有低位置0， v &amp; m0 就是将v的低位提取出来放到之前的数值之后。 这样就能够： 保持v的低位不变，高位持续加1，遍历所有扩展后的slot</p>
+<p>初始化迭代器：</p>
 
-<p>那么高位什么时候停止加1呢，就是while终止的条件</p>
+<pre><code>// 返回一个初始化的哈希类型的迭代器
+hashTypeIterator *hashTypeInitIterator(robj *subject) {
+    // 分配空间初始化成员
+    hashTypeIterator *hi = zmalloc(sizeof(hashTypeIterator));
+    hi-&gt;subject = subject;
+    hi-&gt;encoding = subject-&gt;encoding;
 
-<pre><code>while (v &amp; (m0 ^ m1))
+    // 根据不同的编码设置不同的成员
+    if (hi-&gt;encoding == OBJ_ENCODING_ZIPLIST) {
+        hi-&gt;fptr = NULL;
+        hi-&gt;vptr = NULL;
+    } else if (hi-&gt;encoding == OBJ_ENCODING_HT) {
+        // 初始化一个字典迭代器返回给di成员
+        hi-&gt;di = dictGetIterator(subject-&gt;ptr);
+    } else {
+        serverPanic(&quot;Unknown hash encoding&quot;);
+    }
+
+    return hi;
+}
 </code></pre>
 
-<p>由于m0和m1都是全为1的mask，假设m0=111， m1=11111， 那么m0 ^ m1 = 11000， 所以我们能看到当v的高位没有1了，其实就是说到头了，循环就会终止。</p>
+<p>迭代器释放：</p>
 
-<h1 id="总结">总结</h1>
+<pre><code>/* 释放一个迭代器 */
+void hashTypeReleaseIterator(hashTypeIterator *hi) {
+    if (hi-&gt;encoding == OBJ_ENCODING_HT) {
+        dictReleaseIterator(hi-&gt;di);
+    }
+    zfree(hi);
+}
+</code></pre>
 
-<p>Redis的dictScan通过反向二进制位的遍历顺序，既能防止漏掉遍历元素，也能在必须要重复遍历元素的时候，减少重复元素的个数。 同时在处理rehash操作时的遍历的时候，通过各种位操作的结合，使得rehash过程中不会漏掉元素。</p>
+<p>迭代步骤：</p>
+
+<pre><code>/* 迭代到下一个节点 */ 
+int hashTypeNext(hashTypeIterator *hi) {
+    if (hi-&gt;encoding == OBJ_ENCODING_ZIPLIST) {
+        unsigned char *zl;
+        unsigned char *fptr, *vptr;
+        zl = hi-&gt;subject-&gt;ptr;
+        fptr = hi-&gt;fptr;
+        vptr = hi-&gt;vptr;
+        if (fptr == NULL) {
+            // 如果当前迭代器为空，则初始化指向ziplist的第一个节点
+            serverAssert(vptr == NULL);
+            fptr = ziplistIndex(zl, 0);
+        } else {
+            // 反之指向下一个key节点
+            serverAssert(vptr != NULL);
+            fptr = ziplistNext(zl, vptr);
+        }
+        if (fptr == NULL) return C_ERR;
+        // fptr的下一个节点就是值节点
+        vptr = ziplistNext(zl, fptr);
+        serverAssert(vptr != NULL);
+        // 更新参数
+        hi-&gt;fptr = fptr;
+        hi-&gt;vptr = vptr;
+    } else if (hi-&gt;encoding == OBJ_ENCODING_HT) {
+        // OBJ_ENCODING_HT编码的时候就直接调用哈希的迭代器即可
+        if ((hi-&gt;de = dictNext(hi-&gt;di)) == NULL) return C_ERR;
+    } else {
+        serverPanic(&quot;Unknown hash encoding&quot;);
+    }
+    return C_OK;
+}
+</code></pre>
               
             </div>
           </div>
@@ -457,7 +660,7 @@
           
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2017/08/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E8%B7%B3%E8%B7%83%E8%A1%A8/" data-tooltip="Redis源码剖析–跳跃表">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2018/12/%E4%BB%8Ehexo%E8%BD%AC%E5%88%B0hugo/" data-tooltip="从hexo转到hugo">
               
                   <i class="fa fa-angle-left"></i>
                   <span class="hide-xs hide-sm text-small icon-ml">下一篇</span>
@@ -465,7 +668,7 @@
             </li>
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-dict%E5%AD%97%E5%85%B8/" data-tooltip="Redis源码剖析-Dict字典">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2018/05/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90quicklist/" data-tooltip="Redis源码剖析–quicklist">
               
                   <span class="hide-xs hide-sm text-small icon-mr">上一篇</span>
                   <i class="fa fa-angle-right"></i>
@@ -483,19 +686,19 @@
         </li>
         
           <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://harleylau.github.io/2017/08/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-dict%E9%81%8D%E5%8E%86%E7%AE%97%E6%B3%95/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://harleylau.github.io/2018/06/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%93%88%E5%B8%8C%E5%AF%B9%E8%B1%A1t_hash%E5%AE%9E%E7%8E%B0/">
               <i class="fa fa-facebook-official"></i>
             </a>
           </li>
         
           <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://harleylau.github.io/2017/08/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-dict%E9%81%8D%E5%8E%86%E7%AE%97%E6%B3%95/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://harleylau.github.io/2018/06/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%93%88%E5%B8%8C%E5%AF%B9%E8%B1%A1t_hash%E5%AE%9E%E7%8E%B0/">
               <i class="fa fa-twitter"></i>
             </a>
           </li>
         
           <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://harleylau.github.io/2017/08/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-dict%E9%81%8D%E5%8E%86%E7%AE%97%E6%B3%95/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://harleylau.github.io/2018/06/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%93%88%E5%B8%8C%E5%AF%B9%E8%B1%A1t_hash%E5%AE%9E%E7%8E%B0/">
               <i class="fa fa-google-plus"></i>
             </a>
           </li>
@@ -543,7 +746,7 @@
           
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2017/08/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E8%B7%B3%E8%B7%83%E8%A1%A8/" data-tooltip="Redis源码剖析–跳跃表">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2018/12/%E4%BB%8Ehexo%E8%BD%AC%E5%88%B0hugo/" data-tooltip="从hexo转到hugo">
               
                   <i class="fa fa-angle-left"></i>
                   <span class="hide-xs hide-sm text-small icon-ml">下一篇</span>
@@ -551,7 +754,7 @@
             </li>
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-dict%E5%AD%97%E5%85%B8/" data-tooltip="Redis源码剖析-Dict字典">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2018/05/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90quicklist/" data-tooltip="Redis源码剖析–quicklist">
               
                   <span class="hide-xs hide-sm text-small icon-mr">上一篇</span>
                   <i class="fa fa-angle-right"></i>
@@ -569,19 +772,19 @@
         </li>
         
           <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://harleylau.github.io/2017/08/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-dict%E9%81%8D%E5%8E%86%E7%AE%97%E6%B3%95/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://harleylau.github.io/2018/06/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%93%88%E5%B8%8C%E5%AF%B9%E8%B1%A1t_hash%E5%AE%9E%E7%8E%B0/">
               <i class="fa fa-facebook-official"></i>
             </a>
           </li>
         
           <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://harleylau.github.io/2017/08/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-dict%E9%81%8D%E5%8E%86%E7%AE%97%E6%B3%95/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://harleylau.github.io/2018/06/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%93%88%E5%B8%8C%E5%AF%B9%E8%B1%A1t_hash%E5%AE%9E%E7%8E%B0/">
               <i class="fa fa-twitter"></i>
             </a>
           </li>
         
           <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://harleylau.github.io/2017/08/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-dict%E9%81%8D%E5%8E%86%E7%AE%97%E6%B3%95/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://harleylau.github.io/2018/06/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%93%88%E5%B8%8C%E5%AF%B9%E8%B1%A1t_hash%E5%AE%9E%E7%8E%B0/">
               <i class="fa fa-google-plus"></i>
             </a>
           </li>
@@ -611,19 +814,19 @@
   <ul class="share-options">
     
       <li class="share-option">
-        <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fharleylau.github.io%2F2017%2F08%2Fredis%25E6%25BA%2590%25E7%25A0%2581%25E5%2589%2596%25E6%259E%2590-dict%25E9%2581%258D%25E5%258E%2586%25E7%25AE%2597%25E6%25B3%2595%2F">
+        <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fharleylau.github.io%2F2018%2F06%2Fredis%25E6%25BA%2590%25E7%25A0%2581%25E5%2589%2596%25E6%259E%2590%25E5%2593%2588%25E5%25B8%258C%25E5%25AF%25B9%25E8%25B1%25A1t_hash%25E5%25AE%259E%25E7%258E%25B0%2F">
           <i class="fa fa-facebook-official"></i><span>分享到 Facebook</span>
         </a>
       </li>
     
       <li class="share-option">
-        <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=https%3A%2F%2Fharleylau.github.io%2F2017%2F08%2Fredis%25E6%25BA%2590%25E7%25A0%2581%25E5%2589%2596%25E6%259E%2590-dict%25E9%2581%258D%25E5%258E%2586%25E7%25AE%2597%25E6%25B3%2595%2F">
+        <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=https%3A%2F%2Fharleylau.github.io%2F2018%2F06%2Fredis%25E6%25BA%2590%25E7%25A0%2581%25E5%2589%2596%25E6%259E%2590%25E5%2593%2588%25E5%25B8%258C%25E5%25AF%25B9%25E8%25B1%25A1t_hash%25E5%25AE%259E%25E7%258E%25B0%2F">
           <i class="fa fa-twitter"></i><span>分享到 Twitter</span>
         </a>
       </li>
     
       <li class="share-option">
-        <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=https%3A%2F%2Fharleylau.github.io%2F2017%2F08%2Fredis%25E6%25BA%2590%25E7%25A0%2581%25E5%2589%2596%25E6%259E%2590-dict%25E9%2581%258D%25E5%258E%2586%25E7%25AE%2597%25E6%25B3%2595%2F">
+        <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=https%3A%2F%2Fharleylau.github.io%2F2018%2F06%2Fredis%25E6%25BA%2590%25E7%25A0%2581%25E5%2589%2596%25E6%259E%2590%25E5%2593%2588%25E5%25B8%258C%25E5%25AF%25B9%25E8%25B1%25A1t_hash%25E5%25AE%259E%25E7%258E%25B0%2F">
           <i class="fa fa-google-plus"></i><span>分享到 Google&#43;</span>
         </a>
       </li>
@@ -914,9 +1117,9 @@ $(document).ready(function() {
     
       <script>
         var disqus_config = function () {
-          this.page.url = 'https:\/\/harleylau.github.io\/2017\/08\/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-dict%E9%81%8D%E5%8E%86%E7%AE%97%E6%B3%95\/';
+          this.page.url = 'https:\/\/harleylau.github.io\/2018\/06\/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%93%88%E5%B8%8C%E5%AF%B9%E8%B1%A1t_hash%E5%AE%9E%E7%8E%B0\/';
           
-            this.page.identifier = '\/2017\/08\/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-dict%E9%81%8D%E5%8E%86%E7%AE%97%E6%B3%95\/'
+            this.page.identifier = '\/2018\/06\/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%93%88%E5%B8%8C%E5%AF%B9%E8%B1%A1t_hash%E5%AE%9E%E7%8E%B0\/'
           
         };
         (function() {
