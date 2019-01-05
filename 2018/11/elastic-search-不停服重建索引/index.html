@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="generator" content="Hugo 0.52 with theme Tranquilpeak 0.4.3-SNAPSHOT">
+<meta name="author" content="Harley">
+<meta name="keywords" content="Elastic Search">
+<meta name="description" content="">
+
+
+<meta property="og:description" content="">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Elastic Search 不停服重建索引">
+<meta name="twitter:title" content="Elastic Search 不停服重建索引">
+<meta property="og:url" content="https://harleylau.github.io/2018/11/elastic-search-%E4%B8%8D%E5%81%9C%E6%9C%8D%E9%87%8D%E5%BB%BA%E7%B4%A2%E5%BC%95/">
+<meta property="twitter:url" content="https://harleylau.github.io/2018/11/elastic-search-%E4%B8%8D%E5%81%9C%E6%9C%8D%E9%87%8D%E5%BB%BA%E7%B4%A2%E5%BC%95/">
+<meta property="og:site_name" content="Harley">
+<meta property="og:description" content="">
+<meta name="twitter:description" content="">
+<meta property="og:locale" content="zh-cn">
+
+  
+    <meta property="article:published_time" content="2018-11-17T16:01:28">
+  
+  
+    <meta property="article:modified_time" content="2018-11-17T16:01:28">
+  
+  
+  
+    
+      <meta property="article:section" content="Elastic Search">
+    
+      <meta property="article:section" content="索引">
+    
+  
+  
+    
+      <meta property="article:tag" content="Elastic Search">
+    
+  
+
+
+<meta name="twitter:card" content="summary">
+
+
+
+
+
+
+
+
+
+
+
+  <meta property="og:image" content="https://harleylau.github.io/img/harleylau.jpg">
+  <meta property="twitter:image" content="https://harleylau.github.io/img/harleylau.jpg">
+
+
+    <title>Elastic Search 不停服重建索引</title>
+
+    <link rel="icon" href="https://harleylau.github.io/favicon.png">
+    
+
+    
+
+    <link rel="canonical" href="https://harleylau.github.io/2018/11/elastic-search-%E4%B8%8D%E5%81%9C%E6%9C%8D%E9%87%8D%E5%BB%BA%E7%B4%A2%E5%BC%95/">
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.4/jquery.fancybox.min.css" integrity="sha256-vuXZ9LGmmwtjqFX1F+EKin1ThZMub58gKULUyf0qECk=" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.4/helpers/jquery.fancybox-thumbs.min.css" integrity="sha256-SEa4XYAHihTcEP1f5gARTB2K26Uk8PsndQYHQC1f4jU=" crossorigin="anonymous" />
+    
+    
+    <link rel="stylesheet" href="https://harleylau.github.io/css/style-nnm2spxvve8onlujjlegkkytaehyadd4ksxc1hyzzq9a2wvtrgbljqyulomn.min.css" />
+    
+    
+
+    
+      
+    
+    
+  </head>
+
+  <body>
+    <div id="blog">
+      <header id="header" data-behavior="4">
+  <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+  <div class="header-title">
+    <a class="header-title-link" href="https://harleylau.github.io/">Harley</a>
+  </div>
+  
+    
+      <a class="header-right-picture "
+         href="https://harleylau.github.io/#about">
+    
+    
+    
+      
+        <img class="header-picture" src="https://harleylau.github.io/img/harleylau.jpg" alt="作者的图片" />
+      
+    
+    </a>
+  
+</header>
+
+      <nav id="sidebar" data-behavior="4">
+  <div class="sidebar-container">
+    
+      <div class="sidebar-profile">
+        <a href="https://harleylau.github.io/#about">
+          <img class="sidebar-profile-picture" src="https://harleylau.github.io/img/harleylau.jpg" alt="作者的图片" />
+        </a>
+        <h4 class="sidebar-profile-name">Harley</h4>
+        
+      </div>
+    
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://harleylau.github.io/">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-home"></i>
+      
+      <span class="sidebar-button-desc">首页</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://harleylau.github.io/categories">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-bookmark"></i>
+      
+      <span class="sidebar-button-desc">分类</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://harleylau.github.io/tags">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-tags"></i>
+      
+      <span class="sidebar-button-desc">标签</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://harleylau.github.io/archives">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-archive"></i>
+      
+      <span class="sidebar-button-desc">归档</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://harleylau.github.io/#about">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-question"></i>
+      
+      <span class="sidebar-button-desc">关于</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://github.com/harleylau" target="_blank" rel="noopener">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-github"></i>
+      
+      <span class="sidebar-button-desc">GitHub</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://blog.csdn.net/harleylau" target="_blank" rel="noopener">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-code"></i>
+      
+      <span class="sidebar-button-desc">CSDN</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://harleylau.github.io/index.xml">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-rss"></i>
+      
+      <span class="sidebar-button-desc">RSS</span>
+    </a>
+  </li>
+
+
+    </ul>
+  </div>
+</nav>
+
+      
+
+      <div id="main" data-behavior="4"
+        class="
+               hasCoverMetaIn
+               ">
+        <article class="post" itemscope itemType="http://schema.org/BlogPosting">
+          
+          
+            <div class="post-header main-content-wrap text-left">
+  
+    <h1 class="post-title" itemprop="headline">
+      Elastic Search 不停服重建索引
+    </h1>
+  
+  
+  <div class="postShorten-meta post-meta">
+    
+      <time itemprop="datePublished" datetime="2018-11-17T16:01:28&#43;08:00">
+        
+  十一月 17, 2018
+
+      </time>
+    
+    
+  
+  
+    <span>发布在</span>
+    
+      <a class="category-link" href="https://harleylau.github.io/categories/elastic-search">Elastic Search</a>, 
+    
+      <a class="category-link" href="https://harleylau.github.io/categories/%e7%b4%a2%e5%bc%95">索引</a>
+    
+  
+
+  </div>
+
+</div>
+          
+          <div class="post-content markdown" itemprop="articleBody">
+            <div class="main-content-wrap">
+              <h1 id="table-of-contents">目录</h1><nav id="TableOfContents">
+<ul>
+<li><a href="#问题">问题：</a></li>
+<li><a href="#解决办法">解决办法：</a></li>
+</ul>
+</nav>
+
+<h1 id="问题">问题：</h1>
+
+<p>在使用Elastic Search 过程中，可能经常会碰到需要修改 mapping的情况，如果是新增字段，还算比较简单，只需要在原来的mapping基础之上再新增字段即可。 但是如果碰到要修改原来字段的属性，就会比较棘手了， 因为ES并不支持在原来的mapping基础上修改字段的属性。 这种情况能做的选择就是重新建一份索引。</p>
+
+<p>那么如何重建索引呢。 最直观的就是直接从数据源从新导一份数据进入ES里边，但是这个是一个费时费力的操作。 可喜的是， ES给我们提供了一个 Reindex 的API，能够直接从原来的index重建一份新的索引。由于ES里边本来就保存了一份源数据，从这份源数据重新一份索引相对来说是一个比较快速的选择。</p>
+
+<p>但是，在使用ES的Reindex API的时候，还有一个问题必须要考虑。 官方文档中说明，Reindex的时候它是取了一份老的index的快照，这样如果在停服的情况下没什么问题，但是如果在做重新索引的过程中， 仍旧有数据一直在更新，如何处理这部分更新的增量数据。</p>
+
+<p>当然，办法是有的，就是需要利用好ES提供的Reindex API的各种参数。</p>
+
+<p>要做到不停服重建索引的前提，就是我们使用的索引已经建立了别名。比如我们创建的索引叫 index_v1 ，现在我们要重建新的索引 index_v2。 如果在没使用别名的情况下，我们的逻辑代码中直接访问了 index_v1， 那么在重建索引之后，我们还必须更改代码逻辑，并且上线， 这是一个费时并且有延迟的过程。</p>
+
+<p>如果我们给老的 index_v1 建立了一个别名 index_alias， 程序中也是直接访问的这个别名。 在新建索引完成之后 ，就只需要将这个别名指向新的索引 index_v2 即可， 代码层面无需做任何的修改，而且是即时生效的。 </p>
+
+<h1 id="解决办法">解决办法：</h1>
+
+<p>接下去就需要讨论如何做到不停服的重建索引。 我们可以举例说明。仿照官方文档的例子， 假设我们需要将老的索引 twitter 重建索引导 new_twitter。</p>
+
+<ul>
+<li>第一步，当然是新建新的索引， 将mapping字段都设置成想要的格式，
+ </li>
+<li>第二步，利用ES的API重建新的索引， 示例如下</li>
+</ul>
+
+<pre><code>curl -H &quot;Content-Type:application/json&quot; -X POST 'http://127.0.0.1:9200/_reindex' -d '{
+  &quot;conflicts&quot;: &quot;proceed&quot;,
+  &quot;source&quot;: {
+    &quot;index&quot;: &quot;twitter&quot;
+  },
+  &quot;dest&quot;: {
+    &quot;index&quot;: &quot;new_twitter&quot;,
+    &quot;version_type&quot;: &quot;external&quot;
+  }
+}'
+</code></pre>
+
+<p>可以比较一下最简单的重建索引的方式：</p>
+
+<pre><code>curl -H &quot;Content-Type:application/json&quot; -X POST 'http://127.0.0.1:9200/_reindex' -d '{
+  &quot;source&quot;: {
+    &quot;index&quot;: &quot;twitter&quot;
+  },
+  &quot;dest&quot;: {
+    &quot;index&quot;: &quot;new_twitter&quot;,
+  }
+}'
+</code></pre>
+
+<p>主要的区别就在这些参数上边，我们一项项说明。
+conflicts设置成proceed表示在重建索引的过程中，如果碰到源索引和目标索引同时存在相同的数据的时候，即发生数据冲突的时候，忽略冲突继续向下执行。
+version_type设置成external表示从源索引拷贝数据到目标索引的过程中，会把源索引中的版本号version带上；如果发现目标索引数据version版本好比源索引的要小，就会执行更新的过程； ES默认的version_type为internal，会直接覆盖目标索引的数据
+当然， 在重建索引的过程，我们还可以用query指定过滤条件，只将一部分数据更新到目标索引</p>
+
+<p>重建索引之后，我们可以修改源索引和目标索引的别名，将原来的别名指向新的索引，这样所有更新的操作就会从新的索引出去。</p>
+
+<p>接下去只剩最后一个问题，如果将重建索引的这段时间内，旧索引的一些更新操作增量同步到新的索引。其实很好解决，只需要我们在重新做一个重建索引的操作。 由于我们设置了version_type=external， 在碰到没有更新的索引的时候，目标索引并不会做更新。如果碰到了有更新的索引，那么他在源索引的版本号version是比目标索引里边的大的， 这样就会对目标索引的数据做一个更新的操作</p>
+
+<p>至此，我们就解决了如何不停服的进行数据索引重建的过程。重新操作之后的结果，会返回更新了多少个文档：</p>
+
+<pre><code>{
+    &quot;took&quot;:88,
+    &quot;timed_out&quot;:false,
+    &quot;total&quot;:313,
+    &quot;updated&quot;:1,
+    &quot;created&quot;:0,
+    &quot;deleted&quot;:0,
+    &quot;batches&quot;:1,
+    &quot;version_conflicts&quot;:312,
+    &quot;noops&quot;:0,
+    &quot;retries&quot;:{
+        &quot;bulk&quot;:0,
+        &quot;search&quot;:0
+    },
+    &quot;throttled_millis&quot;:0,
+    &quot;requests_per_second&quot;:-1,
+    &quot;throttled_until_millis&quot;:0,
+    &quot;failures&quot;:[
+ 
+    ]
+}
+</code></pre>
+
+<p>当然， 如果在重建索引的过程， 发现了问题，我们也可以终止重建索引的过程。我们可以通过</p>
+
+<pre><code>GET _tasks?detailed=true&amp;actions=*reindex
+</code></pre>
+
+<p>查询索引重建的进度并活动重建过程的任务id，通过这个id我们能对他进行取消任务的操作</p>
+
+<pre><code>POST _tasks/task_id:1/_cancel
+</code></pre>
+
+<p> </p>
+              
+            </div>
+          </div>
+          <div id="post-footer" class="post-footer main-content-wrap">
+            
+              
+                
+                
+                  <div class="post-footer-tags">
+                    <span class="text-color-light text-small">标签</span><br/>
+                    
+  <a class="tag tag--primary tag--small" href="https://harleylau.github.io/tags/elastic-search/">Elastic Search</a>
+
+                  </div>
+                
+              
+            
+            <div class="post-actions-wrap">
+  
+      <nav >
+        <ul class="post-actions post-action-nav">
+          
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2018/12/%E4%BB%8Ehexo%E8%BD%AC%E5%88%B0hugo/" data-tooltip="从hexo转到hugo">
+              
+                  <i class="fa fa-angle-left"></i>
+                  <span class="hide-xs hide-sm text-small icon-ml">下一篇</span>
+                </a>
+            </li>
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2018/11/kibana%E5%92%8Cmarval%E4%B8%AD%E7%9A%84search-rate%E8%A1%A8%E7%A4%BA%E4%BB%80%E4%B9%88/" data-tooltip="Kibana和Marval中的Search Rate表示什么">
+              
+                  <span class="hide-xs hide-sm text-small icon-mr">上一篇</span>
+                  <i class="fa fa-angle-right"></i>
+                </a>
+            </li>
+          
+        </ul>
+      </nav>
+    <ul class="post-actions post-action-share" >
+      
+        <li class="post-action hide-lg hide-md hide-sm">
+          <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions">
+            <i class="fa fa-share-alt"></i>
+          </a>
+        </li>
+        
+          <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://harleylau.github.io/2018/11/elastic-search-%E4%B8%8D%E5%81%9C%E6%9C%8D%E9%87%8D%E5%BB%BA%E7%B4%A2%E5%BC%95/">
+              <i class="fa fa-facebook-official"></i>
+            </a>
+          </li>
+        
+          <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://harleylau.github.io/2018/11/elastic-search-%E4%B8%8D%E5%81%9C%E6%9C%8D%E9%87%8D%E5%BB%BA%E7%B4%A2%E5%BC%95/">
+              <i class="fa fa-twitter"></i>
+            </a>
+          </li>
+        
+          <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://harleylau.github.io/2018/11/elastic-search-%E4%B8%8D%E5%81%9C%E6%9C%8D%E9%87%8D%E5%BB%BA%E7%B4%A2%E5%BC%95/">
+              <i class="fa fa-google-plus"></i>
+            </a>
+          </li>
+        
+      
+      
+        <li class="post-action">
+          <a class="post-action-btn btn btn--default" href="#disqus_thread">
+            <i class="fa fa-comment-o"></i>
+          </a>
+        </li>
+      
+      <li class="post-action">
+        
+          <a class="post-action-btn btn btn--default" href="#table-of-contents">
+        
+          <i class="fa fa-list"></i>
+        </a>
+      </li>
+    </ul>
+  
+</div>
+
+            
+              
+                <div id="disqus_thread">
+  <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+              
+            
+          </div>
+        </article>
+        <footer id="footer" class="main-content-wrap">
+  <span class="copyrights">
+    &copy; 2019 Harley. All Rights Reserved
+  </span>
+</footer>
+
+      </div>
+      <div id="bottom-bar" class="post-bottom-bar" data-behavior="4">
+        <div class="post-actions-wrap">
+  
+      <nav >
+        <ul class="post-actions post-action-nav">
+          
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2018/12/%E4%BB%8Ehexo%E8%BD%AC%E5%88%B0hugo/" data-tooltip="从hexo转到hugo">
+              
+                  <i class="fa fa-angle-left"></i>
+                  <span class="hide-xs hide-sm text-small icon-ml">下一篇</span>
+                </a>
+            </li>
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2018/11/kibana%E5%92%8Cmarval%E4%B8%AD%E7%9A%84search-rate%E8%A1%A8%E7%A4%BA%E4%BB%80%E4%B9%88/" data-tooltip="Kibana和Marval中的Search Rate表示什么">
+              
+                  <span class="hide-xs hide-sm text-small icon-mr">上一篇</span>
+                  <i class="fa fa-angle-right"></i>
+                </a>
+            </li>
+          
+        </ul>
+      </nav>
+    <ul class="post-actions post-action-share" >
+      
+        <li class="post-action hide-lg hide-md hide-sm">
+          <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions">
+            <i class="fa fa-share-alt"></i>
+          </a>
+        </li>
+        
+          <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://harleylau.github.io/2018/11/elastic-search-%E4%B8%8D%E5%81%9C%E6%9C%8D%E9%87%8D%E5%BB%BA%E7%B4%A2%E5%BC%95/">
+              <i class="fa fa-facebook-official"></i>
+            </a>
+          </li>
+        
+          <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://harleylau.github.io/2018/11/elastic-search-%E4%B8%8D%E5%81%9C%E6%9C%8D%E9%87%8D%E5%BB%BA%E7%B4%A2%E5%BC%95/">
+              <i class="fa fa-twitter"></i>
+            </a>
+          </li>
+        
+          <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://harleylau.github.io/2018/11/elastic-search-%E4%B8%8D%E5%81%9C%E6%9C%8D%E9%87%8D%E5%BB%BA%E7%B4%A2%E5%BC%95/">
+              <i class="fa fa-google-plus"></i>
+            </a>
+          </li>
+        
+      
+      
+        <li class="post-action">
+          <a class="post-action-btn btn btn--default" href="#disqus_thread">
+            <i class="fa fa-comment-o"></i>
+          </a>
+        </li>
+      
+      <li class="post-action">
+        
+          <a class="post-action-btn btn btn--default" href="#table-of-contents">
+        
+          <i class="fa fa-list"></i>
+        </a>
+      </li>
+    </ul>
+  
+</div>
+
+      </div>
+      <div id="share-options-bar" class="share-options-bar" data-behavior="4">
+  <i id="btn-close-shareoptions" class="fa fa-close"></i>
+  <ul class="share-options">
+    
+      <li class="share-option">
+        <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fharleylau.github.io%2F2018%2F11%2Felastic-search-%25E4%25B8%258D%25E5%2581%259C%25E6%259C%258D%25E9%2587%258D%25E5%25BB%25BA%25E7%25B4%25A2%25E5%25BC%2595%2F">
+          <i class="fa fa-facebook-official"></i><span>分享到 Facebook</span>
+        </a>
+      </li>
+    
+      <li class="share-option">
+        <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=https%3A%2F%2Fharleylau.github.io%2F2018%2F11%2Felastic-search-%25E4%25B8%258D%25E5%2581%259C%25E6%259C%258D%25E9%2587%258D%25E5%25BB%25BA%25E7%25B4%25A2%25E5%25BC%2595%2F">
+          <i class="fa fa-twitter"></i><span>分享到 Twitter</span>
+        </a>
+      </li>
+    
+      <li class="share-option">
+        <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=https%3A%2F%2Fharleylau.github.io%2F2018%2F11%2Felastic-search-%25E4%25B8%258D%25E5%2581%259C%25E6%259C%258D%25E9%2587%258D%25E5%25BB%25BA%25E7%25B4%25A2%25E5%25BC%2595%2F">
+          <i class="fa fa-google-plus"></i><span>分享到 Google&#43;</span>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+<div id="share-options-mask" class="share-options-mask"></div>
+    </div>
+    
+    <div id="about">
+  <div id="about-card">
+    <div id="about-btn-close">
+      <i class="fa fa-remove"></i>
+    </div>
+    
+      <img id="about-card-picture" src="https://harleylau.github.io/img/harleylau.jpg" alt="作者的图片" />
+    
+    <h4 id="about-card-name">Harley</h4>
+    
+    
+    
+      <div id="about-card-location">
+        <i class="fa fa-map-marker"></i>
+        <br/>
+        China
+      </div>
+    
+  </div>
+</div>
+
+    <div id="algolia-search-modal" class="modal-container">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="close-button"><i class="fa fa-close"></i></span>
+      <a href="https://algolia.com" target="_blank" rel="noopener" class="searchby-algolia text-color-light link-unstyled">
+        <span class="searchby-algolia-text text-color-light text-small">by</span>
+        <img class="searchby-algolia-logo" src="https://www.algolia.com/static_assets/images/press/downloads/algolia-light.svg">
+      </a>
+      <i class="search-icon fa fa-search"></i>
+      <form id="algolia-search-form">
+        <input type="text" id="algolia-search-input" name="search"
+          class="form-control input--large search-input" placeholder="搜索" />
+      </form>
+    </div>
+    <div class="modal-body">
+      <div class="no-result text-color-light text-center"></div>
+      <div class="results">
+        
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2019/01/%E4%BD%BF%E7%94%A8redis-setnx-%E5%91%BD%E4%BB%A4%E5%AE%9E%E7%8E%B0%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/">
+                <h3 class="media-heading">使用Redis SETNX 命令实现分布式锁</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Jan 1, 2019
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>使用Redis的 SETNX 命令可以实现分布式锁，本文介绍其实现方法。</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2019/01/hbase-rowkey-%E8%AE%BE%E8%AE%A1/">
+                <h3 class="media-heading">HBase Rowkey 设计</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Jan 1, 2019
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><!-- toc -->
+
+<p>HBase中的rowkey唯一的决定了一行数据，使用HBase的场景多种多样， rowkey设计的好坏很大程度上决定了应用场景中的执行效率。</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2018/12/%E4%BB%8Ehexo%E8%BD%AC%E5%88%B0hugo/">
+                <h3 class="media-heading">从hexo转到hugo</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Dec 12, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather">之前的博客都是用hexo生成的，也不是不好用， 只是对于js并不是很熟悉。正好最近一直在用golang，也顺便把原来的博客从hexo转到hugo上来。
+接下去会慢慢的把之前的文章都重新部署一下。</div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2018/11/elastic-search-%E4%B8%8D%E5%81%9C%E6%9C%8D%E9%87%8D%E5%BB%BA%E7%B4%A2%E5%BC%95/">
+                <h3 class="media-heading">Elastic Search 不停服重建索引</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Nov 11, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><!--toc--></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2018/11/kibana%E5%92%8Cmarval%E4%B8%AD%E7%9A%84search-rate%E8%A1%A8%E7%A4%BA%E4%BB%80%E4%B9%88/">
+                <h3 class="media-heading">Kibana和Marval中的Search Rate表示什么</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Nov 11, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather">问题 Elasticsearch提供了一个名为Marvel的便捷监控工具。 它很容易设置。 但是，当涉及到真正的监控时，您会发现仪表板中的那些指标非常混乱。 它们与发你送到群集的实际QPS不一致。 你真的不知道他们所指的是什么。
+解决 我用Google搜索了一下。 但不幸的是没有找到答案。 我唯一得到的是Marvel论坛上的帖子，其中有人和我一样困惑。
+然后我试着找到Marvel的源代码。 但我找不到任何东西，因为它不是开源的。 我真的认为Marvel需要更多的改进。 他们真的应该开源。
+当我在搜索性能上挣扎时，找到了答案。 我重新索引了所有数据，以尝试它是否会影响性能。 令我惊讶的是，在我改为单个分片后，平均搜索延迟从大约30ms降至7ms。 搜索速率也降至10k / s左右，这正是我发送给Elasticsearch集群的请求的估计值。 所有的奥秘都消失了，一切都变得清晰。
+首先是“Search Rate”。 当索引有10个分片时，它大约是实际请求的10倍。 当索引只有1个分片时，它几乎与实际请求相同。
+然后“Search Latency”。 当索引有10个分片时，大约是0.9ms，但端到端延迟大约是30ms。 当单个分片时，它上升到1.88ms，而端到端延迟仅为7ms。 这可能是因为每个分片的数据量因分片的减少而增加，因此每个分片中的搜索时间更长。 但是不再需要合并结果。 在这里，我们可以看到合并结果的严重程度如何影响搜索性能。
+“Index Rate”和“Indexing Latency”也是相同的原因。
+总结 这些词的含义如下：
+Search Rate：对于单个索引，它是每秒查找次数*分片数。 对于多个索引，它是每个索引的搜索速率的总和。
+ Search Latency：每个分片中的平均延迟。 Indexing Rate：对于单个索引，它是每秒索引的数量*分片数量。 对于多个索引，它是每个索引的索引速率的总和。 Indexing Latency：每个分片中的平均延迟。  您可以通过更改索引的分片数来验证上述结论，然后查看它如何更改。</div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2018/07/mysql%E8%BF%81%E7%A7%BB%E6%95%B0%E6%8D%AE%E7%9B%AE%E5%BD%95%E5%90%8E%E6%97%A0%E6%B3%95%E5%90%AF%E5%8A%A8/">
+                <h3 class="media-heading">Mysql迁移数据目录后无法启动</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Jul 7, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>有时候我们需要迁移Mysql的数据存储目录， 网上有很多类似的教程，具体的不赘述。 但是我们在迁移的时候，经常会碰到迁移之后，mysql无法正常启动， 查看启动日志发现报了 “errno：13  ”的错误， 对照错误表，我们能够知道这个其实是一个权限的问题。</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2018/07/tornado%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/">
+                <h3 class="media-heading">Tornado启动流程分析</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Jul 7, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>我们先来看一下所有地方都会出现的Hello World的例子：</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2018/07/python%E5%81%8F%E5%87%BD%E6%95%B0partial-function/">
+                <h3 class="media-heading">Python偏函数Partial Function</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Jul 7, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>Python的functools模块提供了很多有用的功能，其中一个就是偏函数（Partial function）</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2018/06/python%E7%9A%84orm%E6%A1%86%E6%9E%B6sqlalchemy%E7%9A%84%E6%9F%A5%E8%AF%A2%E5%A4%9A%E6%9D%A1%E6%95%B0%E6%8D%AE%E5%8F%AA%E6%98%BE%E7%A4%BA%E4%B8%80%E6%9D%A1/">
+                <h3 class="media-heading">Python的ORM框架sqlalchemy的查询多条数据只显示一条</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Jun 6, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><!--toc-->
+
+<p>这个情况可能很少碰到， 但确实花了我不少时间去找这个错误，这边记录一下。</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2018/06/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%93%88%E5%B8%8C%E5%AF%B9%E8%B1%A1t_hash%E5%AE%9E%E7%8E%B0/">
+                <h3 class="media-heading">Redis源码剖析–哈希对象t_hash实现</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Jun 6, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><!--toc--></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+      </div>
+    </div>
+    <div class="modal-footer">
+      <p class="results-count text-medium"
+         data-message-zero=""
+         data-message-one=""
+         data-message-other="">
+         34 posts found
+      </p>
+    </div>
+  </div>
+</div>
+    
+  
+    
+    <div id="cover" style="background-image:url('https://harleylau.github.io/images/cover.jpg');"></div>
+  
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js" integrity="sha256-/BfiIkHlHoVihZdc6TFuj7MmJ0TWcWsMXkeDFwhi0zw=" crossorigin="anonymous"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.7/js/jquery.fancybox.min.js" integrity="sha256-GEAnjcTqVP+vBp3SSc8bEDQqvWAZMiHyUSIorrWwH50=" crossorigin="anonymous"></script>
+
+
+<script src="https://harleylau.github.io/js/script-qi9wbxp2ya2j6p7wx1i6tgavftewndznf4v0hy2gvivk1rxgc3lm7njqb6bz.min.js"></script>
+
+
+<script lang="javascript">
+window.onload = updateMinWidth;
+window.onresize = updateMinWidth;
+document.getElementById("sidebar").addEventListener("transitionend", updateMinWidth);
+function updateMinWidth() {
+  var sidebar = document.getElementById("sidebar");
+  var main = document.getElementById("main");
+  main.style.minWidth = "";
+  var w1 = getComputedStyle(main).getPropertyValue("min-width");
+  var w2 = getComputedStyle(sidebar).getPropertyValue("width");
+  var w3 = getComputedStyle(sidebar).getPropertyValue("left");
+  main.style.minWidth = `calc(${w1} - ${w2} - ${w3})`;
+}
+</script>
+
+<script>
+$(document).ready(function() {
+  hljs.configure({ classPrefix: '', useBR: false });
+  $('pre.code-highlight > code, pre > code').each(function(i, block) {
+    if (!$(this).hasClass('codeblock')) {
+      $(this).addClass('codeblock');
+    }
+    hljs.highlightBlock(block);
+  });
+});
+</script>
+
+
+  
+    
+      <script>
+        var disqus_config = function () {
+          this.page.url = 'https:\/\/harleylau.github.io\/2018\/11\/elastic-search-%E4%B8%8D%E5%81%9C%E6%9C%8D%E9%87%8D%E5%BB%BA%E7%B4%A2%E5%BC%95\/';
+          
+            this.page.identifier = '\/2018\/11\/elastic-search-%E4%B8%8D%E5%81%9C%E6%9C%8D%E9%87%8D%E5%BB%BA%E7%B4%A2%E5%BC%95\/'
+          
+        };
+        (function() {
+          
+          
+          if (window.location.hostname == "localhost") {
+            return;
+          }
+          var d = document, s = d.createElement('script');
+          var disqus_shortname = 'harleylau';
+          s.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+
+          s.setAttribute('data-timestamp', +new Date());
+          (d.head || d.body).appendChild(s);
+        })();
+      </script>
+    
+  
+
+
+
+
+    
+  </body>
+</html>
+

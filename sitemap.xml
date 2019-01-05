@@ -18,6 +18,11 @@
   </url>
   
   <url>
+    <loc>https://harleylau.github.io/2018/11/elastic-search-%E4%B8%8D%E5%81%9C%E6%9C%8D%E9%87%8D%E5%BB%BA%E7%B4%A2%E5%BC%95/</loc>
+    <lastmod>2018-11-17T16:01:28+08:00</lastmod>
+  </url>
+  
+  <url>
     <loc>https://harleylau.github.io/2018/11/kibana%E5%92%8Cmarval%E4%B8%AD%E7%9A%84search-rate%E8%A1%A8%E7%A4%BA%E4%BB%80%E4%B9%88/</loc>
     <lastmod>2018-11-15T18:53:36+08:00</lastmod>
   </url>
@@ -193,6 +198,18 @@
   <url>
     <loc>https://harleylau.github.io/categories/</loc>
     <lastmod>2018-05-25T14:20:39+08:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://harleylau.github.io/tags/elastic-search/</loc>
+    <lastmod>2018-11-17T16:01:28+08:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://harleylau.github.io/categories/elastic-search/</loc>
+    <lastmod>2018-11-17T16:01:28+08:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -427,6 +444,12 @@
   <url>
     <loc>https://harleylau.github.io/categories/%E6%BA%90%E7%A0%81/</loc>
     <lastmod>2018-06-04T10:29:07+08:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://harleylau.github.io/categories/%E7%B4%A2%E5%BC%95/</loc>
+    <lastmod>2018-11-17T16:01:28+08:00</lastmod>
     <priority>0</priority>
   </url>
   
