@@ -571,6 +571,49 @@
           <div class="media">
             
             <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2018/11/kibana%E5%92%8Cmarval%E4%B8%AD%E7%9A%84search-rate%E8%A1%A8%E7%A4%BA%E4%BB%80%E4%B9%88/">
+                <h3 class="media-heading">Kibana和Marval中的Search Rate表示什么</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Nov 11, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather">问题 Elasticsearch提供了一个名为Marvel的便捷监控工具。 它很容易设置。 但是，当涉及到真正的监控时，您会发现仪表板中的那些指标非常混乱。 它们与发你送到群集的实际QPS不一致。 你真的不知道他们所指的是什么。
+解决 我用Google搜索了一下。 但不幸的是没有找到答案。 我唯一得到的是Marvel论坛上的帖子，其中有人和我一样困惑。
+然后我试着找到Marvel的源代码。 但我找不到任何东西，因为它不是开源的。 我真的认为Marvel需要更多的改进。 他们真的应该开源。
+当我在搜索性能上挣扎时，找到了答案。 我重新索引了所有数据，以尝试它是否会影响性能。 令我惊讶的是，在我改为单个分片后，平均搜索延迟从大约30ms降至7ms。 搜索速率也降至10k / s左右，这正是我发送给Elasticsearch集群的请求的估计值。 所有的奥秘都消失了，一切都变得清晰。
+首先是“Search Rate”。 当索引有10个分片时，它大约是实际请求的10倍。 当索引只有1个分片时，它几乎与实际请求相同。
+然后“Search Latency”。 当索引有10个分片时，大约是0.9ms，但端到端延迟大约是30ms。 当单个分片时，它上升到1.88ms，而端到端延迟仅为7ms。 这可能是因为每个分片的数据量因分片的减少而增加，因此每个分片中的搜索时间更长。 但是不再需要合并结果。 在这里，我们可以看到合并结果的严重程度如何影响搜索性能。
+“Index Rate”和“Indexing Latency”也是相同的原因。
+总结 这些词的含义如下：
+Search Rate：对于单个索引，它是每秒查找次数*分片数。 对于多个索引，它是每个索引的搜索速率的总和。
+ Search Latency：每个分片中的平均延迟。 Indexing Rate：对于单个索引，它是每秒索引的数量*分片数量。 对于多个索引，它是每个索引的索引速率的总和。 Indexing Latency：每个分片中的平均延迟。  您可以通过更改索引的分片数来验证上述结论，然后查看它如何更改。</div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2018/07/mysql%E8%BF%81%E7%A7%BB%E6%95%B0%E6%8D%AE%E7%9B%AE%E5%BD%95%E5%90%8E%E6%97%A0%E6%B3%95%E5%90%AF%E5%8A%A8/">
+                <h3 class="media-heading">Mysql迁移数据目录后无法启动</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Jul 7, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>有时候我们需要迁移Mysql的数据存储目录， 网上有很多类似的教程，具体的不赘述。 但是我们在迁移的时候，经常会碰到迁移之后，mysql无法正常启动， 查看启动日志发现报了 “errno：13  ”的错误， 对照错误表，我们能够知道这个其实是一个权限的问题。</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
               <a class="link-unstyled" href="https://harleylau.github.io/2018/07/tornado%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/">
                 <h3 class="media-heading">Tornado启动流程分析</h3>
               </a>
@@ -655,44 +698,6 @@
             <hr>
           </div>
         
-          <div class="media">
-            
-            <div class="media-body">
-              <a class="link-unstyled" href="https://harleylau.github.io/2018/05/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E7%9A%84cap%E7%90%86%E8%AE%BA%E5%92%8Cbase%E7%90%86%E8%AE%BA/">
-                <h3 class="media-heading">分布式系统的CAP理论和BASE理论</h3>
-              </a>
-              <span class="media-meta">
-                <span class="media-date text-small">
-                  May 5, 2018
-                </span>
-              </span>
-              <div class="media-content hide-xs font-merryweather"><!--toc-->
-
-<p>现在分布式系统的应用越来越广， 这是一个很容易理解的趋势， 因为毕竟单机的性能是有限的， 在量级还不大的时候， 我们能够通过升级机器的性能来支撑服务。但是当量级到达一定的瓶颈， 单机的性能总会有撑不住的时候， 这个时候就需要使用分布式系统了。</p></div>
-            </div>
-            <div style="clear:both;"></div>
-            <hr>
-          </div>
-        
-          <div class="media">
-            
-            <div class="media-body">
-              <a class="link-unstyled" href="https://harleylau.github.io/2018/05/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%88%97%E8%A1%A8t_list%E5%AE%9E%E7%8E%B0/">
-                <h3 class="media-heading">Redis源码剖析–列表t_list实现</h3>
-              </a>
-              <span class="media-meta">
-                <span class="media-date text-small">
-                  May 5, 2018
-                </span>
-              </span>
-              <div class="media-content hide-xs font-merryweather"><!--toc-->
-
-<p>Redis中的列表对象比较特殊，在版本3.2之前，列表底层的编码是 ziplist 和 linkedlist 实现的， 但是在版本3.2之后，重新引入了一个 quicklist 的数据结构，列表的底层都由quicklist实现。</p></div>
-            </div>
-            <div style="clear:both;"></div>
-            <hr>
-          </div>
-        
       </div>
     </div>
     <div class="modal-footer">
@@ -700,7 +705,7 @@
          data-message-zero=""
          data-message-one=""
          data-message-other="">
-         31 posts found
+         33 posts found
       </p>
     </div>
   </div>
