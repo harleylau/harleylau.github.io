@@ -68,7 +68,7 @@
     <item>
       <title>Python</title>
       <link>https://harleylau.github.io/categories/python/</link>
-      <pubDate>Wed, 01 Nov 2017 12:39:11 +0800</pubDate>
+      <pubDate>Thu, 12 Jul 2018 09:37:49 +0800</pubDate>
       
       <guid>https://harleylau.github.io/categories/python/</guid>
       <description></description>
@@ -102,6 +102,15 @@
     </item>
     
     <item>
+      <title>Sqlalchemy</title>
+      <link>https://harleylau.github.io/categories/sqlalchemy/</link>
+      <pubDate>Tue, 19 Jun 2018 16:59:52 +0800</pubDate>
+      
+      <guid>https://harleylau.github.io/categories/sqlalchemy/</guid>
+      <description></description>
+    </item>
+    
+    <item>
       <title>Tornado</title>
       <link>https://harleylau.github.io/categories/tornado/</link>
       <pubDate>Wed, 11 Apr 2018 11:25:22 +0800</pubDate>
@@ -116,6 +125,15 @@
       <pubDate>Mon, 12 Feb 2018 12:17:11 +0800</pubDate>
       
       <guid>https://harleylau.github.io/categories/websocket/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>偏函数</title>
+      <link>https://harleylau.github.io/categories/%E5%81%8F%E5%87%BD%E6%95%B0/</link>
+      <pubDate>Thu, 12 Jul 2018 09:37:49 +0800</pubDate>
+      
+      <guid>https://harleylau.github.io/categories/%E5%81%8F%E5%87%BD%E6%95%B0/</guid>
       <description></description>
     </item>
     

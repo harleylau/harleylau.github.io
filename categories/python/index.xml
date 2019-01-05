@@ -6,10 +6,30 @@
     <description>Recent content in Python on Harley</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Wed, 01 Nov 2017 12:39:11 +0800</lastBuildDate>
+    <lastBuildDate>Thu, 12 Jul 2018 09:37:49 +0800</lastBuildDate>
     
 	<atom:link href="https://harleylau.github.io/categories/python/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Python偏函数Partial Function</title>
+      <link>https://harleylau.github.io/2018/07/python%E5%81%8F%E5%87%BD%E6%95%B0partial-function/</link>
+      <pubDate>Thu, 12 Jul 2018 09:37:49 +0800</pubDate>
+      
+      <guid>https://harleylau.github.io/2018/07/python%E5%81%8F%E5%87%BD%E6%95%B0partial-function/</guid>
+      <description>&lt;p&gt;Python的functools模块提供了很多有用的功能，其中一个就是偏函数（Partial function）&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>Python的ORM框架sqlalchemy的查询多条数据只显示一条</title>
+      <link>https://harleylau.github.io/2018/06/python%E7%9A%84orm%E6%A1%86%E6%9E%B6sqlalchemy%E7%9A%84%E6%9F%A5%E8%AF%A2%E5%A4%9A%E6%9D%A1%E6%95%B0%E6%8D%AE%E5%8F%AA%E6%98%BE%E7%A4%BA%E4%B8%80%E6%9D%A1/</link>
+      <pubDate>Tue, 19 Jun 2018 16:59:52 +0800</pubDate>
+      
+      <guid>https://harleylau.github.io/2018/06/python%E7%9A%84orm%E6%A1%86%E6%9E%B6sqlalchemy%E7%9A%84%E6%9F%A5%E8%AF%A2%E5%A4%9A%E6%9D%A1%E6%95%B0%E6%8D%AE%E5%8F%AA%E6%98%BE%E7%A4%BA%E4%B8%80%E6%9D%A1/</guid>
+      <description>&lt;!--toc--&gt;
+
+&lt;p&gt;这个情况可能很少碰到， 但确实花了我不少时间去找这个错误，这边记录一下。&lt;/p&gt;</description>
+    </item>
     
     <item>
       <title>Python 处理XML转为json</title>
