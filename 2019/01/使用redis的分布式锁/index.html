@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="generator" content="Hugo 0.52 with theme Tranquilpeak 0.4.3-SNAPSHOT">
+<meta name="author" content="Harley">
+<meta name="keywords" content="redis">
+<meta name="description" content="译自： https://redis.io/topics/distlock#the-redlock-algorithm
+
+在许多环境中，分布式锁是一种非常有用的原语，其中不同的进程必须以互斥的方式与共享资源一起运行。">
+
+
+<meta property="og:description" content="译自： https://redis.io/topics/distlock#the-redlock-algorithm
+
+在许多环境中，分布式锁是一种非常有用的原语，其中不同的进程必须以互斥的方式与共享资源一起运行。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用Redis的分布式锁">
+<meta name="twitter:title" content="使用Redis的分布式锁">
+<meta property="og:url" content="https://harleylau.github.io/2019/01/%E4%BD%BF%E7%94%A8redis%E7%9A%84%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/">
+<meta property="twitter:url" content="https://harleylau.github.io/2019/01/%E4%BD%BF%E7%94%A8redis%E7%9A%84%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/">
+<meta property="og:site_name" content="Harley">
+<meta property="og:description" content="译自： https://redis.io/topics/distlock#the-redlock-algorithm
+
+在许多环境中，分布式锁是一种非常有用的原语，其中不同的进程必须以互斥的方式与共享资源一起运行。">
+<meta name="twitter:description" content="译自： https://redis.io/topics/distlock#the-redlock-algorithm
+
+在许多环境中，分布式锁是一种非常有用的原语，其中不同的进程必须以互斥的方式与共享资源一起运行。">
+<meta property="og:locale" content="zh-cn">
+
+  
+    <meta property="article:published_time" content="2019-01-05T19:17:34">
+  
+  
+    <meta property="article:modified_time" content="2019-01-05T19:17:34">
+  
+  
+  
+    
+      <meta property="article:section" content="redis">
+    
+      <meta property="article:section" content="分布式锁">
+    
+  
+  
+    
+      <meta property="article:tag" content="redis">
+    
+      <meta property="article:tag" content="分布式锁">
+    
+  
+
+
+<meta name="twitter:card" content="summary">
+
+
+
+
+
+
+
+
+
+
+
+  <meta property="og:image" content="https://harleylau.github.io/img/harleylau.jpg">
+  <meta property="twitter:image" content="https://harleylau.github.io/img/harleylau.jpg">
+
+
+    <title>使用Redis的分布式锁</title>
+
+    <link rel="icon" href="https://harleylau.github.io/favicon.png">
+    
+
+    
+
+    <link rel="canonical" href="https://harleylau.github.io/2019/01/%E4%BD%BF%E7%94%A8redis%E7%9A%84%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/">
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.4/jquery.fancybox.min.css" integrity="sha256-vuXZ9LGmmwtjqFX1F+EKin1ThZMub58gKULUyf0qECk=" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.4/helpers/jquery.fancybox-thumbs.min.css" integrity="sha256-SEa4XYAHihTcEP1f5gARTB2K26Uk8PsndQYHQC1f4jU=" crossorigin="anonymous" />
+    
+    
+    <link rel="stylesheet" href="https://harleylau.github.io/css/style-nnm2spxvve8onlujjlegkkytaehyadd4ksxc1hyzzq9a2wvtrgbljqyulomn.min.css" />
+    
+    
+
+    
+      
+    
+    
+  </head>
+
+  <body>
+    <div id="blog">
+      <header id="header" data-behavior="4">
+  <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+  <div class="header-title">
+    <a class="header-title-link" href="https://harleylau.github.io/">Harley</a>
+  </div>
+  
+    
+      <a class="header-right-picture "
+         href="https://harleylau.github.io/#about">
+    
+    
+    
+      
+        <img class="header-picture" src="https://harleylau.github.io/img/harleylau.jpg" alt="作者的图片" />
+      
+    
+    </a>
+  
+</header>
+
+      <nav id="sidebar" data-behavior="4">
+  <div class="sidebar-container">
+    
+      <div class="sidebar-profile">
+        <a href="https://harleylau.github.io/#about">
+          <img class="sidebar-profile-picture" src="https://harleylau.github.io/img/harleylau.jpg" alt="作者的图片" />
+        </a>
+        <h4 class="sidebar-profile-name">Harley</h4>
+        
+      </div>
+    
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://harleylau.github.io/">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-home"></i>
+      
+      <span class="sidebar-button-desc">首页</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://harleylau.github.io/categories">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-bookmark"></i>
+      
+      <span class="sidebar-button-desc">分类</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://harleylau.github.io/tags">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-tags"></i>
+      
+      <span class="sidebar-button-desc">标签</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://harleylau.github.io/archives">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-archive"></i>
+      
+      <span class="sidebar-button-desc">归档</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://harleylau.github.io/#about">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-question"></i>
+      
+      <span class="sidebar-button-desc">关于</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://github.com/harleylau" target="_blank" rel="noopener">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-github"></i>
+      
+      <span class="sidebar-button-desc">GitHub</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://blog.csdn.net/harleylau" target="_blank" rel="noopener">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-code"></i>
+      
+      <span class="sidebar-button-desc">CSDN</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://harleylau.github.io/index.xml">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-rss"></i>
+      
+      <span class="sidebar-button-desc">RSS</span>
+    </a>
+  </li>
+
+
+    </ul>
+  </div>
+</nav>
+
+      
+
+      <div id="main" data-behavior="4"
+        class="
+               hasCoverMetaIn
+               ">
+        <article class="post" itemscope itemType="http://schema.org/BlogPosting">
+          
+          
+            <div class="post-header main-content-wrap text-left">
+  
+    <h1 class="post-title" itemprop="headline">
+      使用Redis的分布式锁
+    </h1>
+  
+  
+  <div class="postShorten-meta post-meta">
+    
+      <time itemprop="datePublished" datetime="2019-01-05T19:17:34&#43;08:00">
+        
+  一月 5, 2019
+
+      </time>
+    
+    
+  
+  
+    <span>发布在</span>
+    
+      <a class="category-link" href="https://harleylau.github.io/categories/redis">redis</a>, 
+    
+      <a class="category-link" href="https://harleylau.github.io/categories/%e5%88%86%e5%b8%83%e5%bc%8f%e9%94%81">分布式锁</a>
+    
+  
+
+  </div>
+
+</div>
+          
+          <div class="post-content markdown" itemprop="articleBody">
+            <div class="main-content-wrap">
+              <p>译自： <a href="https://redis.io/topics/distlock#the-redlock-algorithm">https://redis.io/topics/distlock#the-redlock-algorithm</a></p>
+
+<p>在许多环境中，分布式锁是一种非常有用的原语，其中不同的进程必须以互斥的方式与共享资源一起运行。</p>
+
+<p>有许多库和博客文章描述了如何使用Redis实现DLM（分布式锁管理器），但是每个库都使用不同的方法。并且其中的许多库使用比较简单的方法，与稍微复杂的方法相比，在安全保证性上稍差一点。</p>
+
+<p>我们试图提供一种更典型的算法来使用Redis实现分布式锁。我们提出了一种称为Redlock的算法，它实现了一种我们认为比vanilla单实例方法更安全的DLM。我们希望社区将对其进行分析，提供反馈，并将其作为替代设计的起点。</p>
+
+<h1 id="安全和可用性保障">安全和可用性保障</h1>
+
+<p>我们将使用三个属性对我们的设计进行建模，从我们的角度来看，这些属性是以有效方式使用分布式锁所需的最低保证。</p>
+
+<p>1、 安全属性：相互排斥。 在任何给定时刻，只有一个客户端可以持有锁。</p>
+
+<p>2、 可用性属性A：无死锁。 最终即使锁定资源的客户端崩溃或被分区，也始终可以获取锁。</p>
+
+<p>3、 可用性属性B：容错。 只要大多数Redis节点启动，客户端就能够获取和释放锁。</p>
+
+<h1 id="为什么基于故障转移的实现还不够">为什么基于故障转移的实现还不够</h1>
+
+<p>为了理解我们想要改进的内容，让我们分析大多数基于Redis的分布式锁库的当前状态。</p>
+
+<p>使用Redis锁定资源的最简单方法是在实例中创建锁。锁通常使用Redis expires功能在有限的生存时间内创建，最终它将被释放。当客户端需要释放资源时，它会删除这个锁。</p>
+
+<p>从表面上看，这很有效，但存在一个问题：我们架构中的单点故障。如果Redis master出现故障会怎样？好吧，让我们添加一个slave！如果主服务器不可用，请使用它。遗憾的是，这不可行。通过这样做，我们无法实现互斥的安全属性，因为Redis复制是异步的。</p>
+
+<p>这个模型有明显的竞争条件：</p>
+
+<ol>
+<li>客户端A获取master服务器中的锁。</li>
+<li>在写入密钥之前，在将key传输到slave之前master崩溃</li>
+<li>slave被提升为master。</li>
+<li>客户端B获取对已经拥有锁的相同资源的锁。安全违规！</li>
+</ol>
+
+<p>有时，在特殊情况下，(例如在故障期间，多个客户端可以同时保持锁定)，这样做也没有问题。如果是这种情况，您可以使用基于复制的解决方案。否则，我们建议实施本文档中描述的解决方案。</p>
+
+<h1 id="使用单个实例的正确实现">使用单个实例的正确实现</h1>
+
+<p>在尝试克服上述单实例实现的限制之前，让我们在这个简单的情况下检查如何正确地进行操作。 在频繁的竞争条件的应用中，这也是可被接受的方案。因为在单实例中的锁也是我们使用分布式算法的基础。</p>
+
+<p>要获得锁定，可以采取以下措施：</p>
+
+<pre><code>SET resource_name my_random_value NX PX 30000
+</code></pre>
+
+<p>该命令仅在key不存在时才设置（NX选项），过期时间为30000毫秒（PX选项）。 键设置为值“my_random_value”。 此值必须在所有客户端和所有获取锁的请求中都是唯一的。</p>
+
+<p>使用随机值是为了以安全的方式释放锁，需要使用一个脚本告诉Redis：仅当key存在且存储在key上的值恰好是我期望的值时才删除密钥。 这是通过以下Lua脚本完成的：</p>
+
+<pre><code>if redis.call(&quot;get&quot;,KEYS[1]) == ARGV[1] then
+    return redis.call(&quot;del&quot;,KEYS[1])
+else
+    return 0
+end
+</code></pre>
+
+<p>避免删除由另一个客户端创建的锁，这一点很重要。例如，客户端可能获得一个锁，在某些操作中被阻塞的时间超过锁的有效时间（密钥过期被释放的时间），等它从阻塞中恢复后会移除已经由某个其他客户端重新获取的锁。所以仅使用DEL是不安全的，因为客户端可能会删除另一个客户端的锁。使用上面的脚本，每个锁都使用随机字符串“签名”，因此只有在确认是当时枷锁的客户端去尝试删除锁定时，锁才会被删除。</p>
+
+<p>这个随机字符串应该取什么值呢？我假设它是来自/dev/urandom的20个字节，但是你可以找到更有效的方法来使它对你的任务足够独特。例如，使用/dev/urandom对RC4进行种子处理，并从中生成伪随机流。一个更简单的解决方案是使用微妙级别的unix时间与client ID做组合。它可能不是那么安全，但可能在大多数环境中都可以完成任务。</p>
+
+<p>我们设置的key的过期时间被称为“锁的有效时间”。它既是自动释放时间，也是客户端为了执行所需操作而在另一个客户端可能再次获取锁之前所拥有的时间。它没有在技术上违反互斥保证，只是限制了获得锁的时间窗口。</p>
+
+<p>所以现在我们有了获得和释放锁的好方法。这个非分布式的单点系统，总是可用的，并且安全的。让我们将概念扩展到没有这种保证的分布式系统。</p>
+
+<h1 id="redlock算法">Redlock算法</h1>
+
+<p>在算法的分布式版本中，我们假设我们有N个Redis的master。 这些节点是完全独立的，因此我们不使用复制或任何其他隐式协调系统。 我们已经描述了如何在单个实例中安全地获取和释放锁。 我们理所当然地认为算法将使用此方法在单个实例中获取和释放锁。 在我们的示例中，我们设置N = 5，这是一个合理的值，因此我们需要在不同的计算机或虚拟机上运行5个Redis的master，以确保它们互相独立。</p>
+
+<p>为了获取锁，客户端执行以下操作：</p>
+
+<ol>
+<li>获取当前毫秒级别的时间。</li>
+<li>在所有实例中使用相同的键名和随机值，尝试按顺序获取所有N个实例中的锁。在步骤2期间，当在每个实例中设置锁时，为每次设置操作设定一个失败超时时间，这个超时时间跟总的锁的超时时间相比要小。例如，如果自动释放时间是10秒，则失败超时可以在~5-50毫秒范围内。这可以防止客户端在试图与关闭的Redis节点通信时长时间保持阻塞。也就是说如果实例不可用，我们应该尝试尽快与下一个实例通话。</li>
+<li>客户端通过从当前时间中减去在步骤1中获得的时间戳来计算获取锁定所需的时间。当且仅当客户端能够在大多数实例中获取锁定时（至少3个）并且获取锁定所经过的总时间小于锁定有效时间，认为锁被获取。</li>
+<li>如果获得了锁，则其有效时间被认为是初始有效时间减去经过的时间，如步骤3中计算的。</li>
+<li>如果客户端由于某种原因（无法锁定N / 2 + 1实例或有效时间为负）无法获取锁，它将尝试解锁所有实例（即使在第二步中没有获得该锁）。</li>
+</ol>
+
+<h1 id="算法是异步的吗">算法是异步的吗</h1>
+
+<p>该算法依赖于这样的假设：虽然整个过程没有同步时钟，但每个进程中的本地时间仍然大致以相同的速率流动。并且误差与锁的自动释放时间相比较小。 这个假设非常类似于真实世界的计算机：每台计算机都有一个本地时钟，我们通常可以依靠不同的计算机来获得较小的时钟漂移。</p>
+
+<h1 id="失败重试机制">失败重试机制</h1>
+
+<p>当客户端无法获取锁定时，它应该在延迟随机时间后再次尝试。随机时间是为了防止多个客户端在同一个时间获取同一个资源。 此外，客户端尝试在大多数Redis实例中获取锁定的速度越快，时间窗口越小，因此理想情况下客户端应尝试将SET命令发送到N个实例 同时使用多路复用。</p>
+
+<p>值得强调的是，对于未能获得大多数锁定的客户来说，尽快释放（部分）获取的锁定是多么重要，因此无需等待密钥到期以便再次获取锁定（ 但是，如果发生网络分区且客户端无法再与Redis实例通信，则需要付出一点代价，等待密钥到期。</p>
+
+<h1 id="释放锁">释放锁</h1>
+
+<p>释放锁是很简单的，只需在所有实例中释放锁，无论客户端是否认为它能够成功锁定给定实例。</p>
+
+<h1 id="安全性分析">安全性分析</h1>
+
+<p>这个算法是否安全？ 我们可以尝试了解不同场景中会发生什么。</p>
+
+<p>首先让我们假设客户端能够获得大多数实例的锁。 所有实例中的key都有一个相同的过期时间。 但是，key是在不同的时间设置的，因此key也将在不同的时间到期。 假设第一个key是在T1时间设置，最后一个key是在T2时间设置，可以确信，最先被设定的key至少能够存活 MIN_VALIDITY = TTL-（T2-T1）-CLOCK_DRIFT。 TTL是过期时间， CLOCK_DRIFT是时间漂移。</p>
+
+<p>在大多数key被设置期间，另一个客户端将无法获取锁定，因为如果已存在N / 2 + 1密钥，则N / 2 + 1 SET NX操作不能成功。 因此，如果获得锁定，则无法同时重新获取锁定（违反互斥属性）。</p>
+
+<h1 id="可用性分析">可用性分析</h1>
+
+<p>系统可用性基于三个主要特征：</p>
+
+<ol>
+<li>锁的自动释放（因为密到期）：最终可以再次锁定。</li>
+<li>通常情况下，客户端会在未获取锁定时或在获取锁定并且工作终止时移除锁定，这使得我们可能不必等待密到期以重新获取锁。</li>
+<li>事实上，当客户端需要重试锁定时，它等待的时间比获取大多数锁定所需的时间要大得多，减少在资源竞争期间抢占资源的可能性。</li>
+</ol>
+
+<p>如果一直持续的发生网络故障，那么没有客户端可以申请到锁。分布式锁系统也将无法提供服务直到网络故障恢复为止。</p>
+
+<h1 id="性能-崩溃恢复和文件同步">性能，崩溃恢复和文件同步</h1>
+
+<p>使用Redis作为锁服务器的许多用户在获取和释放锁的延迟以及每秒可执行的获取/释放操作的数量方面需要高性能。为了满足这一要求，与N 个Redis服务器通信以减少延迟的策略肯定是多路复用。</p>
+
+<p>但是，为了实现故障恢复，还有另一个数据持久性的问题需要考虑。</p>
+
+<p>首先，让我们假设我们根本没有持久性配置Redis。客户端在5个实例中的3个中获取锁定。如果其中的一台机器重启了，那么另一个客户端可以再次锁定它，违反了锁独占的安全属性。</p>
+
+<p>如果我们启用AOF持久化，事情会有所改善。例如，我们可以通过发送SHUTDOWN重新启动服务器。因为Redis过期是在语义上实现的，所以当服务器关闭时，实际上时间仍然在流逝。那么停电会怎么样？如果默认情况下将Redis配置为每秒在磁盘上进行fsync，则重新启动后可能会丢失key。理论上，如果我们想要在任何类型的实例重启时保证锁定安全性，我们需要在持久性设置中启用fsync = always。这反过来将完全破坏性能。</p>
+
+<p>另一种解决方案是在崩溃后，等待至少比我们使用的最大TTL多一点的时间，才启用这个实例。也就是说，实例崩溃时存在的所有锁所需的时间，都等待它自动到期无效。</p>
+
+<p>即使没有使用任何的Redis持久性策略，使用延迟重启基本上可以实现安全性。但请注意，这可能会影响一部分性能。 例如，如果大多数实例崩溃，系统将变TTL时间内变为全局不可用（这里全局意味着在此期间根本没有资源可锁定）。</p>
+
+<h1 id="使算法更可靠-锁续约">使算法更可靠：锁续约</h1>
+
+<p>如果客户端执行的工作都由小步骤组成，则默认情况下可以使用较小的锁定时间，并扩展实现锁续约机制的算法。 客户端在计算过程中如果发现快要接近锁的有效期，则可以通过向所有实例发送Lua脚本来续约锁定（如果密钥存在且其值仍然是这个客户端分配的随机值）。</p>
+
+<p>如果能够将锁续约到大多数实例，并且在有效时间内（基本上使用的算法与获取锁时使用的算法非常相似），客户端续约锁成功。</p>
+
+<p>但是，应该限制锁定重新获取尝试的最大次数，否则会违反其中一个可用性属性，导致该锁长时间不能被其他客户端获取。</p>
+              
+            </div>
+          </div>
+          <div id="post-footer" class="post-footer main-content-wrap">
+            
+              
+                
+                
+                  <div class="post-footer-tags">
+                    <span class="text-color-light text-small">标签</span><br/>
+                    
+  <a class="tag tag--primary tag--small" href="https://harleylau.github.io/tags/redis/">redis</a>
+
+  <a class="tag tag--primary tag--small" href="https://harleylau.github.io/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/">分布式锁</a>
+
+                  </div>
+                
+              
+            
+            <div class="post-actions-wrap">
+  
+      <nav >
+        <ul class="post-actions post-action-nav">
+          
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--disabled">
+              
+                  <i class="fa fa-angle-left"></i>
+                  <span class="hide-xs hide-sm text-small icon-ml">下一篇</span>
+                </a>
+            </li>
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2019/01/%E4%BD%BF%E7%94%A8redis-setnx-%E5%91%BD%E4%BB%A4%E5%AE%9E%E7%8E%B0%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" data-tooltip="使用Redis SETNX 命令实现分布式锁">
+              
+                  <span class="hide-xs hide-sm text-small icon-mr">上一篇</span>
+                  <i class="fa fa-angle-right"></i>
+                </a>
+            </li>
+          
+        </ul>
+      </nav>
+    <ul class="post-actions post-action-share" >
+      
+        <li class="post-action hide-lg hide-md hide-sm">
+          <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions">
+            <i class="fa fa-share-alt"></i>
+          </a>
+        </li>
+        
+          <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://harleylau.github.io/2019/01/%E4%BD%BF%E7%94%A8redis%E7%9A%84%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/">
+              <i class="fa fa-facebook-official"></i>
+            </a>
+          </li>
+        
+          <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://harleylau.github.io/2019/01/%E4%BD%BF%E7%94%A8redis%E7%9A%84%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/">
+              <i class="fa fa-twitter"></i>
+            </a>
+          </li>
+        
+          <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://harleylau.github.io/2019/01/%E4%BD%BF%E7%94%A8redis%E7%9A%84%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/">
+              <i class="fa fa-google-plus"></i>
+            </a>
+          </li>
+        
+      
+      
+        <li class="post-action">
+          <a class="post-action-btn btn btn--default" href="#disqus_thread">
+            <i class="fa fa-comment-o"></i>
+          </a>
+        </li>
+      
+      <li class="post-action">
+        
+          <a class="post-action-btn btn btn--default" href="#">
+        
+          <i class="fa fa-list"></i>
+        </a>
+      </li>
+    </ul>
+  
+</div>
+
+            
+              
+                <div id="disqus_thread">
+  <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+              
+            
+          </div>
+        </article>
+        <footer id="footer" class="main-content-wrap">
+  <span class="copyrights">
+    &copy; 2019 Harley. All Rights Reserved
+  </span>
+</footer>
+
+      </div>
+      <div id="bottom-bar" class="post-bottom-bar" data-behavior="4">
+        <div class="post-actions-wrap">
+  
+      <nav >
+        <ul class="post-actions post-action-nav">
+          
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--disabled">
+              
+                  <i class="fa fa-angle-left"></i>
+                  <span class="hide-xs hide-sm text-small icon-ml">下一篇</span>
+                </a>
+            </li>
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2019/01/%E4%BD%BF%E7%94%A8redis-setnx-%E5%91%BD%E4%BB%A4%E5%AE%9E%E7%8E%B0%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" data-tooltip="使用Redis SETNX 命令实现分布式锁">
+              
+                  <span class="hide-xs hide-sm text-small icon-mr">上一篇</span>
+                  <i class="fa fa-angle-right"></i>
+                </a>
+            </li>
+          
+        </ul>
+      </nav>
+    <ul class="post-actions post-action-share" >
+      
+        <li class="post-action hide-lg hide-md hide-sm">
+          <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions">
+            <i class="fa fa-share-alt"></i>
+          </a>
+        </li>
+        
+          <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://harleylau.github.io/2019/01/%E4%BD%BF%E7%94%A8redis%E7%9A%84%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/">
+              <i class="fa fa-facebook-official"></i>
+            </a>
+          </li>
+        
+          <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://harleylau.github.io/2019/01/%E4%BD%BF%E7%94%A8redis%E7%9A%84%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/">
+              <i class="fa fa-twitter"></i>
+            </a>
+          </li>
+        
+          <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://harleylau.github.io/2019/01/%E4%BD%BF%E7%94%A8redis%E7%9A%84%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/">
+              <i class="fa fa-google-plus"></i>
+            </a>
+          </li>
+        
+      
+      
+        <li class="post-action">
+          <a class="post-action-btn btn btn--default" href="#disqus_thread">
+            <i class="fa fa-comment-o"></i>
+          </a>
+        </li>
+      
+      <li class="post-action">
+        
+          <a class="post-action-btn btn btn--default" href="#">
+        
+          <i class="fa fa-list"></i>
+        </a>
+      </li>
+    </ul>
+  
+</div>
+
+      </div>
+      <div id="share-options-bar" class="share-options-bar" data-behavior="4">
+  <i id="btn-close-shareoptions" class="fa fa-close"></i>
+  <ul class="share-options">
+    
+      <li class="share-option">
+        <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fharleylau.github.io%2F2019%2F01%2F%25E4%25BD%25BF%25E7%2594%25A8redis%25E7%259A%2584%25E5%2588%2586%25E5%25B8%2583%25E5%25BC%258F%25E9%2594%2581%2F">
+          <i class="fa fa-facebook-official"></i><span>分享到 Facebook</span>
+        </a>
+      </li>
+    
+      <li class="share-option">
+        <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=https%3A%2F%2Fharleylau.github.io%2F2019%2F01%2F%25E4%25BD%25BF%25E7%2594%25A8redis%25E7%259A%2584%25E5%2588%2586%25E5%25B8%2583%25E5%25BC%258F%25E9%2594%2581%2F">
+          <i class="fa fa-twitter"></i><span>分享到 Twitter</span>
+        </a>
+      </li>
+    
+      <li class="share-option">
+        <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=https%3A%2F%2Fharleylau.github.io%2F2019%2F01%2F%25E4%25BD%25BF%25E7%2594%25A8redis%25E7%259A%2584%25E5%2588%2586%25E5%25B8%2583%25E5%25BC%258F%25E9%2594%2581%2F">
+          <i class="fa fa-google-plus"></i><span>分享到 Google&#43;</span>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+<div id="share-options-mask" class="share-options-mask"></div>
+    </div>
+    
+    <div id="about">
+  <div id="about-card">
+    <div id="about-btn-close">
+      <i class="fa fa-remove"></i>
+    </div>
+    
+      <img id="about-card-picture" src="https://harleylau.github.io/img/harleylau.jpg" alt="作者的图片" />
+    
+    <h4 id="about-card-name">Harley</h4>
+    
+    
+    
+      <div id="about-card-location">
+        <i class="fa fa-map-marker"></i>
+        <br/>
+        China
+      </div>
+    
+  </div>
+</div>
+
+    <div id="algolia-search-modal" class="modal-container">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="close-button"><i class="fa fa-close"></i></span>
+      <a href="https://algolia.com" target="_blank" rel="noopener" class="searchby-algolia text-color-light link-unstyled">
+        <span class="searchby-algolia-text text-color-light text-small">by</span>
+        <img class="searchby-algolia-logo" src="https://www.algolia.com/static_assets/images/press/downloads/algolia-light.svg">
+      </a>
+      <i class="search-icon fa fa-search"></i>
+      <form id="algolia-search-form">
+        <input type="text" id="algolia-search-input" name="search"
+          class="form-control input--large search-input" placeholder="搜索" />
+      </form>
+    </div>
+    <div class="modal-body">
+      <div class="no-result text-color-light text-center"></div>
+      <div class="results">
+        
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2019/01/%E4%BD%BF%E7%94%A8redis%E7%9A%84%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/">
+                <h3 class="media-heading">使用Redis的分布式锁</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Jan 1, 2019
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>译自： <a href="https://redis.io/topics/distlock#the-redlock-algorithm">https://redis.io/topics/distlock#the-redlock-algorithm</a></p>
+
+<p>在许多环境中，分布式锁是一种非常有用的原语，其中不同的进程必须以互斥的方式与共享资源一起运行。</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2019/01/%E4%BD%BF%E7%94%A8redis-setnx-%E5%91%BD%E4%BB%A4%E5%AE%9E%E7%8E%B0%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/">
+                <h3 class="media-heading">使用Redis SETNX 命令实现分布式锁</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Jan 1, 2019
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>使用Redis的 SETNX 命令可以实现分布式锁，本文介绍其实现方法。</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2019/01/hbase-rowkey-%E8%AE%BE%E8%AE%A1/">
+                <h3 class="media-heading">HBase Rowkey 设计</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Jan 1, 2019
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><!-- toc -->
+
+<p>HBase中的rowkey唯一的决定了一行数据，使用HBase的场景多种多样， rowkey设计的好坏很大程度上决定了应用场景中的执行效率。</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2018/11/elastic-search-%E4%B8%8D%E5%81%9C%E6%9C%8D%E9%87%8D%E5%BB%BA%E7%B4%A2%E5%BC%95/">
+                <h3 class="media-heading">Elastic Search 不停服重建索引</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Nov 11, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><!--toc--></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2018/11/kibana%E5%92%8Cmarval%E4%B8%AD%E7%9A%84search-rate%E8%A1%A8%E7%A4%BA%E4%BB%80%E4%B9%88/">
+                <h3 class="media-heading">Kibana和Marval中的Search Rate表示什么</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Nov 11, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>Kibana和Marval中的Search Rate表示什么</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2018/07/mysql%E8%BF%81%E7%A7%BB%E6%95%B0%E6%8D%AE%E7%9B%AE%E5%BD%95%E5%90%8E%E6%97%A0%E6%B3%95%E5%90%AF%E5%8A%A8/">
+                <h3 class="media-heading">Mysql迁移数据目录后无法启动</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Jul 7, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>有时候我们需要迁移Mysql的数据存储目录， 网上有很多类似的教程，具体的不赘述。 但是我们在迁移的时候，经常会碰到迁移之后，mysql无法正常启动， 查看启动日志发现报了 “errno：13  ”的错误， 对照错误表，我们能够知道这个其实是一个权限的问题。</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2018/07/tornado%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/">
+                <h3 class="media-heading">Tornado启动流程分析</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Jul 7, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>我们先来看一下所有地方都会出现的Hello World的例子：</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2018/07/python%E5%81%8F%E5%87%BD%E6%95%B0partial-function/">
+                <h3 class="media-heading">Python偏函数Partial Function</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Jul 7, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>Python的functools模块提供了很多有用的功能，其中一个就是偏函数（Partial function）</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2018/06/python%E7%9A%84orm%E6%A1%86%E6%9E%B6sqlalchemy%E7%9A%84%E6%9F%A5%E8%AF%A2%E5%A4%9A%E6%9D%A1%E6%95%B0%E6%8D%AE%E5%8F%AA%E6%98%BE%E7%A4%BA%E4%B8%80%E6%9D%A1/">
+                <h3 class="media-heading">Python的ORM框架sqlalchemy的查询多条数据只显示一条</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Jun 6, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><!--toc-->
+
+<p>这个情况可能很少碰到， 但确实花了我不少时间去找这个错误，这边记录一下。</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2018/06/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%93%88%E5%B8%8C%E5%AF%B9%E8%B1%A1t_hash%E5%AE%9E%E7%8E%B0/">
+                <h3 class="media-heading">Redis源码剖析–哈希对象t_hash实现</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Jun 6, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><!--toc--></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+      </div>
+    </div>
+    <div class="modal-footer">
+      <p class="results-count text-medium"
+         data-message-zero=""
+         data-message-one=""
+         data-message-other="">
+         34 posts found
+      </p>
+    </div>
+  </div>
+</div>
+    
+  
+    
+    <div id="cover" style="background-image:url('https://harleylau.github.io/images/cover.jpg');"></div>
+  
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js" integrity="sha256-/BfiIkHlHoVihZdc6TFuj7MmJ0TWcWsMXkeDFwhi0zw=" crossorigin="anonymous"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.7/js/jquery.fancybox.min.js" integrity="sha256-GEAnjcTqVP+vBp3SSc8bEDQqvWAZMiHyUSIorrWwH50=" crossorigin="anonymous"></script>
+
+
+<script src="https://harleylau.github.io/js/script-qi9wbxp2ya2j6p7wx1i6tgavftewndznf4v0hy2gvivk1rxgc3lm7njqb6bz.min.js"></script>
+
+
+<script lang="javascript">
+window.onload = updateMinWidth;
+window.onresize = updateMinWidth;
+document.getElementById("sidebar").addEventListener("transitionend", updateMinWidth);
+function updateMinWidth() {
+  var sidebar = document.getElementById("sidebar");
+  var main = document.getElementById("main");
+  main.style.minWidth = "";
+  var w1 = getComputedStyle(main).getPropertyValue("min-width");
+  var w2 = getComputedStyle(sidebar).getPropertyValue("width");
+  var w3 = getComputedStyle(sidebar).getPropertyValue("left");
+  main.style.minWidth = `calc(${w1} - ${w2} - ${w3})`;
+}
+</script>
+
+<script>
+$(document).ready(function() {
+  hljs.configure({ classPrefix: '', useBR: false });
+  $('pre.code-highlight > code, pre > code').each(function(i, block) {
+    if (!$(this).hasClass('codeblock')) {
+      $(this).addClass('codeblock');
+    }
+    hljs.highlightBlock(block);
+  });
+});
+</script>
+
+
+  
+    
+      <script>
+        var disqus_config = function () {
+          this.page.url = 'https:\/\/harleylau.github.io\/2019\/01\/%E4%BD%BF%E7%94%A8redis%E7%9A%84%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81\/';
+          
+            this.page.identifier = '\/2019\/01\/%E4%BD%BF%E7%94%A8redis%E7%9A%84%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81\/'
+          
+        };
+        (function() {
+          
+          
+          if (window.location.hostname == "localhost") {
+            return;
+          }
+          var d = document, s = d.createElement('script');
+          var disqus_shortname = 'harleylau';
+          s.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+
+          s.setAttribute('data-timestamp', +new Date());
+          (d.head || d.body).appendChild(s);
+        })();
+      </script>
+    
+  
+
+
+
+
+    
+  </body>
+</html>
+
