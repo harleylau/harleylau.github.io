@@ -6,10 +6,21 @@
     <description>Recent content on Harley</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Tue, 08 Jan 2019 19:10:03 +0800</lastBuildDate>
+    <lastBuildDate>Thu, 10 Jan 2019 17:39:10 +0800</lastBuildDate>
     
 	<atom:link href="https://harleylau.github.io/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>如何处理redis集群中的hot Key</title>
+      <link>https://harleylau.github.io/2019/01/%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86redis%E9%9B%86%E7%BE%A4%E4%B8%AD%E7%9A%84hot-key/</link>
+      <pubDate>Thu, 10 Jan 2019 17:39:10 +0800</pubDate>
+      
+      <guid>https://harleylau.github.io/2019/01/%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86redis%E9%9B%86%E7%BE%A4%E4%B8%AD%E7%9A%84hot-key/</guid>
+      <description>&lt;!--toc--&gt;
+
+&lt;p&gt;一般对于单实例的redis或者一主一备的redis来说，不需要考虑hot key的问题。但是随着业务量的上升，redis集群也自然而然的会成为一个选择。&lt;/p&gt;</description>
+    </item>
     
     <item>
       <title>从头实现LRU</title>

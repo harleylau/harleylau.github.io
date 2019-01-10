@@ -223,6 +223,66 @@
     
     <div class="postShorten-header">
       <h1 class="postShorten-title" itemprop="headline">
+        <a class="link-unstyled" href="https://harleylau.github.io/2017/09/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%AF%B9%E8%B1%A1object/">
+          Redis源码剖析–对象Object
+        </a>
+      </h1>
+      
+  <div class="postShorten-meta post-meta">
+    
+      <time itemprop="datePublished" datetime="2017-09-07T18:20:21&#43;08:00">
+        
+  九月 7, 2017
+
+      </time>
+    
+    
+  
+  
+    <span>发布在</span>
+    
+      <a class="category-link" href="https://harleylau.github.io/categories/redis">redis</a>, 
+    
+      <a class="category-link" href="https://harleylau.github.io/categories/%e6%ba%90%e7%a0%81">源码</a>
+    
+  
+
+  </div>
+
+    </div>
+    <div class="postShorten-excerpt" itemprop="articleBody">
+      
+        <!--toc-->
+
+<p>之前介绍的都是Redis的基础数据结构，比如简单动态字符串（SDS）、双端链表、字典、压缩列表、整数集合， 等等，不过Redis并没有直接用这些结构来实现键值对的数据库，而是对其进行了封装， 所有的键和值都是用对象Object来表示的。</p>
+      
+      <p>
+        <a href="https://harleylau.github.io/2017/09/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%AF%B9%E8%B1%A1object/" class="postShorten-excerpt_link link">阅读全文</a>
+        
+      </p>
+    </div>
+  </div>
+  
+</article>
+
+            
+              
+  
+    
+      
+        
+      
+    
+  
+
+
+  
+
+<article class="postShorten postShorten--thumbnailimg-bottom" itemscope itemType="http://schema.org/BlogPosting">
+  <div class="postShorten-wrap">
+    
+    <div class="postShorten-header">
+      <h1 class="postShorten-title" itemprop="headline">
         <a class="link-unstyled" href="https://harleylau.github.io/2017/09/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%8E%8B%E7%BC%A9%E5%88%97%E8%A1%A8/">
           Redis源码剖析–压缩列表
         </a>
@@ -567,66 +627,6 @@ Redis的列表键，哈希键，有序集合的底层实现都用到了ziplist�
 </article>
 
             
-              
-  
-    
-      
-        
-      
-    
-  
-
-
-  
-
-<article class="postShorten postShorten--thumbnailimg-bottom" itemscope itemType="http://schema.org/BlogPosting">
-  <div class="postShorten-wrap">
-    
-    <div class="postShorten-header">
-      <h1 class="postShorten-title" itemprop="headline">
-        <a class="link-unstyled" href="https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AE%80%E5%8D%95%E5%8A%A8%E6%80%81%E5%AD%97%E7%AC%A6%E4%B8%B2sds/">
-          Redis源码剖析–简单动态字符串sds
-        </a>
-      </h1>
-      
-  <div class="postShorten-meta post-meta">
-    
-      <time itemprop="datePublished" datetime="2017-07-28T16:14:49&#43;08:00">
-        
-  七月 28, 2017
-
-      </time>
-    
-    
-  
-  
-    <span>发布在</span>
-    
-      <a class="category-link" href="https://harleylau.github.io/categories/redis">redis</a>, 
-    
-      <a class="category-link" href="https://harleylau.github.io/categories/%e6%ba%90%e7%a0%81">源码</a>
-    
-  
-
-  </div>
-
-    </div>
-    <div class="postShorten-excerpt" itemprop="articleBody">
-      
-        <!--toc-->
-
-<p>Redis 没有直接使用 C 语言传统的字符串表示， 而是自己构建了一种名为简单动态字符串（simple dynamic string，SDS）的抽象类型， 并将 SDS 用作 Redis 的默认字符串表示。</p>
-      
-      <p>
-        <a href="https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AE%80%E5%8D%95%E5%8A%A8%E6%80%81%E5%AD%97%E7%AC%A6%E4%B8%B2sds/" class="postShorten-excerpt_link link">阅读全文</a>
-        
-      </p>
-    </div>
-  </div>
-  
-</article>
-
-            
             
   <div class="pagination-bar">
     <ul class="pagination">
@@ -640,8 +640,15 @@ Redis的列表键，哈希键，有序集合的底层实现都用到了ziplist�
           </li>
         
         
+          <li class="pagination-next">
+            <a class="btn btn--default btn--small" href="https://harleylau.github.io/tags/redis/page/3/">
+              <span>下一页</span>
+              <i class="fa fa-angle-right text-base icon-ml"></i>
+            </a>
+          </li>
+        
       
-      <li class="pagination-number">第 2 页 共 2 页</li>
+      <li class="pagination-number">第 2 页 共 3 页</li>
     </ul>
   </div>
 
@@ -696,6 +703,25 @@ Redis的列表键，哈希键，有序集合的底层实现都用到了ziplist�
       <div class="no-result text-color-light text-center"></div>
       <div class="results">
         
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2019/01/%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86redis%E9%9B%86%E7%BE%A4%E4%B8%AD%E7%9A%84hot-key/">
+                <h3 class="media-heading">如何处理redis集群中的hot Key</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Jan 1, 2019
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><!--toc-->
+
+<p>一般对于单实例的redis或者一主一备的redis来说，不需要考虑hot key的问题。但是随着业务量的上升，redis集群也自然而然的会成为一个选择。</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
         
           <div class="media">
             
@@ -856,25 +882,6 @@ Redis的列表键，哈希键，有序集合的底层实现都用到了ziplist�
             <hr>
           </div>
         
-          <div class="media">
-            
-            <div class="media-body">
-              <a class="link-unstyled" href="https://harleylau.github.io/2018/06/python%E7%9A%84orm%E6%A1%86%E6%9E%B6sqlalchemy%E7%9A%84%E6%9F%A5%E8%AF%A2%E5%A4%9A%E6%9D%A1%E6%95%B0%E6%8D%AE%E5%8F%AA%E6%98%BE%E7%A4%BA%E4%B8%80%E6%9D%A1/">
-                <h3 class="media-heading">Python的ORM框架sqlalchemy的查询多条数据只显示一条</h3>
-              </a>
-              <span class="media-meta">
-                <span class="media-date text-small">
-                  Jun 6, 2018
-                </span>
-              </span>
-              <div class="media-content hide-xs font-merryweather"><!--toc-->
-
-<p>这个情况可能很少碰到， 但确实花了我不少时间去找这个错误，这边记录一下。</p></div>
-            </div>
-            <div style="clear:both;"></div>
-            <hr>
-          </div>
-        
       </div>
     </div>
     <div class="modal-footer">
@@ -882,7 +889,7 @@ Redis的列表键，哈希键，有序集合的底层实现都用到了ziplist�
          data-message-zero=""
          data-message-one=""
          data-message-other="">
-         35 posts found
+         36 posts found
       </p>
     </div>
   </div>

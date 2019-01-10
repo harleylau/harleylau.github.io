@@ -3,6 +3,11 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
+    <loc>https://harleylau.github.io/2019/01/%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86redis%E9%9B%86%E7%BE%A4%E4%B8%AD%E7%9A%84hot-key/</loc>
+    <lastmod>2019-01-10T17:39:10+08:00</lastmod>
+  </url>
+  
+  <url>
     <loc>https://harleylau.github.io/2019/01/%E4%BB%8E%E5%A4%B4%E5%AE%9E%E7%8E%B0lru/</loc>
     <lastmod>2019-01-08T19:10:03+08:00</lastmod>
   </url>
@@ -220,7 +225,7 @@
   
   <url>
     <loc>https://harleylau.github.io/</loc>
-    <lastmod>2019-01-08T19:10:03+08:00</lastmod>
+    <lastmod>2019-01-10T17:39:10+08:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -233,6 +238,18 @@
   <url>
     <loc>https://harleylau.github.io/categories/hbase/</loc>
     <lastmod>2019-01-01T15:39:35+08:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://harleylau.github.io/tags/hot-key/</loc>
+    <lastmod>2019-01-10T17:39:10+08:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://harleylau.github.io/categories/hot-key/</loc>
+    <lastmod>2019-01-10T17:39:10+08:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -316,7 +333,7 @@
   
   <url>
     <loc>https://harleylau.github.io/post/</loc>
-    <lastmod>2019-01-08T19:10:03+08:00</lastmod>
+    <lastmod>2019-01-10T17:39:10+08:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -334,13 +351,13 @@
   
   <url>
     <loc>https://harleylau.github.io/tags/redis/</loc>
-    <lastmod>2019-01-05T19:17:34+08:00</lastmod>
+    <lastmod>2019-01-10T17:39:10+08:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://harleylau.github.io/categories/redis/</loc>
-    <lastmod>2019-01-05T19:17:34+08:00</lastmod>
+    <lastmod>2019-01-10T17:39:10+08:00</lastmod>
     <priority>0</priority>
   </url>
   

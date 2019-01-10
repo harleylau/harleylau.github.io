@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="generator" content="Hugo 0.52 with theme Tranquilpeak 0.4.3-SNAPSHOT">
+<meta name="author" content="Harley">
+<meta name="keywords" content="redis">
+<meta name="description" content="
+
+一般对于单实例的redis或者一主一备的redis来说，不需要考虑hot key的问题。但是随着业务量的上升，redis集群也自然而然的会成为一个选择。">
+
+
+<meta property="og:description" content="
+
+一般对于单实例的redis或者一主一备的redis来说，不需要考虑hot key的问题。但是随着业务量的上升，redis集群也自然而然的会成为一个选择。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="如何处理redis集群中的hot Key">
+<meta name="twitter:title" content="如何处理redis集群中的hot Key">
+<meta property="og:url" content="https://harleylau.github.io/2019/01/%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86redis%E9%9B%86%E7%BE%A4%E4%B8%AD%E7%9A%84hot-key/">
+<meta property="twitter:url" content="https://harleylau.github.io/2019/01/%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86redis%E9%9B%86%E7%BE%A4%E4%B8%AD%E7%9A%84hot-key/">
+<meta property="og:site_name" content="Harley">
+<meta property="og:description" content="
+
+一般对于单实例的redis或者一主一备的redis来说，不需要考虑hot key的问题。但是随着业务量的上升，redis集群也自然而然的会成为一个选择。">
+<meta name="twitter:description" content="
+
+一般对于单实例的redis或者一主一备的redis来说，不需要考虑hot key的问题。但是随着业务量的上升，redis集群也自然而然的会成为一个选择。">
+<meta property="og:locale" content="zh-cn">
+
+  
+    <meta property="article:published_time" content="2019-01-10T17:39:10">
+  
+  
+    <meta property="article:modified_time" content="2019-01-10T17:39:10">
+  
+  
+  
+    
+      <meta property="article:section" content="redis">
+    
+      <meta property="article:section" content="hot key">
+    
+  
+  
+    
+      <meta property="article:tag" content="redis">
+    
+      <meta property="article:tag" content="hot key">
+    
+  
+
+
+<meta name="twitter:card" content="summary">
+
+
+
+
+
+
+
+
+
+
+
+  <meta property="og:image" content="https://harleylau.github.io/img/harleylau.jpg">
+  <meta property="twitter:image" content="https://harleylau.github.io/img/harleylau.jpg">
+
+
+    <title>如何处理redis集群中的hot Key</title>
+
+    <link rel="icon" href="https://harleylau.github.io/favicon.png">
+    
+
+    
+
+    <link rel="canonical" href="https://harleylau.github.io/2019/01/%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86redis%E9%9B%86%E7%BE%A4%E4%B8%AD%E7%9A%84hot-key/">
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.4/jquery.fancybox.min.css" integrity="sha256-vuXZ9LGmmwtjqFX1F+EKin1ThZMub58gKULUyf0qECk=" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.4/helpers/jquery.fancybox-thumbs.min.css" integrity="sha256-SEa4XYAHihTcEP1f5gARTB2K26Uk8PsndQYHQC1f4jU=" crossorigin="anonymous" />
+    
+    
+    <link rel="stylesheet" href="https://harleylau.github.io/css/style-nnm2spxvve8onlujjlegkkytaehyadd4ksxc1hyzzq9a2wvtrgbljqyulomn.min.css" />
+    
+    
+
+    
+      
+    
+    
+  </head>
+
+  <body>
+    <div id="blog">
+      <header id="header" data-behavior="4">
+  <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+  <div class="header-title">
+    <a class="header-title-link" href="https://harleylau.github.io/">Harley</a>
+  </div>
+  
+    
+      <a class="header-right-picture "
+         href="https://harleylau.github.io/#about">
+    
+    
+    
+      
+        <img class="header-picture" src="https://harleylau.github.io/img/harleylau.jpg" alt="作者的图片" />
+      
+    
+    </a>
+  
+</header>
+
+      <nav id="sidebar" data-behavior="4">
+  <div class="sidebar-container">
+    
+      <div class="sidebar-profile">
+        <a href="https://harleylau.github.io/#about">
+          <img class="sidebar-profile-picture" src="https://harleylau.github.io/img/harleylau.jpg" alt="作者的图片" />
+        </a>
+        <h4 class="sidebar-profile-name">Harley</h4>
+        
+      </div>
+    
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://harleylau.github.io/">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-home"></i>
+      
+      <span class="sidebar-button-desc">首页</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://harleylau.github.io/categories">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-bookmark"></i>
+      
+      <span class="sidebar-button-desc">分类</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://harleylau.github.io/tags">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-tags"></i>
+      
+      <span class="sidebar-button-desc">标签</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://harleylau.github.io/archives">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-archive"></i>
+      
+      <span class="sidebar-button-desc">归档</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://harleylau.github.io/#about">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-question"></i>
+      
+      <span class="sidebar-button-desc">关于</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://github.com/harleylau" target="_blank" rel="noopener">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-github"></i>
+      
+      <span class="sidebar-button-desc">GitHub</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://blog.csdn.net/harleylau" target="_blank" rel="noopener">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-code"></i>
+      
+      <span class="sidebar-button-desc">CSDN</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://harleylau.github.io/index.xml">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-rss"></i>
+      
+      <span class="sidebar-button-desc">RSS</span>
+    </a>
+  </li>
+
+
+    </ul>
+  </div>
+</nav>
+
+      
+
+      <div id="main" data-behavior="4"
+        class="
+               hasCoverMetaIn
+               ">
+        <article class="post" itemscope itemType="http://schema.org/BlogPosting">
+          
+          
+            <div class="post-header main-content-wrap text-left">
+  
+    <h1 class="post-title" itemprop="headline">
+      如何处理redis集群中的hot Key
+    </h1>
+  
+  
+  <div class="postShorten-meta post-meta">
+    
+      <time itemprop="datePublished" datetime="2019-01-10T17:39:10&#43;08:00">
+        
+  一月 10, 2019
+
+      </time>
+    
+    
+  
+  
+    <span>发布在</span>
+    
+      <a class="category-link" href="https://harleylau.github.io/categories/redis">redis</a>, 
+    
+      <a class="category-link" href="https://harleylau.github.io/categories/hot-key">hot key</a>
+    
+  
+
+  </div>
+
+</div>
+          
+          <div class="post-content markdown" itemprop="articleBody">
+            <div class="main-content-wrap">
+              <h1 id="table-of-contents">目录</h1><nav id="TableOfContents">
+<ul>
+<li><a href="#hot-key的概念">hot key的概念</a></li>
+<li><a href="#hot-key的解决办法">hot key的解决办法</a>
+<ul>
+<li><a href="#解决过期带来的滚雪球效应">解决过期带来的滚雪球效应</a></li>
+</ul></li>
+<li><a href="#hotkey的检测">hotKey的检测</a></li>
+</ul>
+</nav>
+
+<p>一般对于单实例的redis或者一主一备的redis来说，不需要考虑hot key的问题。但是随着业务量的上升，redis集群也自然而然的会成为一个选择。</p>
+
+<h1 id="hot-key的概念">hot key的概念</h1>
+
+<p>当使用redis集群来作为缓存的时候，如果在业务上碰到大促，或者正好有一个非常热的帖子的时候，对应的缓存会被频繁访问。而这个缓存会落在redis集群的同一台集群上，导致数据频繁的访问同一台机器，造成集群性能的不均衡。这个就是所谓的hot key的问题。</p>
+
+<h1 id="hot-key的解决办法">hot key的解决办法</h1>
+
+<p>很自然的，如果要频繁的访问同一个key，但是有不想让这个key一直落到同一台机器上，我们就需要在其他机器上复制这个key的备份，让请求进来的时候，会去随机的到各台机器上访问缓存。所以剩下的问题就是如何做到让请求平均的分布到各台机器上。</p>
+
+<p>简单的，假设有N台机器，当请求到来的时候，我们随机从1到N之间随机选择一台机器进行访问。如何选择呢？因为redis集群中其实是根据key来做对应的，所以我们可以产生一个随机值作为key的后缀，由key变成key_suffix。</p>
+
+<p>同时，为了防止有想通的后缀在做了映射之后仍旧会集中在某些机器上，一般需要把随机值的上限放大，比如取集群数量N的2倍。</p>
+
+<p>因此有了最简单的版本：</p>
+
+<pre><code>const M = N * 2
+random = GenRandom(0, M)
+bakHotKey = hotKey + “_” + random
+data = redis.GET(bakHotKey)
+if data == NULL {
+    data = GetFromDB()
+    redis.SET(bakHotKey, expireTime)
+}
+</code></pre>
+
+<h2 id="解决过期带来的滚雪球效应">解决过期带来的滚雪球效应</h2>
+
+<p>虽然有了最初的版本，但是生产环境这么用肯定是有问题的。既然是hot key，短时间内必然有大量的访问请求， 上边的代码设置了redis集群中的各台机器都有相同的过期时间。 如果redis集群中的缓存集中过期，必然都会把压力转移到DB上。 为了防止这种雪崩效应，需要将各台机器的过期时间都尽量设置的不一样。所以可以在过期时间上再加上一个随机值，有了第二个版本。</p>
+
+<pre><code>const M = N * 2
+random = GenRandom(0, M)
+bakHotKey = hotKey + “_” + random
+data = redis.GET(bakHotKey)
+if data == NULL {
+    data = GetFromDB()
+    redis.SET(bakHotKey, expireTime + GenRandom(0,5))
+}
+</code></pre>
+
+<p>为了进一步提升性能，既然集群中的机器都有这个key的备份，为什么每台机器上bakHotKey不存在的时候都要去访问DB呢， 完全可以在redis自己内部解决。因此仍旧可以保存一份原来的hotKey在缓存中，所有的bakHotKey失效的时候，都从hotKey去同步数据。只有当hotKey也失效的时候，才去DB中访问数据。这样即使先后有好几台机器里边的缓存失效了，只有一台机器真正的去DB访问了数据，其他的redis都从之后的hotKey的缓存中备份一份数据出来。</p>
+
+<pre><code>const M = N * 2
+random = GenRandom(0, M)
+bakHotKey = hotKey + “_” + random
+// 拉取备份的bakHotKey
+data = redis.GET(bakHotKey)
+if data == NULL {
+    // bakHotKey失效，尝试拉取hotKey
+    data = redis.GET(hotKey)
+    if data == NULL {
+        // hotKey也失效，从DB拉取
+        data = GetFromDB()
+        // 写入主数据
+        redis.SET(hotKey, data, expireTime)
+        // 写入备份数据
+        redis.SET(bakHotKey, data, expireTime + GenRandom(0,5))
+    } else {
+        // 否则只需要直接写入bakHotKey，无需访问DB
+         redis.SET(bakHotKey, data, expireTime + GenRandom(0,5))
+    }
+}
+</code></pre>
+
+<h1 id="hotkey的检测">hotKey的检测</h1>
+
+<p>Redis 4.0新增了一类内存逐出策略：LFU（Least Frequently Used）。LFU表示最不经常使用。相比LRU，LRU对于不怎么使用的key，如果偶然用了一下，也是类似激活了一下这个key，不会短时间内删除；但是LFU是统计key的总体的使用频率，删除使用频率最小的key。</p>
+
+<p>redis 4.0.3提供了redis-cli的热点key发现功能，执行redis-cli时加上&ndash;hotkeys选项即可，示例如下：</p>
+
+<pre><code>$./redis-cli --hotkeys
+
+# Scanning the entire keyspace to find hot keys as well as
+# average sizes per key type.  You can use -i 0.1 to sleep 0.1 sec
+# per 100 SCAN commands (not usually needed).
+
+[00.00%] Hot key 'counter:000000000002' found so far with counter 87
+[00.00%] Hot key 'key:000000000001' found so far with counter 254
+[00.00%] Hot key 'mylist' found so far with counter 107
+[00.00%] Hot key 'key:000000000000' found so far with counter 254
+[45.45%] Hot key 'counter:000000000001' found so far with counter 87
+[45.45%] Hot key 'key:000000000002' found so far with counter 254
+[45.45%] Hot key 'myset' found so far with counter 64
+[45.45%] Hot key 'counter:000000000000' found so far with counter 93
+
+-------- summary -------
+
+Sampled 22 keys in the keyspace!
+hot key found with counter: 254    keyname: key:000000000001
+hot key found with counter: 254    keyname: key:000000000000
+hot key found with counter: 254    keyname: key:000000000002
+hot key found with counter: 107    keyname: mylist
+hot key found with counter: 93    keyname: counter:000000000000
+hot key found with counter: 87    keyname: counter:000000000002
+hot key found with counter: 87    keyname: counter:000000000001
+hot key found with counter: 64    keyname: myset
+</code></pre>
+
+<p>关于LFU的实现可以参考<a href="https://yq.aliyun.com/articles/278922">《Redis 4.0之基于LFU的热点key发现机制》</a></p>
+              
+            </div>
+          </div>
+          <div id="post-footer" class="post-footer main-content-wrap">
+            
+              
+                
+                
+                  <div class="post-footer-tags">
+                    <span class="text-color-light text-small">标签</span><br/>
+                    
+  <a class="tag tag--primary tag--small" href="https://harleylau.github.io/tags/redis/">redis</a>
+
+  <a class="tag tag--primary tag--small" href="https://harleylau.github.io/tags/hot-key/">hot key</a>
+
+                  </div>
+                
+              
+            
+            <div class="post-actions-wrap">
+  
+      <nav >
+        <ul class="post-actions post-action-nav">
+          
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--disabled">
+              
+                  <i class="fa fa-angle-left"></i>
+                  <span class="hide-xs hide-sm text-small icon-ml">下一篇</span>
+                </a>
+            </li>
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2019/01/%E4%BB%8E%E5%A4%B4%E5%AE%9E%E7%8E%B0lru/" data-tooltip="从头实现LRU">
+              
+                  <span class="hide-xs hide-sm text-small icon-mr">上一篇</span>
+                  <i class="fa fa-angle-right"></i>
+                </a>
+            </li>
+          
+        </ul>
+      </nav>
+    <ul class="post-actions post-action-share" >
+      
+        <li class="post-action hide-lg hide-md hide-sm">
+          <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions">
+            <i class="fa fa-share-alt"></i>
+          </a>
+        </li>
+        
+          <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://harleylau.github.io/2019/01/%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86redis%E9%9B%86%E7%BE%A4%E4%B8%AD%E7%9A%84hot-key/">
+              <i class="fa fa-facebook-official"></i>
+            </a>
+          </li>
+        
+          <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://harleylau.github.io/2019/01/%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86redis%E9%9B%86%E7%BE%A4%E4%B8%AD%E7%9A%84hot-key/">
+              <i class="fa fa-twitter"></i>
+            </a>
+          </li>
+        
+          <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://harleylau.github.io/2019/01/%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86redis%E9%9B%86%E7%BE%A4%E4%B8%AD%E7%9A%84hot-key/">
+              <i class="fa fa-google-plus"></i>
+            </a>
+          </li>
+        
+      
+      
+        <li class="post-action">
+          <a class="post-action-btn btn btn--default" href="#disqus_thread">
+            <i class="fa fa-comment-o"></i>
+          </a>
+        </li>
+      
+      <li class="post-action">
+        
+          <a class="post-action-btn btn btn--default" href="#table-of-contents">
+        
+          <i class="fa fa-list"></i>
+        </a>
+      </li>
+    </ul>
+  
+</div>
+
+            
+              
+                <div id="disqus_thread">
+  <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+              
+            
+          </div>
+        </article>
+        <footer id="footer" class="main-content-wrap">
+  <span class="copyrights">
+    &copy; 2019 Harley. All Rights Reserved
+  </span>
+</footer>
+
+      </div>
+      <div id="bottom-bar" class="post-bottom-bar" data-behavior="4">
+        <div class="post-actions-wrap">
+  
+      <nav >
+        <ul class="post-actions post-action-nav">
+          
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--disabled">
+              
+                  <i class="fa fa-angle-left"></i>
+                  <span class="hide-xs hide-sm text-small icon-ml">下一篇</span>
+                </a>
+            </li>
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2019/01/%E4%BB%8E%E5%A4%B4%E5%AE%9E%E7%8E%B0lru/" data-tooltip="从头实现LRU">
+              
+                  <span class="hide-xs hide-sm text-small icon-mr">上一篇</span>
+                  <i class="fa fa-angle-right"></i>
+                </a>
+            </li>
+          
+        </ul>
+      </nav>
+    <ul class="post-actions post-action-share" >
+      
+        <li class="post-action hide-lg hide-md hide-sm">
+          <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions">
+            <i class="fa fa-share-alt"></i>
+          </a>
+        </li>
+        
+          <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://harleylau.github.io/2019/01/%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86redis%E9%9B%86%E7%BE%A4%E4%B8%AD%E7%9A%84hot-key/">
+              <i class="fa fa-facebook-official"></i>
+            </a>
+          </li>
+        
+          <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://harleylau.github.io/2019/01/%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86redis%E9%9B%86%E7%BE%A4%E4%B8%AD%E7%9A%84hot-key/">
+              <i class="fa fa-twitter"></i>
+            </a>
+          </li>
+        
+          <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://harleylau.github.io/2019/01/%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86redis%E9%9B%86%E7%BE%A4%E4%B8%AD%E7%9A%84hot-key/">
+              <i class="fa fa-google-plus"></i>
+            </a>
+          </li>
+        
+      
+      
+        <li class="post-action">
+          <a class="post-action-btn btn btn--default" href="#disqus_thread">
+            <i class="fa fa-comment-o"></i>
+          </a>
+        </li>
+      
+      <li class="post-action">
+        
+          <a class="post-action-btn btn btn--default" href="#table-of-contents">
+        
+          <i class="fa fa-list"></i>
+        </a>
+      </li>
+    </ul>
+  
+</div>
+
+      </div>
+      <div id="share-options-bar" class="share-options-bar" data-behavior="4">
+  <i id="btn-close-shareoptions" class="fa fa-close"></i>
+  <ul class="share-options">
+    
+      <li class="share-option">
+        <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fharleylau.github.io%2F2019%2F01%2F%25E5%25A6%2582%25E4%25BD%2595%25E5%25A4%2584%25E7%2590%2586redis%25E9%259B%2586%25E7%25BE%25A4%25E4%25B8%25AD%25E7%259A%2584hot-key%2F">
+          <i class="fa fa-facebook-official"></i><span>分享到 Facebook</span>
+        </a>
+      </li>
+    
+      <li class="share-option">
+        <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=https%3A%2F%2Fharleylau.github.io%2F2019%2F01%2F%25E5%25A6%2582%25E4%25BD%2595%25E5%25A4%2584%25E7%2590%2586redis%25E9%259B%2586%25E7%25BE%25A4%25E4%25B8%25AD%25E7%259A%2584hot-key%2F">
+          <i class="fa fa-twitter"></i><span>分享到 Twitter</span>
+        </a>
+      </li>
+    
+      <li class="share-option">
+        <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=https%3A%2F%2Fharleylau.github.io%2F2019%2F01%2F%25E5%25A6%2582%25E4%25BD%2595%25E5%25A4%2584%25E7%2590%2586redis%25E9%259B%2586%25E7%25BE%25A4%25E4%25B8%25AD%25E7%259A%2584hot-key%2F">
+          <i class="fa fa-google-plus"></i><span>分享到 Google&#43;</span>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+<div id="share-options-mask" class="share-options-mask"></div>
+    </div>
+    
+    <div id="about">
+  <div id="about-card">
+    <div id="about-btn-close">
+      <i class="fa fa-remove"></i>
+    </div>
+    
+      <img id="about-card-picture" src="https://harleylau.github.io/img/harleylau.jpg" alt="作者的图片" />
+    
+    <h4 id="about-card-name">Harley</h4>
+    
+    
+    
+      <div id="about-card-location">
+        <i class="fa fa-map-marker"></i>
+        <br/>
+        China
+      </div>
+    
+  </div>
+</div>
+
+    <div id="algolia-search-modal" class="modal-container">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="close-button"><i class="fa fa-close"></i></span>
+      <a href="https://algolia.com" target="_blank" rel="noopener" class="searchby-algolia text-color-light link-unstyled">
+        <span class="searchby-algolia-text text-color-light text-small">by</span>
+        <img class="searchby-algolia-logo" src="https://www.algolia.com/static_assets/images/press/downloads/algolia-light.svg">
+      </a>
+      <i class="search-icon fa fa-search"></i>
+      <form id="algolia-search-form">
+        <input type="text" id="algolia-search-input" name="search"
+          class="form-control input--large search-input" placeholder="搜索" />
+      </form>
+    </div>
+    <div class="modal-body">
+      <div class="no-result text-color-light text-center"></div>
+      <div class="results">
+        
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2019/01/%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86redis%E9%9B%86%E7%BE%A4%E4%B8%AD%E7%9A%84hot-key/">
+                <h3 class="media-heading">如何处理redis集群中的hot Key</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Jan 1, 2019
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><!--toc-->
+
+<p>一般对于单实例的redis或者一主一备的redis来说，不需要考虑hot key的问题。但是随着业务量的上升，redis集群也自然而然的会成为一个选择。</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2019/01/%E4%BB%8E%E5%A4%B4%E5%AE%9E%E7%8E%B0lru/">
+                <h3 class="media-heading">从头实现LRU</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Jan 1, 2019
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><!--toc-->
+
+<p>本文设计和实现一个LRU（最近最少使用）缓存数据结构。</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2019/01/%E4%BD%BF%E7%94%A8redis%E7%9A%84%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/">
+                <h3 class="media-heading">使用Redis的分布式锁</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Jan 1, 2019
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>译自： <a href="https://redis.io/topics/distlock#the-redlock-algorithm">https://redis.io/topics/distlock#the-redlock-algorithm</a></p>
+
+<p>在许多环境中，分布式锁是一种非常有用的原语，其中不同的进程必须以互斥的方式与共享资源一起运行。</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2019/01/%E4%BD%BF%E7%94%A8redis-setnx-%E5%91%BD%E4%BB%A4%E5%AE%9E%E7%8E%B0%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/">
+                <h3 class="media-heading">使用Redis SETNX 命令实现分布式锁</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Jan 1, 2019
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>使用Redis的 SETNX 命令可以实现分布式锁，本文介绍其实现方法。</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2019/01/hbase-rowkey-%E8%AE%BE%E8%AE%A1/">
+                <h3 class="media-heading">HBase Rowkey 设计</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Jan 1, 2019
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><!-- toc -->
+
+<p>HBase中的rowkey唯一的决定了一行数据，使用HBase的场景多种多样， rowkey设计的好坏很大程度上决定了应用场景中的执行效率。</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2018/11/elastic-search-%E4%B8%8D%E5%81%9C%E6%9C%8D%E9%87%8D%E5%BB%BA%E7%B4%A2%E5%BC%95/">
+                <h3 class="media-heading">Elastic Search 不停服重建索引</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Nov 11, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><!--toc--></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2018/11/kibana%E5%92%8Cmarval%E4%B8%AD%E7%9A%84search-rate%E8%A1%A8%E7%A4%BA%E4%BB%80%E4%B9%88/">
+                <h3 class="media-heading">Kibana和Marval中的Search Rate表示什么</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Nov 11, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>Kibana和Marval中的Search Rate表示什么</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2018/07/mysql%E8%BF%81%E7%A7%BB%E6%95%B0%E6%8D%AE%E7%9B%AE%E5%BD%95%E5%90%8E%E6%97%A0%E6%B3%95%E5%90%AF%E5%8A%A8/">
+                <h3 class="media-heading">Mysql迁移数据目录后无法启动</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Jul 7, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>有时候我们需要迁移Mysql的数据存储目录， 网上有很多类似的教程，具体的不赘述。 但是我们在迁移的时候，经常会碰到迁移之后，mysql无法正常启动， 查看启动日志发现报了 “errno：13  ”的错误， 对照错误表，我们能够知道这个其实是一个权限的问题。</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2018/07/tornado%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/">
+                <h3 class="media-heading">Tornado启动流程分析</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Jul 7, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>我们先来看一下所有地方都会出现的Hello World的例子：</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2018/07/python%E5%81%8F%E5%87%BD%E6%95%B0partial-function/">
+                <h3 class="media-heading">Python偏函数Partial Function</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Jul 7, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>Python的functools模块提供了很多有用的功能，其中一个就是偏函数（Partial function）</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+      </div>
+    </div>
+    <div class="modal-footer">
+      <p class="results-count text-medium"
+         data-message-zero=""
+         data-message-one=""
+         data-message-other="">
+         36 posts found
+      </p>
+    </div>
+  </div>
+</div>
+    
+  
+    
+    <div id="cover" style="background-image:url('https://harleylau.github.io/images/cover.jpg');"></div>
+  
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js" integrity="sha256-/BfiIkHlHoVihZdc6TFuj7MmJ0TWcWsMXkeDFwhi0zw=" crossorigin="anonymous"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.7/js/jquery.fancybox.min.js" integrity="sha256-GEAnjcTqVP+vBp3SSc8bEDQqvWAZMiHyUSIorrWwH50=" crossorigin="anonymous"></script>
+
+
+<script src="https://harleylau.github.io/js/script-qi9wbxp2ya2j6p7wx1i6tgavftewndznf4v0hy2gvivk1rxgc3lm7njqb6bz.min.js"></script>
+
+
+<script lang="javascript">
+window.onload = updateMinWidth;
+window.onresize = updateMinWidth;
+document.getElementById("sidebar").addEventListener("transitionend", updateMinWidth);
+function updateMinWidth() {
+  var sidebar = document.getElementById("sidebar");
+  var main = document.getElementById("main");
+  main.style.minWidth = "";
+  var w1 = getComputedStyle(main).getPropertyValue("min-width");
+  var w2 = getComputedStyle(sidebar).getPropertyValue("width");
+  var w3 = getComputedStyle(sidebar).getPropertyValue("left");
+  main.style.minWidth = `calc(${w1} - ${w2} - ${w3})`;
+}
+</script>
+
+<script>
+$(document).ready(function() {
+  hljs.configure({ classPrefix: '', useBR: false });
+  $('pre.code-highlight > code, pre > code').each(function(i, block) {
+    if (!$(this).hasClass('codeblock')) {
+      $(this).addClass('codeblock');
+    }
+    hljs.highlightBlock(block);
+  });
+});
+</script>
+
+
+  
+    
+      <script>
+        var disqus_config = function () {
+          this.page.url = 'https:\/\/harleylau.github.io\/2019\/01\/%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86redis%E9%9B%86%E7%BE%A4%E4%B8%AD%E7%9A%84hot-key\/';
+          
+            this.page.identifier = '\/2019\/01\/%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86redis%E9%9B%86%E7%BE%A4%E4%B8%AD%E7%9A%84hot-key\/'
+          
+        };
+        (function() {
+          
+          
+          if (window.location.hostname == "localhost") {
+            return;
+          }
+          var d = document, s = d.createElement('script');
+          var disqus_shortname = 'harleylau';
+          s.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+
+          s.setAttribute('data-timestamp', +new Date());
+          (d.head || d.body).appendChild(s);
+        })();
+      </script>
+    
+  
+
+
+
+
+    
+  </body>
+</html>
+
