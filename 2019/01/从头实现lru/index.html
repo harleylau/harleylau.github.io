@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="generator" content="Hugo 0.52 with theme Tranquilpeak 0.4.3-SNAPSHOT">
+<meta name="author" content="Harley">
+<meta name="keywords" content="LRU">
+<meta name="description" content="
+
+本文设计和实现一个LRU（最近最少使用）缓存数据结构。">
+
+
+<meta property="og:description" content="
+
+本文设计和实现一个LRU（最近最少使用）缓存数据结构。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="从头实现LRU">
+<meta name="twitter:title" content="从头实现LRU">
+<meta property="og:url" content="https://harleylau.github.io/2019/01/%E4%BB%8E%E5%A4%B4%E5%AE%9E%E7%8E%B0lru/">
+<meta property="twitter:url" content="https://harleylau.github.io/2019/01/%E4%BB%8E%E5%A4%B4%E5%AE%9E%E7%8E%B0lru/">
+<meta property="og:site_name" content="Harley">
+<meta property="og:description" content="
+
+本文设计和实现一个LRU（最近最少使用）缓存数据结构。">
+<meta name="twitter:description" content="
+
+本文设计和实现一个LRU（最近最少使用）缓存数据结构。">
+<meta property="og:locale" content="zh-cn">
+
+  
+    <meta property="article:published_time" content="2019-01-08T19:10:03">
+  
+  
+    <meta property="article:modified_time" content="2019-01-08T19:10:03">
+  
+  
+  
+    
+      <meta property="article:section" content="LRU">
+    
+  
+  
+    
+      <meta property="article:tag" content="LRU">
+    
+  
+
+
+<meta name="twitter:card" content="summary">
+
+
+
+
+
+
+
+
+
+
+
+  <meta property="og:image" content="https://harleylau.github.io/img/harleylau.jpg">
+  <meta property="twitter:image" content="https://harleylau.github.io/img/harleylau.jpg">
+
+
+    <title>从头实现LRU</title>
+
+    <link rel="icon" href="https://harleylau.github.io/favicon.png">
+    
+
+    
+
+    <link rel="canonical" href="https://harleylau.github.io/2019/01/%E4%BB%8E%E5%A4%B4%E5%AE%9E%E7%8E%B0lru/">
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.4/jquery.fancybox.min.css" integrity="sha256-vuXZ9LGmmwtjqFX1F+EKin1ThZMub58gKULUyf0qECk=" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.4/helpers/jquery.fancybox-thumbs.min.css" integrity="sha256-SEa4XYAHihTcEP1f5gARTB2K26Uk8PsndQYHQC1f4jU=" crossorigin="anonymous" />
+    
+    
+    <link rel="stylesheet" href="https://harleylau.github.io/css/style-nnm2spxvve8onlujjlegkkytaehyadd4ksxc1hyzzq9a2wvtrgbljqyulomn.min.css" />
+    
+    
+
+    
+      
+    
+    
+  </head>
+
+  <body>
+    <div id="blog">
+      <header id="header" data-behavior="4">
+  <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+  <div class="header-title">
+    <a class="header-title-link" href="https://harleylau.github.io/">Harley</a>
+  </div>
+  
+    
+      <a class="header-right-picture "
+         href="https://harleylau.github.io/#about">
+    
+    
+    
+      
+        <img class="header-picture" src="https://harleylau.github.io/img/harleylau.jpg" alt="作者的图片" />
+      
+    
+    </a>
+  
+</header>
+
+      <nav id="sidebar" data-behavior="4">
+  <div class="sidebar-container">
+    
+      <div class="sidebar-profile">
+        <a href="https://harleylau.github.io/#about">
+          <img class="sidebar-profile-picture" src="https://harleylau.github.io/img/harleylau.jpg" alt="作者的图片" />
+        </a>
+        <h4 class="sidebar-profile-name">Harley</h4>
+        
+      </div>
+    
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://harleylau.github.io/">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-home"></i>
+      
+      <span class="sidebar-button-desc">首页</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://harleylau.github.io/categories">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-bookmark"></i>
+      
+      <span class="sidebar-button-desc">分类</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://harleylau.github.io/tags">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-tags"></i>
+      
+      <span class="sidebar-button-desc">标签</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://harleylau.github.io/archives">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-archive"></i>
+      
+      <span class="sidebar-button-desc">归档</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://harleylau.github.io/#about">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-question"></i>
+      
+      <span class="sidebar-button-desc">关于</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://github.com/harleylau" target="_blank" rel="noopener">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-github"></i>
+      
+      <span class="sidebar-button-desc">GitHub</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://blog.csdn.net/harleylau" target="_blank" rel="noopener">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-code"></i>
+      
+      <span class="sidebar-button-desc">CSDN</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://harleylau.github.io/index.xml">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-rss"></i>
+      
+      <span class="sidebar-button-desc">RSS</span>
+    </a>
+  </li>
+
+
+    </ul>
+  </div>
+</nav>
+
+      
+
+      <div id="main" data-behavior="4"
+        class="
+               hasCoverMetaIn
+               ">
+        <article class="post" itemscope itemType="http://schema.org/BlogPosting">
+          
+          
+            <div class="post-header main-content-wrap text-left">
+  
+    <h1 class="post-title" itemprop="headline">
+      从头实现LRU
+    </h1>
+  
+  
+  <div class="postShorten-meta post-meta">
+    
+      <time itemprop="datePublished" datetime="2019-01-08T19:10:03&#43;08:00">
+        
+  一月 8, 2019
+
+      </time>
+    
+    
+  
+  
+    <span>发布在</span>
+    
+      <a class="category-link" href="https://harleylau.github.io/categories/lru">LRU</a>
+    
+  
+
+  </div>
+
+</div>
+          
+          <div class="post-content markdown" itemprop="articleBody">
+            <div class="main-content-wrap">
+              <h1 id="table-of-contents">目录</h1><nav id="TableOfContents">
+<ul>
+<li><a href="#lru格式定义">LRU格式定义</a></li>
+<li><a href="#put放入新值">PUT放入新值</a></li>
+<li><a href="#get取值">GET取值</a></li>
+<li><a href="#删除最老的值">删除最老的值</a></li>
+<li><a href="#删除对应key">删除对应key</a></li>
+</ul>
+</nav>
+
+<p>本文设计和实现一个LRU（最近最少使用）缓存数据结构。</p>
+
+<p>按照LRU的概念，我们需要做到:</p>
+
+<ol>
+<li>PUT数据的时候，如果数据不存在，加入到cache中</li>
+<li>PUT数据的时候，如果超过cache大小，删除最常不用的key</li>
+<li>GET数据的时候，如果数据存在，当前key被激活为最近刚使用的</li>
+</ol>
+
+<p>为了实现上边的操作，我们可以使用一个有序列表用来存储key和value对，刚加入或者刚刚被读取过的放在列表的头上； 当空间不够，需要删除的时候，直接删除链表尾部的键值对。</p>
+
+<p>同时，为了在取数据的时候，能够快速的用O(1)的时间直接找到对应的键值对，另外用一个map存储对应关系，map的key对应的值就是键值对的地址。</p>
+
+<p>接下去用golang简单的实现LRU的cache。</p>
+
+<h1 id="lru格式定义">LRU格式定义</h1>
+
+<p>通过上边的描述，能很快的得到LRU的结构定义：</p>
+
+<pre><code>// LRU implements a fixed size LRU cache
+type LRU struct {
+	size      int
+	cacheList *list.List
+	items     map[interface{}]*list.Element
+}
+</code></pre>
+
+<p>size表示cache总体的大小，cacheList是一个链表，用来存具体的键值对， items是一个map，能够通过key快速的取到对应的键值对的地址。</p>
+
+<p>我们另外定义键值对的格式：</p>
+
+<pre><code>// item defines the item in the LRU list
+type cacheItem struct {
+	key   interface{}
+	value interface{}
+}
+</code></pre>
+
+<h1 id="put放入新值">PUT放入新值</h1>
+
+<p>往LRU cache放入值的时候，需要先判断是否已经存在了这个key，如果已经存在了， 就对这个key进行更新，放入新的值；如果不存在，需要新建一个键值对，将新的键值对放到链表的头部，同时将key和地址加入到map。</p>
+
+<p>如果放入值后空间不够用了，需要删除最老的键值对。</p>
+
+<pre><code>// Put add item to LRU cache, if the key already exists, update the value
+func (c *LRU) Put(key, value interface{}) {
+	// check if the key exists
+	if item, ok := c.items[key]; ok {
+		// move the item to the front
+		c.cacheList.MoveToFront(item)
+		// update the item value
+		item.Value.(*cacheItem).value = value
+		return
+	}
+
+	// add new item
+	item := &amp;cacheItem{key, value}
+	item1 := c.cacheList.PushFront(item)
+	c.items[key] = item1
+
+	//check if the cache is full
+	if c.cacheList.Len() &gt; c.size {
+		c.removeOldest()
+	}
+}
+</code></pre>
+
+<p>removeOldest就是用来删除最老的键值对，稍后描述它的实现。</p>
+
+<h1 id="get取值">GET取值</h1>
+
+<p>取值的过程相对比较简单，只要在map中查看是否有对应的key，没有的话返回空；有的话返回对应的值，同时需要把对应键值对挪动到链表的头部，因为它刚被访问了。</p>
+
+<pre><code>// Get return the value of the key, nil if not exists
+func (c *LRU) Get(key interface{}) (value interface{}, err error) {
+	if item, ok := c.items[key]; ok {
+		c.cacheList.MoveToFront(item)
+		return item.Value.(*cacheItem).value, nil
+	}
+	return nil, errors.New(&quot;empty&quot;)
+}
+</code></pre>
+
+<h1 id="删除最老的值">删除最老的值</h1>
+
+<p>删除最老的值，直接取链表的最后一个节点进行删除，删除的时候既要删除链表中的这个节点，也要同时删除map中的对应关系。</p>
+
+<pre><code>func (c *LRU) removeOldest() {
+	item := c.cacheList.Back()
+	if item != nil {
+		c.removeItem(item)
+	}
+}
+
+// removeItem . remove item in the LRU cache
+func (c *LRU) removeItem(item *list.Element) {
+	// remove item from list
+	c.cacheList.Remove(item)
+	kv := item.Value.(*cacheItem)
+	// delete key in the map
+	delete(c.items, kv.key)
+}
+</code></pre>
+
+<h1 id="删除对应key">删除对应key</h1>
+
+<p>删除key的时候，先通过key在map中找对对应的地址，然后调用上边的removeItem函数进行删除。</p>
+
+<pre><code>// Del . delete the key in LRU cache, return true if exists, else return false
+func (c *LRU) Del(key interface{}) bool {
+	if item, ok := c.items[key]; ok {
+		c.removeItem(item)
+		return true
+	}
+	return false
+}
+</code></pre>
+
+<p>总体的代码实例可以参见：<a href="https://github.com/harleylau/go-lru">https://github.com/harleylau/go-lru</a></p>
+              
+            </div>
+          </div>
+          <div id="post-footer" class="post-footer main-content-wrap">
+            
+              
+                
+                
+                  <div class="post-footer-tags">
+                    <span class="text-color-light text-small">标签</span><br/>
+                    
+  <a class="tag tag--primary tag--small" href="https://harleylau.github.io/tags/lru/">LRU</a>
+
+                  </div>
+                
+              
+            
+            <div class="post-actions-wrap">
+  
+      <nav >
+        <ul class="post-actions post-action-nav">
+          
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--disabled">
+              
+                  <i class="fa fa-angle-left"></i>
+                  <span class="hide-xs hide-sm text-small icon-ml">下一篇</span>
+                </a>
+            </li>
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2019/01/%E4%BD%BF%E7%94%A8redis%E7%9A%84%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" data-tooltip="使用Redis的分布式锁">
+              
+                  <span class="hide-xs hide-sm text-small icon-mr">上一篇</span>
+                  <i class="fa fa-angle-right"></i>
+                </a>
+            </li>
+          
+        </ul>
+      </nav>
+    <ul class="post-actions post-action-share" >
+      
+        <li class="post-action hide-lg hide-md hide-sm">
+          <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions">
+            <i class="fa fa-share-alt"></i>
+          </a>
+        </li>
+        
+          <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://harleylau.github.io/2019/01/%E4%BB%8E%E5%A4%B4%E5%AE%9E%E7%8E%B0lru/">
+              <i class="fa fa-facebook-official"></i>
+            </a>
+          </li>
+        
+          <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://harleylau.github.io/2019/01/%E4%BB%8E%E5%A4%B4%E5%AE%9E%E7%8E%B0lru/">
+              <i class="fa fa-twitter"></i>
+            </a>
+          </li>
+        
+          <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://harleylau.github.io/2019/01/%E4%BB%8E%E5%A4%B4%E5%AE%9E%E7%8E%B0lru/">
+              <i class="fa fa-google-plus"></i>
+            </a>
+          </li>
+        
+      
+      
+        <li class="post-action">
+          <a class="post-action-btn btn btn--default" href="#disqus_thread">
+            <i class="fa fa-comment-o"></i>
+          </a>
+        </li>
+      
+      <li class="post-action">
+        
+          <a class="post-action-btn btn btn--default" href="#table-of-contents">
+        
+          <i class="fa fa-list"></i>
+        </a>
+      </li>
+    </ul>
+  
+</div>
+
+            
+              
+                <div id="disqus_thread">
+  <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+              
+            
+          </div>
+        </article>
+        <footer id="footer" class="main-content-wrap">
+  <span class="copyrights">
+    &copy; 2019 Harley. All Rights Reserved
+  </span>
+</footer>
+
+      </div>
+      <div id="bottom-bar" class="post-bottom-bar" data-behavior="4">
+        <div class="post-actions-wrap">
+  
+      <nav >
+        <ul class="post-actions post-action-nav">
+          
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--disabled">
+              
+                  <i class="fa fa-angle-left"></i>
+                  <span class="hide-xs hide-sm text-small icon-ml">下一篇</span>
+                </a>
+            </li>
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2019/01/%E4%BD%BF%E7%94%A8redis%E7%9A%84%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" data-tooltip="使用Redis的分布式锁">
+              
+                  <span class="hide-xs hide-sm text-small icon-mr">上一篇</span>
+                  <i class="fa fa-angle-right"></i>
+                </a>
+            </li>
+          
+        </ul>
+      </nav>
+    <ul class="post-actions post-action-share" >
+      
+        <li class="post-action hide-lg hide-md hide-sm">
+          <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions">
+            <i class="fa fa-share-alt"></i>
+          </a>
+        </li>
+        
+          <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://harleylau.github.io/2019/01/%E4%BB%8E%E5%A4%B4%E5%AE%9E%E7%8E%B0lru/">
+              <i class="fa fa-facebook-official"></i>
+            </a>
+          </li>
+        
+          <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://harleylau.github.io/2019/01/%E4%BB%8E%E5%A4%B4%E5%AE%9E%E7%8E%B0lru/">
+              <i class="fa fa-twitter"></i>
+            </a>
+          </li>
+        
+          <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://harleylau.github.io/2019/01/%E4%BB%8E%E5%A4%B4%E5%AE%9E%E7%8E%B0lru/">
+              <i class="fa fa-google-plus"></i>
+            </a>
+          </li>
+        
+      
+      
+        <li class="post-action">
+          <a class="post-action-btn btn btn--default" href="#disqus_thread">
+            <i class="fa fa-comment-o"></i>
+          </a>
+        </li>
+      
+      <li class="post-action">
+        
+          <a class="post-action-btn btn btn--default" href="#table-of-contents">
+        
+          <i class="fa fa-list"></i>
+        </a>
+      </li>
+    </ul>
+  
+</div>
+
+      </div>
+      <div id="share-options-bar" class="share-options-bar" data-behavior="4">
+  <i id="btn-close-shareoptions" class="fa fa-close"></i>
+  <ul class="share-options">
+    
+      <li class="share-option">
+        <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fharleylau.github.io%2F2019%2F01%2F%25E4%25BB%258E%25E5%25A4%25B4%25E5%25AE%259E%25E7%258E%25B0lru%2F">
+          <i class="fa fa-facebook-official"></i><span>分享到 Facebook</span>
+        </a>
+      </li>
+    
+      <li class="share-option">
+        <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=https%3A%2F%2Fharleylau.github.io%2F2019%2F01%2F%25E4%25BB%258E%25E5%25A4%25B4%25E5%25AE%259E%25E7%258E%25B0lru%2F">
+          <i class="fa fa-twitter"></i><span>分享到 Twitter</span>
+        </a>
+      </li>
+    
+      <li class="share-option">
+        <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=https%3A%2F%2Fharleylau.github.io%2F2019%2F01%2F%25E4%25BB%258E%25E5%25A4%25B4%25E5%25AE%259E%25E7%258E%25B0lru%2F">
+          <i class="fa fa-google-plus"></i><span>分享到 Google&#43;</span>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+<div id="share-options-mask" class="share-options-mask"></div>
+    </div>
+    
+    <div id="about">
+  <div id="about-card">
+    <div id="about-btn-close">
+      <i class="fa fa-remove"></i>
+    </div>
+    
+      <img id="about-card-picture" src="https://harleylau.github.io/img/harleylau.jpg" alt="作者的图片" />
+    
+    <h4 id="about-card-name">Harley</h4>
+    
+    
+    
+      <div id="about-card-location">
+        <i class="fa fa-map-marker"></i>
+        <br/>
+        China
+      </div>
+    
+  </div>
+</div>
+
+    <div id="algolia-search-modal" class="modal-container">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="close-button"><i class="fa fa-close"></i></span>
+      <a href="https://algolia.com" target="_blank" rel="noopener" class="searchby-algolia text-color-light link-unstyled">
+        <span class="searchby-algolia-text text-color-light text-small">by</span>
+        <img class="searchby-algolia-logo" src="https://www.algolia.com/static_assets/images/press/downloads/algolia-light.svg">
+      </a>
+      <i class="search-icon fa fa-search"></i>
+      <form id="algolia-search-form">
+        <input type="text" id="algolia-search-input" name="search"
+          class="form-control input--large search-input" placeholder="搜索" />
+      </form>
+    </div>
+    <div class="modal-body">
+      <div class="no-result text-color-light text-center"></div>
+      <div class="results">
+        
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2019/01/%E4%BB%8E%E5%A4%B4%E5%AE%9E%E7%8E%B0lru/">
+                <h3 class="media-heading">从头实现LRU</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Jan 1, 2019
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><!--toc-->
+
+<p>本文设计和实现一个LRU（最近最少使用）缓存数据结构。</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2019/01/%E4%BD%BF%E7%94%A8redis%E7%9A%84%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/">
+                <h3 class="media-heading">使用Redis的分布式锁</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Jan 1, 2019
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>译自： <a href="https://redis.io/topics/distlock#the-redlock-algorithm">https://redis.io/topics/distlock#the-redlock-algorithm</a></p>
+
+<p>在许多环境中，分布式锁是一种非常有用的原语，其中不同的进程必须以互斥的方式与共享资源一起运行。</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2019/01/%E4%BD%BF%E7%94%A8redis-setnx-%E5%91%BD%E4%BB%A4%E5%AE%9E%E7%8E%B0%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/">
+                <h3 class="media-heading">使用Redis SETNX 命令实现分布式锁</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Jan 1, 2019
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>使用Redis的 SETNX 命令可以实现分布式锁，本文介绍其实现方法。</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2019/01/hbase-rowkey-%E8%AE%BE%E8%AE%A1/">
+                <h3 class="media-heading">HBase Rowkey 设计</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Jan 1, 2019
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><!-- toc -->
+
+<p>HBase中的rowkey唯一的决定了一行数据，使用HBase的场景多种多样， rowkey设计的好坏很大程度上决定了应用场景中的执行效率。</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2018/11/elastic-search-%E4%B8%8D%E5%81%9C%E6%9C%8D%E9%87%8D%E5%BB%BA%E7%B4%A2%E5%BC%95/">
+                <h3 class="media-heading">Elastic Search 不停服重建索引</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Nov 11, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><!--toc--></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2018/11/kibana%E5%92%8Cmarval%E4%B8%AD%E7%9A%84search-rate%E8%A1%A8%E7%A4%BA%E4%BB%80%E4%B9%88/">
+                <h3 class="media-heading">Kibana和Marval中的Search Rate表示什么</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Nov 11, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>Kibana和Marval中的Search Rate表示什么</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2018/07/mysql%E8%BF%81%E7%A7%BB%E6%95%B0%E6%8D%AE%E7%9B%AE%E5%BD%95%E5%90%8E%E6%97%A0%E6%B3%95%E5%90%AF%E5%8A%A8/">
+                <h3 class="media-heading">Mysql迁移数据目录后无法启动</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Jul 7, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>有时候我们需要迁移Mysql的数据存储目录， 网上有很多类似的教程，具体的不赘述。 但是我们在迁移的时候，经常会碰到迁移之后，mysql无法正常启动， 查看启动日志发现报了 “errno：13  ”的错误， 对照错误表，我们能够知道这个其实是一个权限的问题。</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2018/07/tornado%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/">
+                <h3 class="media-heading">Tornado启动流程分析</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Jul 7, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>我们先来看一下所有地方都会出现的Hello World的例子：</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2018/07/python%E5%81%8F%E5%87%BD%E6%95%B0partial-function/">
+                <h3 class="media-heading">Python偏函数Partial Function</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Jul 7, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>Python的functools模块提供了很多有用的功能，其中一个就是偏函数（Partial function）</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2018/06/python%E7%9A%84orm%E6%A1%86%E6%9E%B6sqlalchemy%E7%9A%84%E6%9F%A5%E8%AF%A2%E5%A4%9A%E6%9D%A1%E6%95%B0%E6%8D%AE%E5%8F%AA%E6%98%BE%E7%A4%BA%E4%B8%80%E6%9D%A1/">
+                <h3 class="media-heading">Python的ORM框架sqlalchemy的查询多条数据只显示一条</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Jun 6, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><!--toc-->
+
+<p>这个情况可能很少碰到， 但确实花了我不少时间去找这个错误，这边记录一下。</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+      </div>
+    </div>
+    <div class="modal-footer">
+      <p class="results-count text-medium"
+         data-message-zero=""
+         data-message-one=""
+         data-message-other="">
+         35 posts found
+      </p>
+    </div>
+  </div>
+</div>
+    
+  
+    
+    <div id="cover" style="background-image:url('https://harleylau.github.io/images/cover.jpg');"></div>
+  
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js" integrity="sha256-/BfiIkHlHoVihZdc6TFuj7MmJ0TWcWsMXkeDFwhi0zw=" crossorigin="anonymous"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.7/js/jquery.fancybox.min.js" integrity="sha256-GEAnjcTqVP+vBp3SSc8bEDQqvWAZMiHyUSIorrWwH50=" crossorigin="anonymous"></script>
+
+
+<script src="https://harleylau.github.io/js/script-qi9wbxp2ya2j6p7wx1i6tgavftewndznf4v0hy2gvivk1rxgc3lm7njqb6bz.min.js"></script>
+
+
+<script lang="javascript">
+window.onload = updateMinWidth;
+window.onresize = updateMinWidth;
+document.getElementById("sidebar").addEventListener("transitionend", updateMinWidth);
+function updateMinWidth() {
+  var sidebar = document.getElementById("sidebar");
+  var main = document.getElementById("main");
+  main.style.minWidth = "";
+  var w1 = getComputedStyle(main).getPropertyValue("min-width");
+  var w2 = getComputedStyle(sidebar).getPropertyValue("width");
+  var w3 = getComputedStyle(sidebar).getPropertyValue("left");
+  main.style.minWidth = `calc(${w1} - ${w2} - ${w3})`;
+}
+</script>
+
+<script>
+$(document).ready(function() {
+  hljs.configure({ classPrefix: '', useBR: false });
+  $('pre.code-highlight > code, pre > code').each(function(i, block) {
+    if (!$(this).hasClass('codeblock')) {
+      $(this).addClass('codeblock');
+    }
+    hljs.highlightBlock(block);
+  });
+});
+</script>
+
+
+  
+    
+      <script>
+        var disqus_config = function () {
+          this.page.url = 'https:\/\/harleylau.github.io\/2019\/01\/%E4%BB%8E%E5%A4%B4%E5%AE%9E%E7%8E%B0lru\/';
+          
+            this.page.identifier = '\/2019\/01\/%E4%BB%8E%E5%A4%B4%E5%AE%9E%E7%8E%B0lru\/'
+          
+        };
+        (function() {
+          
+          
+          if (window.location.hostname == "localhost") {
+            return;
+          }
+          var d = document, s = d.createElement('script');
+          var disqus_shortname = 'harleylau';
+          s.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+
+          s.setAttribute('data-timestamp', +new Date());
+          (d.head || d.body).appendChild(s);
+        })();
+      </script>
+    
+  
+
+
+
+
+    
+  </body>
+</html>
+

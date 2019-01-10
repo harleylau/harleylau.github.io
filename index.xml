@@ -6,10 +6,21 @@
     <description>Recent content on Harley</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sat, 05 Jan 2019 19:17:34 +0800</lastBuildDate>
+    <lastBuildDate>Tue, 08 Jan 2019 19:10:03 +0800</lastBuildDate>
     
 	<atom:link href="https://harleylau.github.io/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>从头实现LRU</title>
+      <link>https://harleylau.github.io/2019/01/%E4%BB%8E%E5%A4%B4%E5%AE%9E%E7%8E%B0lru/</link>
+      <pubDate>Tue, 08 Jan 2019 19:10:03 +0800</pubDate>
+      
+      <guid>https://harleylau.github.io/2019/01/%E4%BB%8E%E5%A4%B4%E5%AE%9E%E7%8E%B0lru/</guid>
+      <description>&lt;!--toc--&gt;
+
+&lt;p&gt;本文设计和实现一个LRU（最近最少使用）缓存数据结构。&lt;/p&gt;</description>
+    </item>
     
     <item>
       <title>使用Redis的分布式锁</title>
