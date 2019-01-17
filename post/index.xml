@@ -6,10 +6,19 @@
     <description>Recent content in Posts on Harley</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Thu, 10 Jan 2019 17:39:10 +0800</lastBuildDate>
+    <lastBuildDate>Thu, 17 Jan 2019 14:53:56 +0800</lastBuildDate>
     
 	<atom:link href="https://harleylau.github.io/post/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>跟Gin一块搭建自己的web框架(一)</title>
+      <link>https://harleylau.github.io/2019/01/%E8%B7%9Fgin%E4%B8%80%E5%9D%97%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84web%E6%A1%86%E6%9E%B6%E4%B8%80/</link>
+      <pubDate>Thu, 17 Jan 2019 14:53:56 +0800</pubDate>
+      
+      <guid>https://harleylau.github.io/2019/01/%E8%B7%9Fgin%E4%B8%80%E5%9D%97%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84web%E6%A1%86%E6%9E%B6%E4%B8%80/</guid>
+      <description>&lt;p&gt;Golang提供了非常完善的net/http标准库，基于这个标准库能够很容易的就构建一个能用的web框架。现在的开源社区上有很多的go web框架，提供了丰富的选择性，从大而全的beego，到轻便的gin、echo等等。&lt;/p&gt;</description>
+    </item>
     
     <item>
       <title>如何处理redis集群中的hot Key</title>
