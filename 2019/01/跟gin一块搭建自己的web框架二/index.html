@@ -347,7 +347,7 @@ func (mux *ServeMux) Handle(pattern string, handler Handler) {
 
 <p>如果第二个handler参数传的是nil，就用启用默认的DefaultServeMux ， 而我们之前已经把对应的路由加到了DefaultServeMux的map里边，来了请求之后直接去map里边找对应的关系就行。</p>
 
-<p>换句话说，如果我们要实现自己的路由功能，只需要按照默认的格式定义录用，在启动的时候，将我们的自定义路由传入到ListenAndServe的第二个参数即可。</p>
+<p>换句话说，如果我们要实现自己的路由功能，只需要按照默认的格式定义路由，在启动的时候，将我们的自定义路由传入到ListenAndServe的第二个参数即可。</p>
 
 <h1 id="httprouter">httprouter</h1>
 
