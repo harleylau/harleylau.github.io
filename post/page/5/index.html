@@ -220,6 +220,66 @@
     
     <div class="postShorten-header">
       <h1 class="postShorten-title" itemprop="headline">
+        <a class="link-unstyled" href="https://harleylau.github.io/2017/09/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%AF%B9%E8%B1%A1object/">
+          Redis源码剖析–对象Object
+        </a>
+      </h1>
+      
+  <div class="postShorten-meta post-meta">
+    
+      <time itemprop="datePublished" datetime="2017-09-07T18:20:21&#43;08:00">
+        
+  九月 7, 2017
+
+      </time>
+    
+    
+  
+  
+    <span>发布在</span>
+    
+      <a class="category-link" href="https://harleylau.github.io/categories/redis">redis</a>, 
+    
+      <a class="category-link" href="https://harleylau.github.io/categories/%e6%ba%90%e7%a0%81">源码</a>
+    
+  
+
+  </div>
+
+    </div>
+    <div class="postShorten-excerpt" itemprop="articleBody">
+      
+        <!--toc-->
+
+<p>之前介绍的都是Redis的基础数据结构，比如简单动态字符串（SDS）、双端链表、字典、压缩列表、整数集合， 等等，不过Redis并没有直接用这些结构来实现键值对的数据库，而是对其进行了封装， 所有的键和值都是用对象Object来表示的。</p>
+      
+      <p>
+        <a href="https://harleylau.github.io/2017/09/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%AF%B9%E8%B1%A1object/" class="postShorten-excerpt_link link">阅读全文</a>
+        
+      </p>
+    </div>
+  </div>
+  
+</article>
+
+          
+            
+  
+    
+      
+        
+      
+    
+  
+
+
+  
+
+<article class="postShorten postShorten--thumbnailimg-bottom" itemscope itemType="http://schema.org/BlogPosting">
+  <div class="postShorten-wrap">
+    
+    <div class="postShorten-header">
+      <h1 class="postShorten-title" itemprop="headline">
         <a class="link-unstyled" href="https://harleylau.github.io/2017/09/tornado%E6%89%93%E5%8D%B0block%E6%97%A5%E5%BF%97/">
           Tornado–打印block日志
         </a>
@@ -560,66 +620,6 @@ Redis的列表键，哈希键，有序集合的底层实现都用到了ziplist�
 </article>
 
           
-            
-  
-    
-      
-        
-      
-    
-  
-
-
-  
-
-<article class="postShorten postShorten--thumbnailimg-bottom" itemscope itemType="http://schema.org/BlogPosting">
-  <div class="postShorten-wrap">
-    
-    <div class="postShorten-header">
-      <h1 class="postShorten-title" itemprop="headline">
-        <a class="link-unstyled" href="https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-%E9%93%BE%E8%A1%A8list/">
-          Redis源码剖析-链表list
-        </a>
-      </h1>
-      
-  <div class="postShorten-meta post-meta">
-    
-      <time itemprop="datePublished" datetime="2017-07-31T12:15:30&#43;08:00">
-        
-  七月 31, 2017
-
-      </time>
-    
-    
-  
-  
-    <span>发布在</span>
-    
-      <a class="category-link" href="https://harleylau.github.io/categories/redis">redis</a>, 
-    
-      <a class="category-link" href="https://harleylau.github.io/categories/%e6%ba%90%e7%a0%81">源码</a>
-    
-  
-
-  </div>
-
-    </div>
-    <div class="postShorten-excerpt" itemprop="articleBody">
-      
-        <!--toc-->
-
-<p>Redis另一个基础的数据结构是链表，C并没有内置的链表结构，因此Redis自己实现了一个列表。</p>
-      
-      <p>
-        <a href="https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-%E9%93%BE%E8%A1%A8list/" class="postShorten-excerpt_link link">阅读全文</a>
-        
-      </p>
-    </div>
-  </div>
-  
-</article>
-
-          
           
   <div class="pagination-bar">
     <ul class="pagination">
@@ -695,6 +695,23 @@ Redis的列表键，哈希键，有序集合的底层实现都用到了ziplist�
       <div class="no-result text-color-light text-center"></div>
       <div class="results">
         
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2019/01/%E8%B7%9Fgin%E4%B8%80%E5%9D%97%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84web%E6%A1%86%E6%9E%B6%E4%B8%89/">
+                <h3 class="media-heading">跟Gin一块搭建自己的web框架(三)</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Jan 1, 2019
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>在上一篇的基础之上继续实现前缀路由的功能。</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
         
           <div class="media">
             
@@ -857,23 +874,6 @@ Redis的列表键，哈希键，有序集合的底层实现都用到了ziplist�
             <hr>
           </div>
         
-          <div class="media">
-            
-            <div class="media-body">
-              <a class="link-unstyled" href="https://harleylau.github.io/2018/07/mysql%E8%BF%81%E7%A7%BB%E6%95%B0%E6%8D%AE%E7%9B%AE%E5%BD%95%E5%90%8E%E6%97%A0%E6%B3%95%E5%90%AF%E5%8A%A8/">
-                <h3 class="media-heading">Mysql迁移数据目录后无法启动</h3>
-              </a>
-              <span class="media-meta">
-                <span class="media-date text-small">
-                  Jul 7, 2018
-                </span>
-              </span>
-              <div class="media-content hide-xs font-merryweather"><p>有时候我们需要迁移Mysql的数据存储目录， 网上有很多类似的教程，具体的不赘述。 但是我们在迁移的时候，经常会碰到迁移之后，mysql无法正常启动， 查看启动日志发现报了 “errno：13  ”的错误， 对照错误表，我们能够知道这个其实是一个权限的问题。</p></div>
-            </div>
-            <div style="clear:both;"></div>
-            <hr>
-          </div>
-        
       </div>
     </div>
     <div class="modal-footer">
@@ -881,7 +881,7 @@ Redis的列表键，哈希键，有序集合的底层实现都用到了ziplist�
          data-message-zero=""
          data-message-one=""
          data-message-other="">
-         38 posts found
+         39 posts found
       </p>
     </div>
   </div>

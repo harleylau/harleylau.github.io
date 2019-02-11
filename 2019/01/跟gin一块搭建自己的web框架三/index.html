@@ -7,40 +7,40 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="generator" content="Hugo 0.52 with theme Tranquilpeak 0.4.3-SNAPSHOT">
 <meta name="author" content="Harley">
-<meta name="keywords" content="Tornado">
-<meta name="description" content="Tornado是一个异步框架，在异步操作的时候能提升程序的处理性能。但是如果在程序中碰到同步的逻辑，由于GIL的关系，会直接卡死，导致性能急剧下降。">
+<meta name="keywords" content="Gin">
+<meta name="description" content="在上一篇的基础之上继续实现前缀路由的功能。">
 
 
-<meta property="og:description" content="Tornado是一个异步框架，在异步操作的时候能提升程序的处理性能。但是如果在程序中碰到同步的逻辑，由于GIL的关系，会直接卡死，导致性能急剧下降。">
+<meta property="og:description" content="在上一篇的基础之上继续实现前缀路由的功能。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Tornado 线程池应用">
-<meta name="twitter:title" content="Tornado 线程池应用">
-<meta property="og:url" content="https://harleylau.github.io/2017/07/tornado-%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%BA%94%E7%94%A8/">
-<meta property="twitter:url" content="https://harleylau.github.io/2017/07/tornado-%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%BA%94%E7%94%A8/">
+<meta property="og:title" content="跟Gin一块搭建自己的web框架(三)">
+<meta name="twitter:title" content="跟Gin一块搭建自己的web框架(三)">
+<meta property="og:url" content="https://harleylau.github.io/2019/01/%E8%B7%9Fgin%E4%B8%80%E5%9D%97%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84web%E6%A1%86%E6%9E%B6%E4%B8%89/">
+<meta property="twitter:url" content="https://harleylau.github.io/2019/01/%E8%B7%9Fgin%E4%B8%80%E5%9D%97%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84web%E6%A1%86%E6%9E%B6%E4%B8%89/">
 <meta property="og:site_name" content="Harley">
-<meta property="og:description" content="Tornado是一个异步框架，在异步操作的时候能提升程序的处理性能。但是如果在程序中碰到同步的逻辑，由于GIL的关系，会直接卡死，导致性能急剧下降。">
-<meta name="twitter:description" content="Tornado是一个异步框架，在异步操作的时候能提升程序的处理性能。但是如果在程序中碰到同步的逻辑，由于GIL的关系，会直接卡死，导致性能急剧下降。">
+<meta property="og:description" content="在上一篇的基础之上继续实现前缀路由的功能。">
+<meta name="twitter:description" content="在上一篇的基础之上继续实现前缀路由的功能。">
 <meta property="og:locale" content="zh-cn">
 
   
-    <meta property="article:published_time" content="2017-07-25T08:54:31">
+    <meta property="article:published_time" content="2019-01-29T10:18:48">
   
   
-    <meta property="article:modified_time" content="2017-07-25T08:54:31">
+    <meta property="article:modified_time" content="2019-01-29T10:18:48">
   
-  
-  
-    
-      <meta property="article:section" content="Tornado">
-    
-      <meta property="article:section" content="线程池">
-    
   
   
     
-      <meta property="article:tag" content="Tornado">
+      <meta property="article:section" content="Gin">
     
-      <meta property="article:tag" content="Python">
+      <meta property="article:section" content="Web框架">
+    
+  
+  
+    
+      <meta property="article:tag" content="Gin">
+    
+      <meta property="article:tag" content="Web框架">
     
   
 
@@ -53,9 +53,6 @@
 
 
 
-  <meta property="og:image" content="https://harleylau.github.io/img/tornado.png">
-  <meta property="twitter:image" content="https://harleylau.github.io/img/tornado.png">
-
 
 
 
@@ -64,14 +61,14 @@
   <meta property="twitter:image" content="https://harleylau.github.io/img/harleylau.jpg">
 
 
-    <title>Tornado 线程池应用</title>
+    <title>跟Gin一块搭建自己的web框架(三)</title>
 
     <link rel="icon" href="https://harleylau.github.io/favicon.png">
     
 
     
 
-    <link rel="canonical" href="https://harleylau.github.io/2017/07/tornado-%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%BA%94%E7%94%A8/">
+    <link rel="canonical" href="https://harleylau.github.io/2019/01/%E8%B7%9Fgin%E4%B8%80%E5%9D%97%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84web%E6%A1%86%E6%9E%B6%E4%B8%89/">
 
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous" />
@@ -229,15 +226,15 @@
             <div class="post-header main-content-wrap text-left">
   
     <h1 class="post-title" itemprop="headline">
-      Tornado 线程池应用
+      跟Gin一块搭建自己的web框架(三)
     </h1>
   
   
   <div class="postShorten-meta post-meta">
     
-      <time itemprop="datePublished" datetime="2017-07-25T08:54:31&#43;08:00">
+      <time itemprop="datePublished" datetime="2019-01-29T10:18:48&#43;08:00">
         
-  七月 25, 2017
+  一月 29, 2019
 
       </time>
     
@@ -246,9 +243,9 @@
   
     <span>发布在</span>
     
-      <a class="category-link" href="https://harleylau.github.io/categories/tornado">Tornado</a>, 
+      <a class="category-link" href="https://harleylau.github.io/categories/gin">Gin</a>, 
     
-      <a class="category-link" href="https://harleylau.github.io/categories/%e7%ba%bf%e7%a8%8b%e6%b1%a0">线程池</a>
+      <a class="category-link" href="https://harleylau.github.io/categories/web%e6%a1%86%e6%9e%b6">Web框架</a>
     
   
 
@@ -258,60 +255,202 @@
           
           <div class="post-content markdown" itemprop="articleBody">
             <div class="main-content-wrap">
-              <p>Tornado是一个异步框架，在异步操作的时候能提升程序的处理性能。但是如果在程序中碰到同步的逻辑，由于GIL的关系，会直接卡死，导致性能急剧下降。</p>
+              <p>在上一篇的基础之上继续实现前缀路由的功能。</p>
 
-<p>目前对于mongodb以及redis都有比较不错的异步框架，但是对于Mysql，目前的异步框架都不是很成熟。</p>
+<h1 id="table-of-contents">目录</h1>
 
-<p>在实际应用中，由于一开始不是特别了解，在用了Tornado框架的同时，采用了Sqlalchemy来处理Mysql数据。但是由于这部分Mysql操作是同步的，在并发量上去的时候，不能及时返回，大量请求被拒绝。</p>
+<p>首先说明一下这边说的前缀路由的概念。在上一篇的Web服务的基础上，我们对于路由可以有两种处理方式：</p>
 
-<p>由于替换Sqlalchemy会造成很大的工作量，经过研究之后发现Tornado有run_on_executor，可以利用线程池达到异步化的目的。</p>
+<ol>
+<li><p>一种是所有的路由都挂载到根路径 &lsquo;/&rsquo; 上边，举例说明，如果有一个登录和登出功能，我们可以这么来写</p>
 
-<blockquote>
-<p>Decorator to run a synchronous method asynchronously on an executor.</p>
-
-<p>The decorated method may be called with a callback keyword argument and returns a future.</p>
-
-<p>The IOLoop and executor to be used are determined by the io_loop and executor attributes of self. To use different attributes, pass keyword arguments to the decorator</p>
-</blockquote>
-
-<pre><code>#!/bin/env python
-import tornado.httpserver
-import tornado.ioloop
-import tornado.options
-import tornado.web
-import tornado.httpclient
-import tornado.gen
-from tornado.concurrent import run_on_executor
-# 这个并发库在python3自带;在python2需要安装sudo pip install futures
-from concurrent.futures import ThreadPoolExecutor
-import time
-from tornado.options import define, options
-define(&quot;port&quot;, default=8002, help=&quot;run on the given port&quot;, type=int)
-
-class SleepHandler(tornado.web.RequestHandler):
-    executor = ThreadPoolExecutor(2)
-
-    def get(self):
-        tornado.ioloop.IOLoop.instance().add_callback(self.sleep)       # 这样将在下一轮事件循环执行self.sleep
-        self.write(&quot;when i sleep&quot;)
-
-    @run_on_executor
-    def sleep(self):
-        time.sleep(5)
-        print(&quot;yes&quot;)
-        return 5
-
-
-if __name__ == &quot;__main__&quot;:
-    tornado.options.parse_command_line()
-    app = tornado.web.Application(handlers=[
-            (r&quot;/sleep&quot;, SleepHandler), ])
-    http_server = tornado.httpserver.HTTPServer(app)
-    http_server.listen(options.port)
-    tornado.ioloop.IOLoop.instance().start()
+<pre><code>router.GET(&quot;/user/login&quot;, loginHandler)
+router.GET(&quot;/user/logout&quot;, logoutHandler)
 </code></pre>
 
-<p>当然也可以用celery来达到异步的效果，但是不如run_on_executor来的方便</p>
+<p>当然这也是最为直观和容易理解的方式。</p></li>
+
+<li><p>另一种是将有共通路径前缀的路由集合在一块，例如按照Gin的写法：</p>
+
+<pre><code>user := route.Group(&quot;/user&quot;)
+{
+    user.GET(&quot;/login&quot;, loginHandler)
+    user.GET(&quot;/logout&quot;, logoutHandler)
+}
+</code></pre>
+
+<p>当然各有各的好处了， 这种方式的方便之处在于，如果要对 &ldquo;/user&rdquo; 前缀的路由统一做处理（比如增加鉴权功能），就只需要在最上层加上处理逻辑，无需对每一个路由重复添加。尤其是在Gin里边，搭配后边会介绍的中间件一块使用，会显得更为方便。</p></li>
+</ol>
+
+<p>接下来就介绍Gin里边如何实现的这一功能。同时我们慢慢的构建一个框架应该有的样子。</p>
+
+<p>使用框架的目的是什么，我的理解是隐藏重复和底层的细节，使其作为一个可重复的抽象，让开发更为快速和便捷。前两篇都是直接用一个文件搭建了Web服务，现在我们开始真正的做一个抽象。</p>
+
+<p>我们先抽象出来一个引擎 Engine，那么这个Engine里边应该有什么东西，很直观的，我们需要上一篇讲到的路由功能，以及这一篇讲到的路由前缀。定义如下：</p>
+
+<pre><code>Engine struct {
+		*RouterGroup
+		router *httprouter.Router
+	}
+</code></pre>
+
+<p>假设我们已经完成了这个 Engine， 我们需要一个启动函数</p>
+
+<pre><code>func (engine *Engine) Run(addr string) {
+	http.ListenAndServe(addr, engine)
+}
+</code></pre>
+
+<p>看起来很简单，就是把上一篇中最后的启动函数 http.ListenAndServe 放到了Run里边而已。 区别只是把 engine 当作了第二个参数传入。而第二个参数其实只是 interface， 里边有一个函数</p>
+
+<pre><code>ServeHTTP(ResponseWriter, *Request)
+</code></pre>
+
+<p>所以只要 engine 也实现了这个函数，就能作为第二个参数了，那我们就实现一个。</p>
+
+<pre><code>// ServeHTTP makes the router implement the http.Handler interface.
+func (engine *Engine) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	engine.router.ServeHTTP(w, req)
+}
+</code></pre>
+
+<p>也是很简单，只是调用了 engine里边 httprouter.Router 的 ServeHTTP。</p>
+
+<p>我们已经有了启动函数，接下去看看初始化的过程。先看engine中RouterGroup的定义</p>
+
+<pre><code>	// HandlerFunc .
+	HandlerFunc func(*Context)
+
+	// Context .
+	Context struct {
+		Req     *http.Request
+		Writer  http.ResponseWriter
+		Params  httprouter.Params
+		handler HandlerFunc
+		engine  *Engine
+	}
+
+	// RouterGroup .
+	RouterGroup struct {
+		Handler HandlerFunc
+		prefix  string
+		parent  *RouterGroup
+		engine  *Engine
+	}
+</code></pre>
+
+<p>这边定义了一个Context，这个是gin中最重要的数据结构之一。它把request的Req、Write以及Params都包在了里边。所以初始化的过程也就明确了</p>
+
+<pre><code>func New() *Engine {
+	engine := &amp;Engine{}
+	engine.RouterGroup = &amp;RouterGroup{nil, &quot;&quot;, nil, engine}
+	engine.router = httprouter.New()
+	return engine
+}
+</code></pre>
+
+<p>接下去定义group的时候，创建一个新的 RouterGroup</p>
+
+<pre><code>// Group .
+func (group *RouterGroup) Group(component string) *RouterGroup {
+	prefix := path.Join(group.prefix, component)
+	return &amp;RouterGroup{
+		Handler: nil,
+		parent:  group,
+		prefix:  prefix,
+		engine:  group.engine,
+	}
+}
+</code></pre>
+
+<p>然后调用</p>
+
+<pre><code>user.GET(&quot;/login&quot;, loginHandler)
+</code></pre>
+
+<p>的时候需要把对应的loginHandler加入到router的路由配置中</p>
+
+<pre><code>// GET is a shortcut for router.Handle(&quot;GET&quot;, path, handle)
+func (group *RouterGroup) GET(path string, handler HandlerFunc) {
+	group.Handle(&quot;GET&quot;, path, handler)
+}
+
+// Handle .
+func (group *RouterGroup) Handle(method, p string, handler HandlerFunc) {
+	p = path.Join(group.prefix, p)
+	group.engine.router.Handle(method, p, func(w http.ResponseWriter, req *http.Request, params httprouter.Params) {
+		group.createContext(w, req, params, handler).Next()
+	})
+}
+
+func (c *Context) Next() {
+	c.handler(c)
+}
+</code></pre>
+
+<p>从上边的代码可以看出， user.GET 实际上就是先把routerGroup的前缀路径组合起来，然后将对应的路径和handler加入到httprouter里边。</p>
+
+<p>同样的，类似GET方法的处理， 我们能定义其他的比如POST、DELETE的方法实现：</p>
+
+<pre><code>// POST is a shortcut for router.Handle(&quot;POST&quot;, path, handle)
+func (group *RouterGroup) POST(path string, handler HandlerFunc) {
+	group.Handle(&quot;POST&quot;, path, handler)
+}
+
+// GET is a shortcut for router.Handle(&quot;GET&quot;, path, handle)
+func (group *RouterGroup) GET(path string, handler HandlerFunc) {
+	group.Handle(&quot;GET&quot;, path, handler)
+}
+
+// DELETE is a shortcut for router.Handle(&quot;DELETE&quot;, path, handle)
+func (group *RouterGroup) DELETE(path string, handler HandlerFunc) {
+	group.Handle(&quot;DELETE&quot;, path, handler)
+}
+
+// PATCH is a shortcut for router.Handle(&quot;PATCH&quot;, path, handle)
+func (group *RouterGroup) PATCH(path string, handler HandlerFunc) {
+	group.Handle(&quot;PATCH&quot;, path, handler)
+}
+
+// PUT is a shortcut for router.Handle(&quot;PUT&quot;, path, handle)
+func (group *RouterGroup) PUT(path string, handler HandlerFunc) {
+	group.Handle(&quot;PUT&quot;, path, handler)
+}
+</code></pre>
+
+<p>这样一个最简单的框架其实就已经成形了， 那么怎么使用这个框架呢， 我们把上一篇的main.go文件进行一下修改。</p>
+
+<pre><code>package main
+
+import (
+	&quot;github.com/harleylau/myGin/v0.1/gin&quot;
+)
+
+func v1IndexLoginfunc(c *gin.Context) {
+	c.String(200, &quot;login&quot;)
+}
+
+func v1IndexSubmitfunc(c *gin.Context) {
+	c.String(200, &quot;submit&quot;)
+}
+
+func main() {
+	r := gin.New()
+
+	// Simple group: v1
+	v1 := r.Group(&quot;/v1&quot;)
+	{
+		v1.GET(&quot;/login&quot;, v1IndexLoginfunc)
+		v1.GET(&quot;/submit&quot;, v1IndexSubmitfunc)
+	}
+
+	// Listen and server on 0.0.0.0:8080
+	r.Run(&quot;:8080&quot;)
+}
+
+</code></pre>
+
+<p>具体的代码实现可以参见github： <a href="https://github.com/harleylau/myGin/tree/master/v0.1">https://github.com/harleylau/myGin/tree/master/v0.1</a></p>
               
             </div>
           </div>
@@ -323,9 +462,9 @@ if __name__ == &quot;__main__&quot;:
                   <div class="post-footer-tags">
                     <span class="text-color-light text-small">标签</span><br/>
                     
-  <a class="tag tag--primary tag--small" href="https://harleylau.github.io/tags/tornado/">Tornado</a>
+  <a class="tag tag--primary tag--small" href="https://harleylau.github.io/tags/gin/">Gin</a>
 
-  <a class="tag tag--primary tag--small" href="https://harleylau.github.io/tags/python/">Python</a>
+  <a class="tag tag--primary tag--small" href="https://harleylau.github.io/tags/web%E6%A1%86%E6%9E%B6/">Web框架</a>
 
                   </div>
                 
@@ -338,7 +477,7 @@ if __name__ == &quot;__main__&quot;:
           
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AE%80%E5%8D%95%E5%8A%A8%E6%80%81%E5%AD%97%E7%AC%A6%E4%B8%B2sds/" data-tooltip="Redis源码剖析–简单动态字符串sds">
+                <a class="post-action-btn btn btn--disabled">
               
                   <i class="fa fa-angle-left"></i>
                   <span class="hide-xs hide-sm text-small icon-ml">下一篇</span>
@@ -346,7 +485,7 @@ if __name__ == &quot;__main__&quot;:
             </li>
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2017/07/json-web-token/" data-tooltip="Json Web Token">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2019/01/%E8%B7%9Fgin%E4%B8%80%E5%9D%97%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84web%E6%A1%86%E6%9E%B6%E4%BA%8C/" data-tooltip="跟Gin一块搭建自己的web框架(二)">
               
                   <span class="hide-xs hide-sm text-small icon-mr">上一篇</span>
                   <i class="fa fa-angle-right"></i>
@@ -364,19 +503,19 @@ if __name__ == &quot;__main__&quot;:
         </li>
         
           <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://harleylau.github.io/2017/07/tornado-%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%BA%94%E7%94%A8/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://harleylau.github.io/2019/01/%E8%B7%9Fgin%E4%B8%80%E5%9D%97%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84web%E6%A1%86%E6%9E%B6%E4%B8%89/">
               <i class="fa fa-facebook-official"></i>
             </a>
           </li>
         
           <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://harleylau.github.io/2017/07/tornado-%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%BA%94%E7%94%A8/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://harleylau.github.io/2019/01/%E8%B7%9Fgin%E4%B8%80%E5%9D%97%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84web%E6%A1%86%E6%9E%B6%E4%B8%89/">
               <i class="fa fa-twitter"></i>
             </a>
           </li>
         
           <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://harleylau.github.io/2017/07/tornado-%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%BA%94%E7%94%A8/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://harleylau.github.io/2019/01/%E8%B7%9Fgin%E4%B8%80%E5%9D%97%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84web%E6%A1%86%E6%9E%B6%E4%B8%89/">
               <i class="fa fa-google-plus"></i>
             </a>
           </li>
@@ -391,7 +530,7 @@ if __name__ == &quot;__main__&quot;:
       
       <li class="post-action">
         
-          <a class="post-action-btn btn btn--default" href="#">
+          <a class="post-action-btn btn btn--default" href="#table-of-contents">
         
           <i class="fa fa-list"></i>
         </a>
@@ -424,7 +563,7 @@ if __name__ == &quot;__main__&quot;:
           
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E7%AE%80%E5%8D%95%E5%8A%A8%E6%80%81%E5%AD%97%E7%AC%A6%E4%B8%B2sds/" data-tooltip="Redis源码剖析–简单动态字符串sds">
+                <a class="post-action-btn btn btn--disabled">
               
                   <i class="fa fa-angle-left"></i>
                   <span class="hide-xs hide-sm text-small icon-ml">下一篇</span>
@@ -432,7 +571,7 @@ if __name__ == &quot;__main__&quot;:
             </li>
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2017/07/json-web-token/" data-tooltip="Json Web Token">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2019/01/%E8%B7%9Fgin%E4%B8%80%E5%9D%97%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84web%E6%A1%86%E6%9E%B6%E4%BA%8C/" data-tooltip="跟Gin一块搭建自己的web框架(二)">
               
                   <span class="hide-xs hide-sm text-small icon-mr">上一篇</span>
                   <i class="fa fa-angle-right"></i>
@@ -450,19 +589,19 @@ if __name__ == &quot;__main__&quot;:
         </li>
         
           <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://harleylau.github.io/2017/07/tornado-%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%BA%94%E7%94%A8/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://harleylau.github.io/2019/01/%E8%B7%9Fgin%E4%B8%80%E5%9D%97%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84web%E6%A1%86%E6%9E%B6%E4%B8%89/">
               <i class="fa fa-facebook-official"></i>
             </a>
           </li>
         
           <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://harleylau.github.io/2017/07/tornado-%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%BA%94%E7%94%A8/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://harleylau.github.io/2019/01/%E8%B7%9Fgin%E4%B8%80%E5%9D%97%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84web%E6%A1%86%E6%9E%B6%E4%B8%89/">
               <i class="fa fa-twitter"></i>
             </a>
           </li>
         
           <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://harleylau.github.io/2017/07/tornado-%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%BA%94%E7%94%A8/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://harleylau.github.io/2019/01/%E8%B7%9Fgin%E4%B8%80%E5%9D%97%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84web%E6%A1%86%E6%9E%B6%E4%B8%89/">
               <i class="fa fa-google-plus"></i>
             </a>
           </li>
@@ -477,7 +616,7 @@ if __name__ == &quot;__main__&quot;:
       
       <li class="post-action">
         
-          <a class="post-action-btn btn btn--default" href="#">
+          <a class="post-action-btn btn btn--default" href="#table-of-contents">
         
           <i class="fa fa-list"></i>
         </a>
@@ -492,19 +631,19 @@ if __name__ == &quot;__main__&quot;:
   <ul class="share-options">
     
       <li class="share-option">
-        <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fharleylau.github.io%2F2017%2F07%2Ftornado-%25E7%25BA%25BF%25E7%25A8%258B%25E6%25B1%25A0%25E5%25BA%2594%25E7%2594%25A8%2F">
+        <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fharleylau.github.io%2F2019%2F01%2F%25E8%25B7%259Fgin%25E4%25B8%2580%25E5%259D%2597%25E6%2590%25AD%25E5%25BB%25BA%25E8%2587%25AA%25E5%25B7%25B1%25E7%259A%2584web%25E6%25A1%2586%25E6%259E%25B6%25E4%25B8%2589%2F">
           <i class="fa fa-facebook-official"></i><span>分享到 Facebook</span>
         </a>
       </li>
     
       <li class="share-option">
-        <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=https%3A%2F%2Fharleylau.github.io%2F2017%2F07%2Ftornado-%25E7%25BA%25BF%25E7%25A8%258B%25E6%25B1%25A0%25E5%25BA%2594%25E7%2594%25A8%2F">
+        <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=https%3A%2F%2Fharleylau.github.io%2F2019%2F01%2F%25E8%25B7%259Fgin%25E4%25B8%2580%25E5%259D%2597%25E6%2590%25AD%25E5%25BB%25BA%25E8%2587%25AA%25E5%25B7%25B1%25E7%259A%2584web%25E6%25A1%2586%25E6%259E%25B6%25E4%25B8%2589%2F">
           <i class="fa fa-twitter"></i><span>分享到 Twitter</span>
         </a>
       </li>
     
       <li class="share-option">
-        <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=https%3A%2F%2Fharleylau.github.io%2F2017%2F07%2Ftornado-%25E7%25BA%25BF%25E7%25A8%258B%25E6%25B1%25A0%25E5%25BA%2594%25E7%2594%25A8%2F">
+        <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=https%3A%2F%2Fharleylau.github.io%2F2019%2F01%2F%25E8%25B7%259Fgin%25E4%25B8%2580%25E5%259D%2597%25E6%2590%25AD%25E5%25BB%25BA%25E8%2587%25AA%25E5%25B7%25B1%25E7%259A%2584web%25E6%25A1%2586%25E6%259E%25B6%25E4%25B8%2589%2F">
           <i class="fa fa-google-plus"></i><span>分享到 Google&#43;</span>
         </a>
       </li>
@@ -794,9 +933,9 @@ $(document).ready(function() {
     
       <script>
         var disqus_config = function () {
-          this.page.url = 'https:\/\/harleylau.github.io\/2017\/07\/tornado-%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%BA%94%E7%94%A8\/';
+          this.page.url = 'https:\/\/harleylau.github.io\/2019\/01\/%E8%B7%9Fgin%E4%B8%80%E5%9D%97%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84web%E6%A1%86%E6%9E%B6%E4%B8%89\/';
           
-            this.page.identifier = '\/2017\/07\/tornado-%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%BA%94%E7%94%A8\/'
+            this.page.identifier = '\/2019\/01\/%E8%B7%9Fgin%E4%B8%80%E5%9D%97%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84web%E6%A1%86%E6%9E%B6%E4%B8%89\/'
           
         };
         (function() {
