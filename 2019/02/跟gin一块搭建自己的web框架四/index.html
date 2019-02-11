@@ -7,20 +7,42 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="generator" content="Hugo 0.52 with theme Tranquilpeak 0.4.3-SNAPSHOT">
 <meta name="author" content="Harley">
-<meta name="keywords" content="">
-<meta name="description" content="Hugo tranquilpeak theme demo">
+<meta name="keywords" content="Gin">
+<meta name="description" content="这一篇介绍Web框架中的中间件技术。">
 
 
-<meta property="og:description" content="Hugo tranquilpeak theme demo">
-<meta property="og:type" content="website">
-<meta property="og:title" content="Gin">
-<meta name="twitter:title" content="Gin">
-<meta property="og:url" content="https://harleylau.github.io/categories/gin/">
-<meta property="twitter:url" content="https://harleylau.github.io/categories/gin/">
+<meta property="og:description" content="这一篇介绍Web框架中的中间件技术。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="跟Gin一块搭建自己的web框架(四)">
+<meta name="twitter:title" content="跟Gin一块搭建自己的web框架(四)">
+<meta property="og:url" content="https://harleylau.github.io/2019/02/%E8%B7%9Fgin%E4%B8%80%E5%9D%97%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84web%E6%A1%86%E6%9E%B6%E5%9B%9B/">
+<meta property="twitter:url" content="https://harleylau.github.io/2019/02/%E8%B7%9Fgin%E4%B8%80%E5%9D%97%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84web%E6%A1%86%E6%9E%B6%E5%9B%9B/">
 <meta property="og:site_name" content="Harley">
-<meta property="og:description" content="Hugo tranquilpeak theme demo">
-<meta name="twitter:description" content="Hugo tranquilpeak theme demo">
+<meta property="og:description" content="这一篇介绍Web框架中的中间件技术。">
+<meta name="twitter:description" content="这一篇介绍Web框架中的中间件技术。">
 <meta property="og:locale" content="zh-cn">
+
+  
+    <meta property="article:published_time" content="2019-02-11T15:02:24">
+  
+  
+    <meta property="article:modified_time" content="2019-02-11T15:02:24">
+  
+  
+  
+    
+      <meta property="article:section" content="Gin">
+    
+      <meta property="article:section" content="Web框架">
+    
+  
+  
+    
+      <meta property="article:tag" content="Gin">
+    
+      <meta property="article:tag" content="Web框架">
+    
+  
 
 
 <meta name="twitter:card" content="summary">
@@ -39,16 +61,14 @@
   <meta property="twitter:image" content="https://harleylau.github.io/img/harleylau.jpg">
 
 
-    <title>Gin</title>
+    <title>跟Gin一块搭建自己的web框架(四)</title>
 
     <link rel="icon" href="https://harleylau.github.io/favicon.png">
     
-      <link rel="alternate" type="application/rss+xml" title="RSS" href="https://harleylau.github.io/categories/gin/index.xml">
-    
 
     
 
-    <link rel="canonical" href="https://harleylau.github.io/categories/gin/">
+    <link rel="canonical" href="https://harleylau.github.io/2019/02/%E8%B7%9Fgin%E4%B8%80%E5%9D%97%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84web%E6%A1%86%E6%9E%B6%E5%9B%9B/">
 
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous" />
@@ -68,7 +88,7 @@
 
   <body>
     <div id="blog">
-      <header id="header" data-behavior="1">
+      <header id="header" data-behavior="4">
   <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
   <div class="header-title">
     <a class="header-title-link" href="https://harleylau.github.io/">Harley</a>
@@ -88,7 +108,7 @@
   
 </header>
 
-      <nav id="sidebar" data-behavior="1">
+      <nav id="sidebar" data-behavior="4">
   <div class="sidebar-container">
     
       <div class="sidebar-profile">
@@ -195,39 +215,21 @@
 </nav>
 
       
-        
 
-      
-      <div id="main" data-behavior="1"
+      <div id="main" data-behavior="4"
         class="
                hasCoverMetaIn
                ">
-        
-          <section class="postShorten-group main-content-wrap">
-            
-            
-              
+        <article class="post" itemscope itemType="http://schema.org/BlogPosting">
+          
+          
+            <div class="post-header main-content-wrap text-left">
   
-    
-      
-        
-      
-    
+    <h1 class="post-title" itemprop="headline">
+      跟Gin一块搭建自己的web框架(四)
+    </h1>
   
-
-
   
-
-<article class="postShorten postShorten--thumbnailimg-bottom" itemscope itemType="http://schema.org/BlogPosting">
-  <div class="postShorten-wrap">
-    
-    <div class="postShorten-header">
-      <h1 class="postShorten-title" itemprop="headline">
-        <a class="link-unstyled" href="https://harleylau.github.io/2019/02/%E8%B7%9Fgin%E4%B8%80%E5%9D%97%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84web%E6%A1%86%E6%9E%B6%E5%9B%9B/">
-          跟Gin一块搭建自己的web框架(四)
-        </a>
-      </h1>
-      
   <div class="postShorten-meta post-meta">
     
       <time itemprop="datePublished" datetime="2019-02-11T15:02:24&#43;08:00">
@@ -249,199 +251,238 @@
 
   </div>
 
-    </div>
-    <div class="postShorten-excerpt" itemprop="articleBody">
-      
-        <p>这一篇介绍Web框架中的中间件技术。</p>
-      
-      <p>
-        <a href="https://harleylau.github.io/2019/02/%E8%B7%9Fgin%E4%B8%80%E5%9D%97%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84web%E6%A1%86%E6%9E%B6%E5%9B%9B/" class="postShorten-excerpt_link link">阅读全文</a>
-        
-      </p>
-    </div>
-  </div>
+</div>
+          
+          <div class="post-content markdown" itemprop="articleBody">
+            <div class="main-content-wrap">
+              <p>这一篇介绍Web框架中的中间件技术。</p>
+
+<p>先来设想一个简单的场景，在处理每一个url的时候需要打印一条日志，说明收到了来自外界的请求。 考虑上一篇的情况，需要在两个handler里边都加上一个print的代码。对于少数的几个url的处理情况还可以介绍，但是一旦url非常多的时候，这个就变成了一个非常繁重并且容易出错的工作。</p>
+
+<p>如果了解python，可能很容易的就想到在python中的处理方式：装饰器。只要定义一个打印日志的装饰器，任何加了这个装饰器的handler就能够实现打印日志的功能。</p>
+
+<p>在Web框架中， 我们也要进行类似的处理，把非业务的需求和业务性的需求分离开来，类似这种打印日志的功能用中间件来实现。</p>
+
+<p>先来看一下，如果没有用之前的基本框架，如何实现中间件的功能。</p>
+
+<pre><code>func hello(w http.ResponseWriter, r *http.Request) {
+    fmt.Fprintf(w, &quot;Hi there!&quot;)
+}
+
+func main() {
+    http.HandleFunc(&quot;/&quot;, hello)
+    log.Fatal(http.ListenAndServe(&quot;:8080&quot;, nil))
+}
+</code></pre>
+
+<p>以上是原始代码， 然后我们添加一个打印日志的中间件</p>
+
+<pre><code>func logMiddleware(next http.Handler) http.Handler {
+    return http.HandlerFunc(func(wr http.ResponseWriter, r *http.Request) {
+       
+        // next handler
+        next.ServeHTTP(wr, r)
+        logger.Println(&quot;receive request&quot;)
+    })
+}
+
+func hello(w http.ResponseWriter, r *http.Request) {
+    fmt.Fprintf(w, &quot;Hi there!&quot;)
+}
+
+func main() {
+    http.HandleFunc(&quot;/&quot;, logMiddleware(http.HandlerFunc(hello)))
+    log.Fatal(http.ListenAndServe(&quot;:8080&quot;, nil))
+}
+</code></pre>
+
+<p>其实原理也是跟python中的装饰器的原理一样，都是将原来的handler函数包裹在一个新函数中返回，在这个新函数中执行了一些非业务的代码，比如上边的打印日志。</p>
+
+<p>其中最关键的步骤，是把hello函数，转成http.HandlerFunc，然后在middleware里边调用ServeHTTP。因为http.HandlerFunc()的参数是func (ResponseWriter, *Request)，hello函数能够转成http.HandlerFunc()。 而http.HandlerFunc实现了http.Handler这个接口，所以能够在中间件中调用ServeHTTP函数。</p>
+
+<p>类似的， 除了这个打印日志的中间件， 能够连环地添加多个中间件，比如</p>
+
+<pre><code>timeoutMiddleware(logMiddleware(http.HandlerFunc(hello)))
+</code></pre>
+
+<p>接下去再看上一篇中gin框架中如何用中间件。</p>
+
+<p>首先我们要做的是把Context和RouterGroup中的HandlerFunc参数都改成slice格式的[]HandlerFunc，用来存放中间件。</p>
+
+<p>我们定义一个user函数用来将中间件加入到上边说的函数链中</p>
+
+<pre><code>func (group *RouterGroup) Use(middlewares ...HandlerFunc) {
+	group.Handlers = append(group.Handlers, middlewares...)
+}
+</code></pre>
+
+<p>其实就是把新的中间件加入到了group的handler的slice中。</p>
+
+<p>同时，在处理具体的GET请求的时候，接受的参数也需要从单一的HandlerFunc变成可变参数</p>
+
+<pre><code>func (group *RouterGroup) GET(path string, handlers ...HandlerFunc) {
+	group.Handle(&quot;GET&quot;, path, handlers)
+}
+</code></pre>
+
+<p>他可以接受多个handler函数作为参数传入，同样，group的Handle函数也做相应的调整</p>
+
+<pre><code>func (group *RouterGroup) Handle(method, p string, handlers []HandlerFunc) {
+	p = path.Join(group.prefix, p)
+	handlers = group.combineHandlers(handlers)
+	group.engine.router.Handle(method, p, func(w http.ResponseWriter, req *http.Request, params httprouter.Params) {
+		group.createContext(w, req, params, handlers).Next()
+	})
+}
+</code></pre>
+
+<p>这边多了个group.combineHandlers的步骤用来将多个handler聚合，然后一块传入到router。combineHandlers的作用其实就是将当前group的Handler和新传入的handler进行整合。</p>
+
+<p>整合完之后调用的时候，需要将slice中的hander依次取出来调用</p>
+
+<pre><code>func (c *Context) Next() {
+	c.index++
+	s := int8(len(c.handlers))
+	for ; c.index &lt; s; c.index++ {
+		c.handlers[c.index](c)
+	}
+}
+</code></pre>
+
+<p>最终我们在main函数中如何使用gin的中间件呢，可以对路由的整体加中间件，比如</p>
+
+<pre><code>func main() {
+	r := gin.New()
+	r.Use(gin.Logger())
+
+	v1 := r.Group(&quot;/v1&quot;)
+	{
+		v1.GET(&quot;/login&quot;, v1IndexLoginfunc)
+		v1.GET(&quot;/submit&quot;, v1IndexSubmitfunc)
+	}
+
+	// Listen and server on 0.0.0.0:8080
+	r.Run(&quot;:8080&quot;)
+}
+</code></pre>
+
+<p>也可以只针对某个group加中间件</p>
+
+<pre><code>func main() {
+	r := gin.New()
+	
+	v1 := r.Group(&quot;/v1&quot;)
+	v1.Use(gin.Logger())
+	{
+		v1.GET(&quot;/login&quot;, v1IndexLoginfunc)
+		v1.GET(&quot;/submit&quot;, v1IndexSubmitfunc)
+	}
+
+	// Listen and server on 0.0.0.0:8080
+	r.Run(&quot;:8080&quot;)
+}
+</code></pre>
+
+<p>最终的代码参见： <a href="https://github.com/harleylau/myGin/tree/master/v0.2">https://github.com/harleylau/myGin/tree/master/v0.2</a></p>
+
+<p>下一篇扩展上下文Context的功能。</p>
+              
+            </div>
+          </div>
+          <div id="post-footer" class="post-footer main-content-wrap">
+            
+              
+                
+                
+                  <div class="post-footer-tags">
+                    <span class="text-color-light text-small">标签</span><br/>
+                    
+  <a class="tag tag--primary tag--small" href="https://harleylau.github.io/tags/gin/">Gin</a>
+
+  <a class="tag tag--primary tag--small" href="https://harleylau.github.io/tags/web%E6%A1%86%E6%9E%B6/">Web框架</a>
+
+                  </div>
+                
+              
+            
+            <div class="post-actions-wrap">
   
-</article>
+      <nav >
+        <ul class="post-actions post-action-nav">
+          
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--disabled">
+              
+                  <i class="fa fa-angle-left"></i>
+                  <span class="hide-xs hide-sm text-small icon-ml">下一篇</span>
+                </a>
+            </li>
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2019/01/%E8%B7%9Fgin%E4%B8%80%E5%9D%97%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84web%E6%A1%86%E6%9E%B6%E4%B8%89/" data-tooltip="跟Gin一块搭建自己的web框架(三)">
+              
+                  <span class="hide-xs hide-sm text-small icon-mr">上一篇</span>
+                  <i class="fa fa-angle-right"></i>
+                </a>
+            </li>
+          
+        </ul>
+      </nav>
+    <ul class="post-actions post-action-share" >
+      
+        <li class="post-action hide-lg hide-md hide-sm">
+          <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions">
+            <i class="fa fa-share-alt"></i>
+          </a>
+        </li>
+        
+          <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://harleylau.github.io/2019/02/%E8%B7%9Fgin%E4%B8%80%E5%9D%97%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84web%E6%A1%86%E6%9E%B6%E5%9B%9B/">
+              <i class="fa fa-facebook-official"></i>
+            </a>
+          </li>
+        
+          <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://harleylau.github.io/2019/02/%E8%B7%9Fgin%E4%B8%80%E5%9D%97%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84web%E6%A1%86%E6%9E%B6%E5%9B%9B/">
+              <i class="fa fa-twitter"></i>
+            </a>
+          </li>
+        
+          <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://harleylau.github.io/2019/02/%E8%B7%9Fgin%E4%B8%80%E5%9D%97%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84web%E6%A1%86%E6%9E%B6%E5%9B%9B/">
+              <i class="fa fa-google-plus"></i>
+            </a>
+          </li>
+        
+      
+      
+        <li class="post-action">
+          <a class="post-action-btn btn btn--default" href="#disqus_thread">
+            <i class="fa fa-comment-o"></i>
+          </a>
+        </li>
+      
+      <li class="post-action">
+        
+          <a class="post-action-btn btn btn--default" href="#">
+        
+          <i class="fa fa-list"></i>
+        </a>
+      </li>
+    </ul>
+  
+</div>
 
             
               
-  
-    
-      
-        
-      
-    
-  
-
-
-  
-
-<article class="postShorten postShorten--thumbnailimg-bottom" itemscope itemType="http://schema.org/BlogPosting">
-  <div class="postShorten-wrap">
-    
-    <div class="postShorten-header">
-      <h1 class="postShorten-title" itemprop="headline">
-        <a class="link-unstyled" href="https://harleylau.github.io/2019/01/%E8%B7%9Fgin%E4%B8%80%E5%9D%97%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84web%E6%A1%86%E6%9E%B6%E4%B8%89/">
-          跟Gin一块搭建自己的web框架(三)
-        </a>
-      </h1>
-      
-  <div class="postShorten-meta post-meta">
-    
-      <time itemprop="datePublished" datetime="2019-01-29T10:18:48&#43;08:00">
-        
-  一月 29, 2019
-
-      </time>
-    
-    
-  
-  
-    <span>发布在</span>
-    
-      <a class="category-link" href="https://harleylau.github.io/categories/gin">Gin</a>, 
-    
-      <a class="category-link" href="https://harleylau.github.io/categories/web%e6%a1%86%e6%9e%b6">Web框架</a>
-    
-  
-
-  </div>
-
-    </div>
-    <div class="postShorten-excerpt" itemprop="articleBody">
-      
-        <p>在上一篇的基础之上继续实现前缀路由的功能。</p>
-      
-      <p>
-        <a href="https://harleylau.github.io/2019/01/%E8%B7%9Fgin%E4%B8%80%E5%9D%97%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84web%E6%A1%86%E6%9E%B6%E4%B8%89/" class="postShorten-excerpt_link link">阅读全文</a>
-        
-      </p>
-    </div>
-  </div>
-  
-</article>
-
-            
+                <div id="disqus_thread">
+  <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
               
-  
-    
-      
-        
-      
-    
-  
-
-
-  
-
-<article class="postShorten postShorten--thumbnailimg-bottom" itemscope itemType="http://schema.org/BlogPosting">
-  <div class="postShorten-wrap">
-    
-    <div class="postShorten-header">
-      <h1 class="postShorten-title" itemprop="headline">
-        <a class="link-unstyled" href="https://harleylau.github.io/2019/01/%E8%B7%9Fgin%E4%B8%80%E5%9D%97%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84web%E6%A1%86%E6%9E%B6%E4%BA%8C/">
-          跟Gin一块搭建自己的web框架(二)
-        </a>
-      </h1>
-      
-  <div class="postShorten-meta post-meta">
-    
-      <time itemprop="datePublished" datetime="2019-01-18T10:16:36&#43;08:00">
-        
-  一月 18, 2019
-
-      </time>
-    
-    
-  
-  
-    <span>发布在</span>
-    
-      <a class="category-link" href="https://harleylau.github.io/categories/gin">Gin</a>, 
-    
-      <a class="category-link" href="https://harleylau.github.io/categories/web%e6%a1%86%e6%9e%b6">Web框架</a>
-    
-  
-
-  </div>
-
-    </div>
-    <div class="postShorten-excerpt" itemprop="articleBody">
-      
-        <p>本文介绍Gin的路由控制。</p>
-      
-      <p>
-        <a href="https://harleylau.github.io/2019/01/%E8%B7%9Fgin%E4%B8%80%E5%9D%97%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84web%E6%A1%86%E6%9E%B6%E4%BA%8C/" class="postShorten-excerpt_link link">阅读全文</a>
-        
-      </p>
-    </div>
-  </div>
-  
-</article>
-
             
-              
-  
-    
-      
-        
-      
-    
-  
-
-
-  
-
-<article class="postShorten postShorten--thumbnailimg-bottom" itemscope itemType="http://schema.org/BlogPosting">
-  <div class="postShorten-wrap">
-    
-    <div class="postShorten-header">
-      <h1 class="postShorten-title" itemprop="headline">
-        <a class="link-unstyled" href="https://harleylau.github.io/2019/01/%E8%B7%9Fgin%E4%B8%80%E5%9D%97%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84web%E6%A1%86%E6%9E%B6%E4%B8%80/">
-          跟Gin一块搭建自己的web框架(一)
-        </a>
-      </h1>
-      
-  <div class="postShorten-meta post-meta">
-    
-      <time itemprop="datePublished" datetime="2019-01-17T14:53:56&#43;08:00">
-        
-  一月 17, 2019
-
-      </time>
-    
-    
-  
-  
-    <span>发布在</span>
-    
-      <a class="category-link" href="https://harleylau.github.io/categories/gin">Gin</a>, 
-    
-      <a class="category-link" href="https://harleylau.github.io/categories/web%e6%a1%86%e6%9e%b6">Web框架</a>
-    
-  
-
-  </div>
-
-    </div>
-    <div class="postShorten-excerpt" itemprop="articleBody">
-      
-        <p>Golang提供了非常完善的net/http标准库，基于这个标准库能够很容易的就构建一个能用的web框架。现在的开源社区上有很多的go web框架，提供了丰富的选择性，从大而全的beego，到轻便的gin、echo等等。</p>
-      
-      <p>
-        <a href="https://harleylau.github.io/2019/01/%E8%B7%9Fgin%E4%B8%80%E5%9D%97%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84web%E6%A1%86%E6%9E%B6%E4%B8%80/" class="postShorten-excerpt_link link">阅读全文</a>
-        
-      </p>
-    </div>
-  </div>
-  
-</article>
-
-            
-            
-
-          </section>
-        
+          </div>
+        </article>
         <footer id="footer" class="main-content-wrap">
   <span class="copyrights">
     &copy; 2019 Harley. All Rights Reserved
@@ -449,6 +490,102 @@
 </footer>
 
       </div>
+      <div id="bottom-bar" class="post-bottom-bar" data-behavior="4">
+        <div class="post-actions-wrap">
+  
+      <nav >
+        <ul class="post-actions post-action-nav">
+          
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--disabled">
+              
+                  <i class="fa fa-angle-left"></i>
+                  <span class="hide-xs hide-sm text-small icon-ml">下一篇</span>
+                </a>
+            </li>
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2019/01/%E8%B7%9Fgin%E4%B8%80%E5%9D%97%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84web%E6%A1%86%E6%9E%B6%E4%B8%89/" data-tooltip="跟Gin一块搭建自己的web框架(三)">
+              
+                  <span class="hide-xs hide-sm text-small icon-mr">上一篇</span>
+                  <i class="fa fa-angle-right"></i>
+                </a>
+            </li>
+          
+        </ul>
+      </nav>
+    <ul class="post-actions post-action-share" >
+      
+        <li class="post-action hide-lg hide-md hide-sm">
+          <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions">
+            <i class="fa fa-share-alt"></i>
+          </a>
+        </li>
+        
+          <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://harleylau.github.io/2019/02/%E8%B7%9Fgin%E4%B8%80%E5%9D%97%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84web%E6%A1%86%E6%9E%B6%E5%9B%9B/">
+              <i class="fa fa-facebook-official"></i>
+            </a>
+          </li>
+        
+          <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://harleylau.github.io/2019/02/%E8%B7%9Fgin%E4%B8%80%E5%9D%97%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84web%E6%A1%86%E6%9E%B6%E5%9B%9B/">
+              <i class="fa fa-twitter"></i>
+            </a>
+          </li>
+        
+          <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://harleylau.github.io/2019/02/%E8%B7%9Fgin%E4%B8%80%E5%9D%97%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84web%E6%A1%86%E6%9E%B6%E5%9B%9B/">
+              <i class="fa fa-google-plus"></i>
+            </a>
+          </li>
+        
+      
+      
+        <li class="post-action">
+          <a class="post-action-btn btn btn--default" href="#disqus_thread">
+            <i class="fa fa-comment-o"></i>
+          </a>
+        </li>
+      
+      <li class="post-action">
+        
+          <a class="post-action-btn btn btn--default" href="#">
+        
+          <i class="fa fa-list"></i>
+        </a>
+      </li>
+    </ul>
+  
+</div>
+
+      </div>
+      <div id="share-options-bar" class="share-options-bar" data-behavior="4">
+  <i id="btn-close-shareoptions" class="fa fa-close"></i>
+  <ul class="share-options">
+    
+      <li class="share-option">
+        <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fharleylau.github.io%2F2019%2F02%2F%25E8%25B7%259Fgin%25E4%25B8%2580%25E5%259D%2597%25E6%2590%25AD%25E5%25BB%25BA%25E8%2587%25AA%25E5%25B7%25B1%25E7%259A%2584web%25E6%25A1%2586%25E6%259E%25B6%25E5%259B%259B%2F">
+          <i class="fa fa-facebook-official"></i><span>分享到 Facebook</span>
+        </a>
+      </li>
+    
+      <li class="share-option">
+        <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=https%3A%2F%2Fharleylau.github.io%2F2019%2F02%2F%25E8%25B7%259Fgin%25E4%25B8%2580%25E5%259D%2597%25E6%2590%25AD%25E5%25BB%25BA%25E8%2587%25AA%25E5%25B7%25B1%25E7%259A%2584web%25E6%25A1%2586%25E6%259E%25B6%25E5%259B%259B%2F">
+          <i class="fa fa-twitter"></i><span>分享到 Twitter</span>
+        </a>
+      </li>
+    
+      <li class="share-option">
+        <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=https%3A%2F%2Fharleylau.github.io%2F2019%2F02%2F%25E8%25B7%259Fgin%25E4%25B8%2580%25E5%259D%2597%25E6%2590%25AD%25E5%25BB%25BA%25E8%2587%25AA%25E5%25B7%25B1%25E7%259A%2584web%25E6%25A1%2586%25E6%259E%25B6%25E5%259B%259B%2F">
+          <i class="fa fa-google-plus"></i><span>分享到 Google&#43;</span>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+<div id="share-options-mask" class="share-options-mask"></div>
     </div>
     
     <div id="about">
@@ -726,6 +863,32 @@ $(document).ready(function() {
 });
 </script>
 
+
+  
+    
+      <script>
+        var disqus_config = function () {
+          this.page.url = 'https:\/\/harleylau.github.io\/2019\/02\/%E8%B7%9Fgin%E4%B8%80%E5%9D%97%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84web%E6%A1%86%E6%9E%B6%E5%9B%9B\/';
+          
+            this.page.identifier = '\/2019\/02\/%E8%B7%9Fgin%E4%B8%80%E5%9D%97%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84web%E6%A1%86%E6%9E%B6%E5%9B%9B\/'
+          
+        };
+        (function() {
+          
+          
+          if (window.location.hostname == "localhost") {
+            return;
+          }
+          var d = document, s = d.createElement('script');
+          var disqus_shortname = 'harleylau';
+          s.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+
+          s.setAttribute('data-timestamp', +new Date());
+          (d.head || d.body).appendChild(s);
+        })();
+      </script>
+    
+  
 
 
 
