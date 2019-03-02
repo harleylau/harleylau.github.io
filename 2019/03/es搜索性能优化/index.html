@@ -7,36 +7,36 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="generator" content="Hugo 0.52 with theme Tranquilpeak 0.4.3-SNAPSHOT">
 <meta name="author" content="Harley">
-<meta name="keywords" content="Tornado">
-<meta name="description" content="Tornado在使用过程，碰到过性能瓶颈。 当碰到Tornado中有比较耗时的任务的时候，请求一多就会阻塞整个服务。这个时候就需要查看到底是什么任务阻塞了服务，然后针对性的进行优化。">
+<meta name="keywords" content="Elastic Search">
+<meta name="description" content="在项目中有用到Elastic Search来进行数据的索引和搜索工作。在一开始接手的时候，搜索接口的耗时在六七百毫秒，相对一般的接口来说是一个比较耗时的操作了。">
 
 
-<meta property="og:description" content="Tornado在使用过程，碰到过性能瓶颈。 当碰到Tornado中有比较耗时的任务的时候，请求一多就会阻塞整个服务。这个时候就需要查看到底是什么任务阻塞了服务，然后针对性的进行优化。">
+<meta property="og:description" content="在项目中有用到Elastic Search来进行数据的索引和搜索工作。在一开始接手的时候，搜索接口的耗时在六七百毫秒，相对一般的接口来说是一个比较耗时的操作了。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Tornado–打印block日志">
-<meta name="twitter:title" content="Tornado–打印block日志">
-<meta property="og:url" content="https://harleylau.github.io/2017/09/tornado%E6%89%93%E5%8D%B0block%E6%97%A5%E5%BF%97/">
-<meta property="twitter:url" content="https://harleylau.github.io/2017/09/tornado%E6%89%93%E5%8D%B0block%E6%97%A5%E5%BF%97/">
+<meta property="og:title" content="ES搜索性能优化">
+<meta name="twitter:title" content="ES搜索性能优化">
+<meta property="og:url" content="https://harleylau.github.io/2019/03/es%E6%90%9C%E7%B4%A2%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/">
+<meta property="twitter:url" content="https://harleylau.github.io/2019/03/es%E6%90%9C%E7%B4%A2%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/">
 <meta property="og:site_name" content="Harley">
-<meta property="og:description" content="Tornado在使用过程，碰到过性能瓶颈。 当碰到Tornado中有比较耗时的任务的时候，请求一多就会阻塞整个服务。这个时候就需要查看到底是什么任务阻塞了服务，然后针对性的进行优化。">
-<meta name="twitter:description" content="Tornado在使用过程，碰到过性能瓶颈。 当碰到Tornado中有比较耗时的任务的时候，请求一多就会阻塞整个服务。这个时候就需要查看到底是什么任务阻塞了服务，然后针对性的进行优化。">
+<meta property="og:description" content="在项目中有用到Elastic Search来进行数据的索引和搜索工作。在一开始接手的时候，搜索接口的耗时在六七百毫秒，相对一般的接口来说是一个比较耗时的操作了。">
+<meta name="twitter:description" content="在项目中有用到Elastic Search来进行数据的索引和搜索工作。在一开始接手的时候，搜索接口的耗时在六七百毫秒，相对一般的接口来说是一个比较耗时的操作了。">
 <meta property="og:locale" content="zh-cn">
 
   
-    <meta property="article:published_time" content="2017-09-07T11:21:02">
+    <meta property="article:published_time" content="2019-03-02T15:19:58">
   
   
-    <meta property="article:modified_time" content="2017-09-07T11:21:02">
+    <meta property="article:modified_time" content="2019-03-02T15:19:58">
   
-  
-  
-    
-      <meta property="article:section" content="Tornado">
-    
   
   
     
-      <meta property="article:tag" content="Tornado">
+      <meta property="article:section" content="Elastic Search">
+    
+  
+  
+    
+      <meta property="article:tag" content="Elastic Search">
     
   
 
@@ -57,14 +57,14 @@
   <meta property="twitter:image" content="https://harleylau.github.io/img/harleylau.jpg">
 
 
-    <title>Tornado–打印block日志</title>
+    <title>ES搜索性能优化</title>
 
     <link rel="icon" href="https://harleylau.github.io/favicon.png">
     
 
     
 
-    <link rel="canonical" href="https://harleylau.github.io/2017/09/tornado%E6%89%93%E5%8D%B0block%E6%97%A5%E5%BF%97/">
+    <link rel="canonical" href="https://harleylau.github.io/2019/03/es%E6%90%9C%E7%B4%A2%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/">
 
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous" />
@@ -222,15 +222,15 @@
             <div class="post-header main-content-wrap text-left">
   
     <h1 class="post-title" itemprop="headline">
-      Tornado–打印block日志
+      ES搜索性能优化
     </h1>
   
   
   <div class="postShorten-meta post-meta">
     
-      <time itemprop="datePublished" datetime="2017-09-07T11:21:02&#43;08:00">
+      <time itemprop="datePublished" datetime="2019-03-02T15:19:58&#43;08:00">
         
-  九月 7, 2017
+  三月 2, 2019
 
       </time>
     
@@ -239,7 +239,7 @@
   
     <span>发布在</span>
     
-      <a class="category-link" href="https://harleylau.github.io/categories/tornado">Tornado</a>
+      <a class="category-link" href="https://harleylau.github.io/categories/elastic-search">Elastic Search</a>
     
   
 
@@ -249,36 +249,79 @@
           
           <div class="post-content markdown" itemprop="articleBody">
             <div class="main-content-wrap">
-              <p>Tornado在使用过程，碰到过性能瓶颈。 当碰到Tornado中有比较耗时的任务的时候，请求一多就会阻塞整个服务。这个时候就需要查看到底是什么任务阻塞了服务，然后针对性的进行优化。</p>
+              <p>在项目中有用到Elastic Search来进行数据的索引和搜索工作。在一开始接手的时候，搜索接口的耗时在六七百毫秒，相对一般的接口来说是一个比较耗时的操作了。</p>
 
-<p>Tornado使用logging打印日志，我们可以指定当某个请求的处理时间超过设定时间的时候，打印这个请求的stack trace。</p>
+<p>在后期的优化和学习过程中，对ES的特性和原理进行初步的了解，并对ES的搜索性能进行了优化，将搜索接口的耗时降低到了平均150ms左右，性能提高了将近5倍。</p>
 
-<p>源码如下：</p>
+<p>虽然是个很小的改动，但效果确实显著，记录一下中间具体的过程。</p>
 
-<pre><code> def set_blocking_log_threshold(self, seconds):
-        &quot;&quot;&quot;Logs a stack trace if the `IOLoop` is blocked for more than
-        ``s`` seconds.
+<h1 id="table-of-contents">目录</h1><nav id="TableOfContents">
+<ul>
+<li><a href="#初始es搜索的概况">初始ES搜索的概况</a></li>
+<li><a href="#es优化建议">ES优化建议</a></li>
+<li><a href="#es优化原理">ES优化原理</a></li>
+</ul>
+</nav>
 
-        Equivalent to ``set_blocking_signal_threshold(seconds,
-        self.log_stack)``
-        &quot;&quot;&quot;
-        self.set_blocking_signal_threshold(seconds, self.log_stack)
+<h1 id="初始es搜索的概况">初始ES搜索的概况</h1>
+
+<p>在一开始的ES搜索中，其实也是一个比较简单的过滤条件。隐藏一些业务细节，最抽象的版本可以概括为</p>
+
+<pre><code>{
+  &quot;query&quot;: { 
+    &quot;function_score&quot;: {
+      &quot;query&quot;: {
+        &quot;bool&quot;: { 
+          &quot;filter&quot;: [ 
+            {
+              &quot;terms&quot;: {
+                &quot;status&quot;: [1,2]
+              }
+            },
+            .....
+          ]
+        }
+        .....
+      },
+      &quot;functions&quot;: [
+        .....
+      ], 
+      &quot;score_mode&quot;: &quot;sum&quot;,
+      &quot;boost_mode&quot;: &quot;sum&quot;
+    }
+  },
+  &quot;from&quot;: 0,
+  &quot;size&quot;: 20
+}
 </code></pre>
 
-<p>如何使用呢，只需要在启动服务的时候设置block的时间即可，如下所示：</p>
+<p>在用kibina自带的非常方便的工具来分析具体的搜索过程耗时时，发现最主要的时间花在了build_scorer的过程中。如果把build_scorer的耗时减少，能够大幅的加快接口的处理速度。</p>
 
-<pre><code>if __name__ == '__main__':
+<p>在不断的试验过程中，发现如果将status的过滤条件删除，耗时大为减少，所以目标确定为找到status的过滤条件耗时长的原因。</p>
 
-    app = create_app()
+<p>经过各方面的资料查找，发现网上的很多建议并不靠谱，或者说并不适合我们所面临的状态。不过幸好，最终发现了这篇文章： <a href="https://www.jianshu.com/p/e9be6740b724">https://www.jianshu.com/p/e9be6740b724</a> ， 一下子解决了我们的问题。这篇文章对优化的原理讲的很明白了， 这边只是个人再记录一下。</p>
 
-    server = tornado.httpserver.HTTPServer(app)
-    server.listen(options.port)
-    io_loop = tornado.ioloop.IOLoop.instance()
-    io_loop.set_blocking_log_threshold(0.5)
-    io_loop.start()
-</code></pre>
+<h1 id="es优化建议">ES优化建议</h1>
 
-<p>如果某个请求的处理时间超过0.5秒，就会打印该请求的栈。</p>
+<p>直接说结论： 对于数值类型，需要在构建索引的时候就明确这个字段是否需要进行范围查询RangeQuery，还是只需要做精确的TermQuery；如果类似我们的这种status字段，只需要进行精确的TermQuery，或者查询少数的几种数值情况，在构建索引的时候，需要预先指定对应的字段为keyword类型，而不要使用ES默认的数值类型short。</p>
+
+<h1 id="es优化原理">ES优化原理</h1>
+
+<p>再记录一下上述优化建议的原理。</p>
+
+<ol>
+<li><p>在ES5.x之前用到的Lucene版本，即使是被定义成数值类型，最终其实还是按照文本类型对其进行了倒排索引。</p>
+
+<p>所以针对上边我们的情况，如果在ES5.x之前的版本，status字段即使是存成了默认的数值字段，还是会在底层建立倒排索引，上边的搜索条件其实也是会非常快的。</p></li>
+
+<li><p>这种处理方式虽然对这种TermQuery的搜索比较快速，但是如果要用到RangeQuery，就有点力不从心了。 对于RangeQuery，比如status range from 0 to 100，这种情况就需要查询 status 从0到100的倒排索引，尤其在RangeQuery的范围比较大的时候，性能缺陷更为明显。</p></li>
+
+<li><p>为了加快RangeQuery，ES5.x用到的Lucene对数值类型进行了优化，将其从倒排索引转成了Block k-d tree的数据结构。Block k-d tree可以简单的理解成为一个二叉树的结构，一方面采用了这种类似二叉树的结构，另一方面ES针对RangeQuery进行了一系列的优化，加快了RangeQuery的搜索效率。</p></li>
+
+<li><p>正是由于ES5.x针对数值类型进行了这方面的优化，虽然对于RangeQuery更有效率，但是对于TermQuery的情况，由于没有了倒排索引，所以在进行TermQuery的时候，需要先根据符合条件的docid构建出一个巨大的bitset出来。所以增加了耗时。</p></li>
+</ol>
+
+<p>所以结论就是，如果要进行TermQuery，索引的类型适合定义成keyword类型，以利用它的倒排索引结构； ES的默认的数值类型更适合进行RangeQuery的查询。</p>
               
             </div>
           </div>
@@ -290,7 +333,7 @@
                   <div class="post-footer-tags">
                     <span class="text-color-light text-small">标签</span><br/>
                     
-  <a class="tag tag--primary tag--small" href="https://harleylau.github.io/tags/tornado/">Tornado</a>
+  <a class="tag tag--primary tag--small" href="https://harleylau.github.io/tags/elastic-search/">Elastic Search</a>
 
                   </div>
                 
@@ -303,7 +346,7 @@
           
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2017/09/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%AF%B9%E8%B1%A1object/" data-tooltip="Redis源码剖析–对象Object">
+                <a class="post-action-btn btn btn--disabled">
               
                   <i class="fa fa-angle-left"></i>
                   <span class="hide-xs hide-sm text-small icon-ml">下一篇</span>
@@ -311,7 +354,7 @@
             </li>
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2017/09/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%8E%8B%E7%BC%A9%E5%88%97%E8%A1%A8/" data-tooltip="Redis源码剖析–压缩列表">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2019/02/%E8%B7%9Fgin%E4%B8%80%E5%9D%97%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84web%E6%A1%86%E6%9E%B6%E5%9B%9B/" data-tooltip="跟Gin一块搭建自己的web框架(四)">
               
                   <span class="hide-xs hide-sm text-small icon-mr">上一篇</span>
                   <i class="fa fa-angle-right"></i>
@@ -329,19 +372,19 @@
         </li>
         
           <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://harleylau.github.io/2017/09/tornado%E6%89%93%E5%8D%B0block%E6%97%A5%E5%BF%97/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://harleylau.github.io/2019/03/es%E6%90%9C%E7%B4%A2%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/">
               <i class="fa fa-facebook-official"></i>
             </a>
           </li>
         
           <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://harleylau.github.io/2017/09/tornado%E6%89%93%E5%8D%B0block%E6%97%A5%E5%BF%97/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://harleylau.github.io/2019/03/es%E6%90%9C%E7%B4%A2%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/">
               <i class="fa fa-twitter"></i>
             </a>
           </li>
         
           <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://harleylau.github.io/2017/09/tornado%E6%89%93%E5%8D%B0block%E6%97%A5%E5%BF%97/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://harleylau.github.io/2019/03/es%E6%90%9C%E7%B4%A2%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/">
               <i class="fa fa-google-plus"></i>
             </a>
           </li>
@@ -356,7 +399,7 @@
       
       <li class="post-action">
         
-          <a class="post-action-btn btn btn--default" href="#">
+          <a class="post-action-btn btn btn--default" href="#table-of-contents">
         
           <i class="fa fa-list"></i>
         </a>
@@ -389,7 +432,7 @@
           
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2017/09/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%AF%B9%E8%B1%A1object/" data-tooltip="Redis源码剖析–对象Object">
+                <a class="post-action-btn btn btn--disabled">
               
                   <i class="fa fa-angle-left"></i>
                   <span class="hide-xs hide-sm text-small icon-ml">下一篇</span>
@@ -397,7 +440,7 @@
             </li>
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2017/09/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%8E%8B%E7%BC%A9%E5%88%97%E8%A1%A8/" data-tooltip="Redis源码剖析–压缩列表">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2019/02/%E8%B7%9Fgin%E4%B8%80%E5%9D%97%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84web%E6%A1%86%E6%9E%B6%E5%9B%9B/" data-tooltip="跟Gin一块搭建自己的web框架(四)">
               
                   <span class="hide-xs hide-sm text-small icon-mr">上一篇</span>
                   <i class="fa fa-angle-right"></i>
@@ -415,19 +458,19 @@
         </li>
         
           <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://harleylau.github.io/2017/09/tornado%E6%89%93%E5%8D%B0block%E6%97%A5%E5%BF%97/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://harleylau.github.io/2019/03/es%E6%90%9C%E7%B4%A2%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/">
               <i class="fa fa-facebook-official"></i>
             </a>
           </li>
         
           <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://harleylau.github.io/2017/09/tornado%E6%89%93%E5%8D%B0block%E6%97%A5%E5%BF%97/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://harleylau.github.io/2019/03/es%E6%90%9C%E7%B4%A2%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/">
               <i class="fa fa-twitter"></i>
             </a>
           </li>
         
           <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://harleylau.github.io/2017/09/tornado%E6%89%93%E5%8D%B0block%E6%97%A5%E5%BF%97/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://harleylau.github.io/2019/03/es%E6%90%9C%E7%B4%A2%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/">
               <i class="fa fa-google-plus"></i>
             </a>
           </li>
@@ -442,7 +485,7 @@
       
       <li class="post-action">
         
-          <a class="post-action-btn btn btn--default" href="#">
+          <a class="post-action-btn btn btn--default" href="#table-of-contents">
         
           <i class="fa fa-list"></i>
         </a>
@@ -457,19 +500,19 @@
   <ul class="share-options">
     
       <li class="share-option">
-        <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fharleylau.github.io%2F2017%2F09%2Ftornado%25E6%2589%2593%25E5%258D%25B0block%25E6%2597%25A5%25E5%25BF%2597%2F">
+        <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fharleylau.github.io%2F2019%2F03%2Fes%25E6%2590%259C%25E7%25B4%25A2%25E6%2580%25A7%25E8%2583%25BD%25E4%25BC%2598%25E5%258C%2596%2F">
           <i class="fa fa-facebook-official"></i><span>分享到 Facebook</span>
         </a>
       </li>
     
       <li class="share-option">
-        <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=https%3A%2F%2Fharleylau.github.io%2F2017%2F09%2Ftornado%25E6%2589%2593%25E5%258D%25B0block%25E6%2597%25A5%25E5%25BF%2597%2F">
+        <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=https%3A%2F%2Fharleylau.github.io%2F2019%2F03%2Fes%25E6%2590%259C%25E7%25B4%25A2%25E6%2580%25A7%25E8%2583%25BD%25E4%25BC%2598%25E5%258C%2596%2F">
           <i class="fa fa-twitter"></i><span>分享到 Twitter</span>
         </a>
       </li>
     
       <li class="share-option">
-        <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=https%3A%2F%2Fharleylau.github.io%2F2017%2F09%2Ftornado%25E6%2589%2593%25E5%258D%25B0block%25E6%2597%25A5%25E5%25BF%2597%2F">
+        <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=https%3A%2F%2Fharleylau.github.io%2F2019%2F03%2Fes%25E6%2590%259C%25E7%25B4%25A2%25E6%2580%25A7%25E8%2583%25BD%25E4%25BC%2598%25E5%258C%2596%2F">
           <i class="fa fa-google-plus"></i><span>分享到 Google&#43;</span>
         </a>
       </li>
@@ -759,9 +802,9 @@ $(document).ready(function() {
     
       <script>
         var disqus_config = function () {
-          this.page.url = 'https:\/\/harleylau.github.io\/2017\/09\/tornado%E6%89%93%E5%8D%B0block%E6%97%A5%E5%BF%97\/';
+          this.page.url = 'https:\/\/harleylau.github.io\/2019\/03\/es%E6%90%9C%E7%B4%A2%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96\/';
           
-            this.page.identifier = '\/2017\/09\/tornado%E6%89%93%E5%8D%B0block%E6%97%A5%E5%BF%97\/'
+            this.page.identifier = '\/2019\/03\/es%E6%90%9C%E7%B4%A2%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96\/'
           
         };
         (function() {

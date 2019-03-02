@@ -6,10 +6,19 @@
     <description>Recent content in Elastic Search on Harley</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sat, 17 Nov 2018 16:01:28 +0800</lastBuildDate>
+    <lastBuildDate>Sat, 02 Mar 2019 15:19:58 +0800</lastBuildDate>
     
 	<atom:link href="https://harleylau.github.io/categories/elastic-search/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>ES搜索性能优化</title>
+      <link>https://harleylau.github.io/2019/03/es%E6%90%9C%E7%B4%A2%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/</link>
+      <pubDate>Sat, 02 Mar 2019 15:19:58 +0800</pubDate>
+      
+      <guid>https://harleylau.github.io/2019/03/es%E6%90%9C%E7%B4%A2%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/</guid>
+      <description>&lt;p&gt;在项目中有用到Elastic Search来进行数据的索引和搜索工作。在一开始接手的时候，搜索接口的耗时在六七百毫秒，相对一般的接口来说是一个比较耗时的操作了。&lt;/p&gt;</description>
+    </item>
     
     <item>
       <title>Elastic Search 不停服重建索引</title>
