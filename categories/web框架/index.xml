@@ -6,10 +6,19 @@
     <description>Recent content in Web框架 on Harley</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 11 Feb 2019 15:02:24 +0800</lastBuildDate>
+    <lastBuildDate>Fri, 22 Mar 2019 14:15:50 +0800</lastBuildDate>
     
 	<atom:link href="https://harleylau.github.io/categories/web%E6%A1%86%E6%9E%B6/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>跟Gin一块搭建自己的web框架(五)</title>
+      <link>https://harleylau.github.io/2019/03/%E8%B7%9Fgin%E4%B8%80%E5%9D%97%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84web%E6%A1%86%E6%9E%B6%E4%BA%94/</link>
+      <pubDate>Fri, 22 Mar 2019 14:15:50 +0800</pubDate>
+      
+      <guid>https://harleylau.github.io/2019/03/%E8%B7%9Fgin%E4%B8%80%E5%9D%97%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84web%E6%A1%86%E6%9E%B6%E4%BA%94/</guid>
+      <description>&lt;p&gt;继续扩展web框架的功能。&lt;/p&gt;</description>
+    </item>
     
     <item>
       <title>跟Gin一块搭建自己的web框架(四)</title>
