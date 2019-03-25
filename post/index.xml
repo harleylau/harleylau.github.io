@@ -6,10 +6,19 @@
     <description>Recent content in Posts on Harley</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Fri, 22 Mar 2019 16:21:46 +0800</lastBuildDate>
+    <lastBuildDate>Mon, 25 Mar 2019 14:55:09 +0800</lastBuildDate>
     
 	<atom:link href="https://harleylau.github.io/post/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>跟Gin一块搭建自己的web框架(七)</title>
+      <link>https://harleylau.github.io/2019/03/%E8%B7%9Fgin%E4%B8%80%E5%9D%97%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84web%E6%A1%86%E6%9E%B6%E4%B8%83/</link>
+      <pubDate>Mon, 25 Mar 2019 14:55:09 +0800</pubDate>
+      
+      <guid>https://harleylau.github.io/2019/03/%E8%B7%9Fgin%E4%B8%80%E5%9D%97%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84web%E6%A1%86%E6%9E%B6%E4%B8%83/</guid>
+      <description>&lt;p&gt;本篇介绍HTTP Basic Auth的实现以及Recovery机制。&lt;/p&gt;</description>
+    </item>
     
     <item>
       <title>跟Gin一块搭建自己的web框架(六)</title>
