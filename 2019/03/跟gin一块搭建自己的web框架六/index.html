@@ -267,7 +267,7 @@
 
 <p>不管是在query中，还是在body中，如果要一个一个的去获取参数并放入对应的变量中，是一个比较繁琐的过程，gin里边提供了一个自动绑定的方法，能够将query或者body中的参数方便的放入到我们定义的struct中。</p>
 
-<p>同时在绑定参数的时候，我们也能够制定参数的范围或者特性，对参数进行验证。</p>
+<p>同时在绑定参数的时候，我们也能够指定参数的范围或者特性，对参数进行验证。</p>
 
 <p>所以将绑定和参数验证放在一块讲，接下去实现一个比较简单的绑定功能和参数验证。</p>
 
@@ -307,7 +307,7 @@ type LoginJSON struct {
 
 <p>在从请求中接受参数之后，必然需要用if语句去判断参数中是否确实带了User参数和Password参数，这个在单一的请求中还算好办，两条if语句就解决了。但是如果有很多类似的请求，要验证其他的结构体，或者结构体中有很多的参数需要验证，这个就需要一堆的if语句，在代码简洁性上就会大打折扣。</p>
 
-<p>但是如果有了validate模块，就能够解放劳动力，我们只需要把参数的要求在tag中写清楚，具体的验证过程全都可以交个validate模块去做。比如登录模块User和Password必须携带，就可以这么定义结构体</p>
+<p>但是如果有了validate模块，就能够解放劳动力，我们只需要把参数的要求在tag中写清楚，具体的验证过程全都可以交给validate模块去做。比如登录模块User和Password必须携带，就可以这么定义结构体</p>
 
 <pre><code> // LoginJSON .
 type LoginJSON struct {
@@ -360,16 +360,16 @@ type LoginJSON struct {
 	}
 </code></pre>
 
-<p>在validate模块中，循环遍历所有的字段，如果字段是一个指针指向另一个结构体，那么采用深度优先的方法，验证这个子结构体的合法性。如果参数的tag中，带有reqired限制，验证这个参数是否确实有值。</p>
+<p>在validate模块中，循环遍历所有的字段，如果字段是一个指针指向另一个结构体，那么采用深度优先的方法，验证这个子结构体的合法性。如果参数的tag中，带有required限制，验证这个参数是否确实有值。</p>
 
 <h1 id="main函数修改">main函数修改</h1>
 
 <p>在上一篇的基础之上，为了验证参数绑定功能，增加一个账号密码登录功能</p>
 
 <pre><code>v1 := r.Group(&quot;/v1&quot;)
-	{
-		v1.POST(&quot;/pwlogin&quot;, v1PasswordLoginfunc)
-	}
+{
+	v1.POST(&quot;/pwlogin&quot;, v1PasswordLoginfunc)
+}
 </code></pre>
 
 <p>对应的handler如下</p>
@@ -386,9 +386,9 @@ type LoginJSON struct {
 }
 </code></pre>
 
-<p>将参数解析验证之后，在handler中只需要关注账号密码是否正确就可以，无需关注与参数错误的处理过程。</p>
+<p>将参数解析验证之后，在handler中只需要关注账号密码是否正确就可以，无需关注于参数错误的处理过程。</p>
 
-<p>对应的代码参见：</p>
+<p>对应的代码参见：<a href="https://github.com/harleylau/myGin/tree/master/v0.4">https://github.com/harleylau/myGin/tree/master/v0.4</a></p>
               
             </div>
           </div>
