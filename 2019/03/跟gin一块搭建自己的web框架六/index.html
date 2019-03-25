@@ -7,38 +7,40 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="generator" content="Hugo 0.52 with theme Tranquilpeak 0.4.3-SNAPSHOT">
 <meta name="author" content="Harley">
-<meta name="keywords" content="Python">
-<meta name="description" content="Python的functools模块提供了很多有用的功能，其中一个就是偏函数（Partial function）">
+<meta name="keywords" content="Gin">
+<meta name="description" content="这一篇介绍gin中的绑定和数据验证。">
 
 
-<meta property="og:description" content="Python的functools模块提供了很多有用的功能，其中一个就是偏函数（Partial function）">
+<meta property="og:description" content="这一篇介绍gin中的绑定和数据验证。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Python偏函数Partial Function">
-<meta name="twitter:title" content="Python偏函数Partial Function">
-<meta property="og:url" content="https://harleylau.github.io/2018/07/python%E5%81%8F%E5%87%BD%E6%95%B0partial-function/">
-<meta property="twitter:url" content="https://harleylau.github.io/2018/07/python%E5%81%8F%E5%87%BD%E6%95%B0partial-function/">
+<meta property="og:title" content="跟Gin一块搭建自己的web框架(六)">
+<meta name="twitter:title" content="跟Gin一块搭建自己的web框架(六)">
+<meta property="og:url" content="https://harleylau.github.io/2019/03/%E8%B7%9Fgin%E4%B8%80%E5%9D%97%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84web%E6%A1%86%E6%9E%B6%E5%85%AD/">
+<meta property="twitter:url" content="https://harleylau.github.io/2019/03/%E8%B7%9Fgin%E4%B8%80%E5%9D%97%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84web%E6%A1%86%E6%9E%B6%E5%85%AD/">
 <meta property="og:site_name" content="Harley">
-<meta property="og:description" content="Python的functools模块提供了很多有用的功能，其中一个就是偏函数（Partial function）">
-<meta name="twitter:description" content="Python的functools模块提供了很多有用的功能，其中一个就是偏函数（Partial function）">
+<meta property="og:description" content="这一篇介绍gin中的绑定和数据验证。">
+<meta name="twitter:description" content="这一篇介绍gin中的绑定和数据验证。">
 <meta property="og:locale" content="zh-cn">
 
   
-    <meta property="article:published_time" content="2018-07-12T09:37:49">
+    <meta property="article:published_time" content="2019-03-22T16:21:46">
   
   
-    <meta property="article:modified_time" content="2018-07-12T09:37:49">
+    <meta property="article:modified_time" content="2019-03-22T16:21:46">
   
-  
-  
-    
-      <meta property="article:section" content="Python">
-    
-      <meta property="article:section" content="偏函数">
-    
   
   
     
-      <meta property="article:tag" content="Python">
+      <meta property="article:section" content="Gin">
+    
+      <meta property="article:section" content="web框架">
+    
+  
+  
+    
+      <meta property="article:tag" content="Gin">
+    
+      <meta property="article:tag" content="web框架">
     
   
 
@@ -59,14 +61,14 @@
   <meta property="twitter:image" content="https://harleylau.github.io/img/harleylau.jpg">
 
 
-    <title>Python偏函数Partial Function</title>
+    <title>跟Gin一块搭建自己的web框架(六)</title>
 
     <link rel="icon" href="https://harleylau.github.io/favicon.png">
     
 
     
 
-    <link rel="canonical" href="https://harleylau.github.io/2018/07/python%E5%81%8F%E5%87%BD%E6%95%B0partial-function/">
+    <link rel="canonical" href="https://harleylau.github.io/2019/03/%E8%B7%9Fgin%E4%B8%80%E5%9D%97%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84web%E6%A1%86%E6%9E%B6%E5%85%AD/">
 
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous" />
@@ -224,15 +226,15 @@
             <div class="post-header main-content-wrap text-left">
   
     <h1 class="post-title" itemprop="headline">
-      Python偏函数Partial Function
+      跟Gin一块搭建自己的web框架(六)
     </h1>
   
   
   <div class="postShorten-meta post-meta">
     
-      <time itemprop="datePublished" datetime="2018-07-12T09:37:49&#43;08:00">
+      <time itemprop="datePublished" datetime="2019-03-22T16:21:46&#43;08:00">
         
-  七月 12, 2018
+  三月 22, 2019
 
       </time>
     
@@ -241,9 +243,9 @@
   
     <span>发布在</span>
     
-      <a class="category-link" href="https://harleylau.github.io/categories/python">Python</a>, 
+      <a class="category-link" href="https://harleylau.github.io/categories/gin">Gin</a>, 
     
-      <a class="category-link" href="https://harleylau.github.io/categories/%e5%81%8f%e5%87%bd%e6%95%b0">偏函数</a>
+      <a class="category-link" href="https://harleylau.github.io/categories/web%e6%a1%86%e6%9e%b6">web框架</a>
     
   
 
@@ -253,97 +255,140 @@
           
           <div class="post-content markdown" itemprop="articleBody">
             <div class="main-content-wrap">
-              <p>Python的functools模块提供了很多有用的功能，其中一个就是偏函数（Partial function）</p>
+              <p>这一篇介绍gin中的绑定和数据验证。</p>
 
-<p>先看一下偏函数的文档说明：</p>
+<h1 id="table-of-contents">目录</h1><nav id="TableOfContents">
+<ul>
+<li><a href="#参数绑定">参数绑定</a></li>
+<li><a href="#参数验证">参数验证</a></li>
+<li><a href="#main函数修改">main函数修改</a></li>
+</ul>
+</nav>
 
-<blockquote>
-<p>functools.partial(func, *args, **keywords)
-Return a new partial object which when called will behave like func called with the positional arguments args and keyword arguments keywords. If more arguments are supplied to the call, they are appended to args. If additional keyword arguments are supplied, they extend and override keywords. Roughly equivalent to:</p>
-</blockquote>
+<p>不管是在query中，还是在body中，如果要一个一个的去获取参数并放入对应的变量中，是一个比较繁琐的过程，gin里边提供了一个自动绑定的方法，能够将query或者body中的参数方便的放入到我们定义的struct中。</p>
 
-<pre><code>def partial(func, *args, **keywords):
-    def newfunc(*fargs, **fkeywords):
-        newkeywords = keywords.copy()
-        newkeywords.update(fkeywords)
-        return func(*args, *fargs, **newkeywords)
-    newfunc.func = func
-    newfunc.args = args
-    newfunc.keywords = keywords
-    return newfunc
+<p>同时在绑定参数的时候，我们也能够制定参数的范围或者特性，对参数进行验证。</p>
+
+<p>所以将绑定和参数验证放在一块讲，接下去实现一个比较简单的绑定功能和参数验证。</p>
+
+<h1 id="参数绑定">参数绑定</h1>
+
+<pre><code>func (c *Context) EnsureBody(item interface{}) bool {
+	if err := c.ParseBody(item); err != nil {
+		c.Fail(400, err)
+		return false
+	}
+	return true
+}
+
+// Parses the body content as a JSON input. It decodes the json payload into the struct specified as a pointer.
+func (c *Context) ParseBody(item interface{}) error {
+	decoder := json.NewDecoder(c.Req.Body)
+	if err := decoder.Decode(&amp;item); err == nil {
+		return Validate(c, item)
+	} else {
+		return err
+	}
+}
 </code></pre>
 
-<p>偏函数通过包装的手法，允许我们重新定义函数，它可以冻结部分位置函数和关键字参数，降低函数调用的难度 。</p>
+<p>我们用一个EnsureBody的函数来解析请求包中的body，它其实是调用了一个ParseBody的函数。这个函数会将req.Body解析到item中，如果解析失败，说明参数不符合我们的要求，返回错误。如果解析成功，就是将参数绑定到了我们定义的结构体中，接下去调用Validate对参数的有效性进行验证。</p>
 
-<p>int()函数可以把字符串转换为整数，当仅传入字符串时，int()函数默认按十进制转换：</p>
+<h1 id="参数验证">参数验证</h1>
 
-<pre><code>&gt;&gt;&gt; int('12345')
-12345
+<p>首先说一下validate参数验证的好处。假设一个最简单的场景， 用户登录的时候必须要传账户名和密码，我们先定义这样的结构体</p>
+
+<pre><code>// LoginJSON .
+type LoginJSON struct {
+	User     string `json:&quot;user&quot;`
+	Password string `json:&quot;password&quot;`
+}
 </code></pre>
 
-<p>但int()函数还提供额外的base参数，默认值为10。如果传入base参数，就可以做N进制的转换：</p>
+<p>在从请求中接受参数之后，必然需要用if语句去判断参数中是否确实带了User参数和Password参数，这个在单一的请求中还算好办，两条if语句就解决了。但是如果有很多类似的请求，要验证其他的结构体，或者结构体中有很多的参数需要验证，这个就需要一堆的if语句，在代码简洁性上就会大打折扣。</p>
 
-<pre><code>&gt;&gt;&gt; int('12345', base=8)
-5349
-&gt;&gt;&gt; int('12345', 16)
-74565
+<p>但是如果有了validate模块，就能够解放劳动力，我们只需要把参数的要求在tag中写清楚，具体的验证过程全都可以交个validate模块去做。比如登录模块User和Password必须携带，就可以这么定义结构体</p>
+
+<pre><code> // LoginJSON .
+type LoginJSON struct {
+	User     string `json:&quot;user&quot; binding:&quot;required&quot;`
+	Password string `json:&quot;password&quot; binding:&quot;required&quot;`
+}
 </code></pre>
 
-<p>假设要转换大量的二进制字符串，每次都传入int(x, base=2)非常麻烦，于是，我们想到，可以定义一个int2()的函数，默认把base=2传进去：</p>
+<p>用一个required来限定必须携带的参数，再比如注册的例子，在gin中可以这么定义结构体</p>
 
-<pre><code>def int2(x, base=2):
-    return int(x, base)
+<pre><code>type RegisterReq struct {
+    // 字符串的 gt=0 表示长度必须 &gt; 0，gt = greater than
+    Username       string   `validate:&quot;gt=0&quot;`
+    // 同上
+    PasswordNew    string   `validate:&quot;gt=0&quot;`
+    // eqfield 跨字段相等校验
+    PasswordRepeat string   `validate:&quot;eqfield=PasswordNew&quot;`
+}
 </code></pre>
 
-<p>这样，我们转换二进制就非常方便了：</p>
+<p>注册的时候限定了UserName的长度和Password的长度，并且两次数据的密码必须一致。我们只需要关注参数的定义逻辑就可以，无需关注请求中的参数验证逻辑，validate都帮我们做了。</p>
 
-<pre><code>&gt;&gt;&gt; int2('1000000')
-64
-&gt;&gt;&gt; int2('1010101')
-85
+<p>当然这个需要很复杂的validate模块，这边只是简单的实现validate中required的功能。</p>
+
+<p>从结构上来说，如果我们自定义的struct中子struct，那么它其实有点类似一棵树的结构，在验证的时候就需要对整棵树进行验证，这个就涉及到树的遍历。遍历一棵树无非就是广度优先或者深度优先，在gin中采用了深度优先的方式。</p>
+
+<pre><code>for i := 0; i &lt; typ.NumField(); i++ {
+		field := typ.Field(i)
+		fieldValue := val.Field(i).Interface()
+		zero := reflect.Zero(field.Type).Interface()
+
+		// Validate nested and embedded structs (if pointer, only do so if not nil)
+		if field.Type.Kind() == reflect.Struct ||
+			(field.Type.Kind() == reflect.Ptr &amp;&amp; !reflect.DeepEqual(zero, fieldValue)) {
+			err = Validate(c, fieldValue)
+		}
+
+		if strings.Index(field.Tag.Get(&quot;binding&quot;), &quot;required&quot;) &gt; -1 {
+			if reflect.DeepEqual(zero, fieldValue) {
+				name := field.Name
+				if j := field.Tag.Get(&quot;json&quot;); j != &quot;&quot; {
+					name = j
+				} else if f := field.Tag.Get(&quot;form&quot;); f != &quot;&quot; {
+					name = f
+				}
+				err = errors.New(&quot;Required &quot; + name)
+				c.Error(err, &quot;json validation&quot;)
+			}
+		}
+	}
 </code></pre>
 
-<p>functools.partial就是帮助我们创建一个偏函数的，不需要我们自己定义int2()，可以直接使用下面的代码创建一个新的函数int2：</p>
+<p>在validate模块中，循环遍历所有的字段，如果字段是一个指针指向另一个结构体，那么采用深度优先的方法，验证这个子结构体的合法性。如果参数的tag中，带有reqired限制，验证这个参数是否确实有值。</p>
 
-<pre><code>&gt;&gt;&gt; import functools
-&gt;&gt;&gt; int2 = functools.partial(int, base=2)
-&gt;&gt;&gt; int2('1000000')
-64
-&gt;&gt;&gt; int2('1010101')
-85
+<h1 id="main函数修改">main函数修改</h1>
+
+<p>在上一篇的基础之上，为了验证参数绑定功能，增加一个账号密码登录功能</p>
+
+<pre><code>v1 := r.Group(&quot;/v1&quot;)
+	{
+		v1.POST(&quot;/pwlogin&quot;, v1PasswordLoginfunc)
+	}
 </code></pre>
 
-<p>创建偏函数时，实际上可以接收函数对象、*args和**kw这3个参数，当传入：</p>
+<p>对应的handler如下</p>
 
-<pre><code>int2 = functools.partial(int, base=2)
+<pre><code>func v1PasswordLoginfunc(c *gin.Context) {
+	var json LoginJSON
+	if c.EnsureBody(&amp;json) {
+		if json.User == &quot;harleylau&quot; &amp;&amp; json.Password == &quot;password&quot; {
+			c.JSON(200, gin.H{&quot;status&quot;: &quot;you are logged in&quot;})
+		} else {
+			c.JSON(401, gin.H{&quot;status&quot;: &quot;unauthorized&quot;})
+		}
+	}
+}
 </code></pre>
 
-<p>实际上固定了int()函数的关键字参数base，也就是：</p>
+<p>将参数解析验证之后，在handler中只需要关注账号密码是否正确就可以，无需关注与参数错误的处理过程。</p>
 
-<pre><code>int2('10010')
-</code></pre>
-
-<p>相当于：</p>
-
-<pre><code>kw = { base: 2 }
-int('10010', **kw)
-</code></pre>
-
-<p>当传入：</p>
-
-<pre><code>max2 = functools.partial(max, 10)
-</code></pre>
-
-<p>实际上会把10作为*args的一部分自动加到左边，也就是：</p>
-
-<pre><code>max2(5, 6, 7)
-</code></pre>
-
-<p>相当于：</p>
-
-<pre><code>args = (10, 5, 6, 7)
-max(*args)
-</code></pre>
+<p>对应的代码参见：</p>
               
             </div>
           </div>
@@ -355,7 +400,9 @@ max(*args)
                   <div class="post-footer-tags">
                     <span class="text-color-light text-small">标签</span><br/>
                     
-  <a class="tag tag--primary tag--small" href="https://harleylau.github.io/tags/python/">Python</a>
+  <a class="tag tag--primary tag--small" href="https://harleylau.github.io/tags/gin/">Gin</a>
+
+  <a class="tag tag--primary tag--small" href="https://harleylau.github.io/tags/web%E6%A1%86%E6%9E%B6/">web框架</a>
 
                   </div>
                 
@@ -368,7 +415,7 @@ max(*args)
           
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2018/07/tornado%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/" data-tooltip="Tornado启动流程分析">
+                <a class="post-action-btn btn btn--disabled">
               
                   <i class="fa fa-angle-left"></i>
                   <span class="hide-xs hide-sm text-small icon-ml">下一篇</span>
@@ -376,7 +423,7 @@ max(*args)
             </li>
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2018/06/python%E7%9A%84orm%E6%A1%86%E6%9E%B6sqlalchemy%E7%9A%84%E6%9F%A5%E8%AF%A2%E5%A4%9A%E6%9D%A1%E6%95%B0%E6%8D%AE%E5%8F%AA%E6%98%BE%E7%A4%BA%E4%B8%80%E6%9D%A1/" data-tooltip="Python的ORM框架sqlalchemy的查询多条数据只显示一条">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2019/03/%E8%B7%9Fgin%E4%B8%80%E5%9D%97%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84web%E6%A1%86%E6%9E%B6%E4%BA%94/" data-tooltip="跟Gin一块搭建自己的web框架(五)">
               
                   <span class="hide-xs hide-sm text-small icon-mr">上一篇</span>
                   <i class="fa fa-angle-right"></i>
@@ -394,19 +441,19 @@ max(*args)
         </li>
         
           <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://harleylau.github.io/2018/07/python%E5%81%8F%E5%87%BD%E6%95%B0partial-function/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://harleylau.github.io/2019/03/%E8%B7%9Fgin%E4%B8%80%E5%9D%97%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84web%E6%A1%86%E6%9E%B6%E5%85%AD/">
               <i class="fa fa-facebook-official"></i>
             </a>
           </li>
         
           <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://harleylau.github.io/2018/07/python%E5%81%8F%E5%87%BD%E6%95%B0partial-function/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://harleylau.github.io/2019/03/%E8%B7%9Fgin%E4%B8%80%E5%9D%97%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84web%E6%A1%86%E6%9E%B6%E5%85%AD/">
               <i class="fa fa-twitter"></i>
             </a>
           </li>
         
           <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://harleylau.github.io/2018/07/python%E5%81%8F%E5%87%BD%E6%95%B0partial-function/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://harleylau.github.io/2019/03/%E8%B7%9Fgin%E4%B8%80%E5%9D%97%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84web%E6%A1%86%E6%9E%B6%E5%85%AD/">
               <i class="fa fa-google-plus"></i>
             </a>
           </li>
@@ -421,7 +468,7 @@ max(*args)
       
       <li class="post-action">
         
-          <a class="post-action-btn btn btn--default" href="#">
+          <a class="post-action-btn btn btn--default" href="#table-of-contents">
         
           <i class="fa fa-list"></i>
         </a>
@@ -454,7 +501,7 @@ max(*args)
           
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2018/07/tornado%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/" data-tooltip="Tornado启动流程分析">
+                <a class="post-action-btn btn btn--disabled">
               
                   <i class="fa fa-angle-left"></i>
                   <span class="hide-xs hide-sm text-small icon-ml">下一篇</span>
@@ -462,7 +509,7 @@ max(*args)
             </li>
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2018/06/python%E7%9A%84orm%E6%A1%86%E6%9E%B6sqlalchemy%E7%9A%84%E6%9F%A5%E8%AF%A2%E5%A4%9A%E6%9D%A1%E6%95%B0%E6%8D%AE%E5%8F%AA%E6%98%BE%E7%A4%BA%E4%B8%80%E6%9D%A1/" data-tooltip="Python的ORM框架sqlalchemy的查询多条数据只显示一条">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://harleylau.github.io/2019/03/%E8%B7%9Fgin%E4%B8%80%E5%9D%97%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84web%E6%A1%86%E6%9E%B6%E4%BA%94/" data-tooltip="跟Gin一块搭建自己的web框架(五)">
               
                   <span class="hide-xs hide-sm text-small icon-mr">上一篇</span>
                   <i class="fa fa-angle-right"></i>
@@ -480,19 +527,19 @@ max(*args)
         </li>
         
           <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://harleylau.github.io/2018/07/python%E5%81%8F%E5%87%BD%E6%95%B0partial-function/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://harleylau.github.io/2019/03/%E8%B7%9Fgin%E4%B8%80%E5%9D%97%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84web%E6%A1%86%E6%9E%B6%E5%85%AD/">
               <i class="fa fa-facebook-official"></i>
             </a>
           </li>
         
           <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://harleylau.github.io/2018/07/python%E5%81%8F%E5%87%BD%E6%95%B0partial-function/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://harleylau.github.io/2019/03/%E8%B7%9Fgin%E4%B8%80%E5%9D%97%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84web%E6%A1%86%E6%9E%B6%E5%85%AD/">
               <i class="fa fa-twitter"></i>
             </a>
           </li>
         
           <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://harleylau.github.io/2018/07/python%E5%81%8F%E5%87%BD%E6%95%B0partial-function/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://harleylau.github.io/2019/03/%E8%B7%9Fgin%E4%B8%80%E5%9D%97%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84web%E6%A1%86%E6%9E%B6%E5%85%AD/">
               <i class="fa fa-google-plus"></i>
             </a>
           </li>
@@ -507,7 +554,7 @@ max(*args)
       
       <li class="post-action">
         
-          <a class="post-action-btn btn btn--default" href="#">
+          <a class="post-action-btn btn btn--default" href="#table-of-contents">
         
           <i class="fa fa-list"></i>
         </a>
@@ -522,19 +569,19 @@ max(*args)
   <ul class="share-options">
     
       <li class="share-option">
-        <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fharleylau.github.io%2F2018%2F07%2Fpython%25E5%2581%258F%25E5%2587%25BD%25E6%2595%25B0partial-function%2F">
+        <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fharleylau.github.io%2F2019%2F03%2F%25E8%25B7%259Fgin%25E4%25B8%2580%25E5%259D%2597%25E6%2590%25AD%25E5%25BB%25BA%25E8%2587%25AA%25E5%25B7%25B1%25E7%259A%2584web%25E6%25A1%2586%25E6%259E%25B6%25E5%2585%25AD%2F">
           <i class="fa fa-facebook-official"></i><span>分享到 Facebook</span>
         </a>
       </li>
     
       <li class="share-option">
-        <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=https%3A%2F%2Fharleylau.github.io%2F2018%2F07%2Fpython%25E5%2581%258F%25E5%2587%25BD%25E6%2595%25B0partial-function%2F">
+        <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=https%3A%2F%2Fharleylau.github.io%2F2019%2F03%2F%25E8%25B7%259Fgin%25E4%25B8%2580%25E5%259D%2597%25E6%2590%25AD%25E5%25BB%25BA%25E8%2587%25AA%25E5%25B7%25B1%25E7%259A%2584web%25E6%25A1%2586%25E6%259E%25B6%25E5%2585%25AD%2F">
           <i class="fa fa-twitter"></i><span>分享到 Twitter</span>
         </a>
       </li>
     
       <li class="share-option">
-        <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=https%3A%2F%2Fharleylau.github.io%2F2018%2F07%2Fpython%25E5%2581%258F%25E5%2587%25BD%25E6%2595%25B0partial-function%2F">
+        <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=https%3A%2F%2Fharleylau.github.io%2F2019%2F03%2F%25E8%25B7%259Fgin%25E4%25B8%2580%25E5%259D%2597%25E6%2590%25AD%25E5%25BB%25BA%25E8%2587%25AA%25E5%25B7%25B1%25E7%259A%2584web%25E6%25A1%2586%25E6%259E%25B6%25E5%2585%25AD%2F">
           <i class="fa fa-google-plus"></i><span>分享到 Google&#43;</span>
         </a>
       </li>
@@ -822,9 +869,9 @@ $(document).ready(function() {
     
       <script>
         var disqus_config = function () {
-          this.page.url = 'https:\/\/harleylau.github.io\/2018\/07\/python%E5%81%8F%E5%87%BD%E6%95%B0partial-function\/';
+          this.page.url = 'https:\/\/harleylau.github.io\/2019\/03\/%E8%B7%9Fgin%E4%B8%80%E5%9D%97%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84web%E6%A1%86%E6%9E%B6%E5%85%AD\/';
           
-            this.page.identifier = '\/2018\/07\/python%E5%81%8F%E5%87%BD%E6%95%B0partial-function\/'
+            this.page.identifier = '\/2019\/03\/%E8%B7%9Fgin%E4%B8%80%E5%9D%97%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84web%E6%A1%86%E6%9E%B6%E5%85%AD\/'
           
         };
         (function() {
