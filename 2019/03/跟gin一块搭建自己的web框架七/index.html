@@ -281,7 +281,7 @@
 )
 </code></pre>
 
-<p>其中， Accounts 用来存放原始原始的账号密码组合， Pairs 用来存精经过编码的账号密码组合。</p>
+<p>其中， Accounts 用来存放原始原始的账号密码组合， Pairs 用来存经过编码的账号密码组合。</p>
 
 <p>Basic Auth初始化的过程，就是将 “账号:密码” 串经过base64编码之后，存放在Pairs中。</p>
 
@@ -328,19 +328,19 @@
 		{User: &quot;admin&quot;, Password: &quot;password&quot;},
 		{User: &quot;foo&quot;, Password: &quot;bar&quot;},
 	}
-	authorized := r.Group(&quot;/auth&quot;, gin.BasicAuth(accounts))
+authorized := r.Group(&quot;/auth&quot;, gin.BasicAuth(accounts))
 </code></pre>
 
 <p>然后把需要认证的url都挂在下边</p>
 
 <pre><code>authorized.GET(&quot;/secret&quot;, func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			&quot;secret&quot;: &quot;The secret url need to be authorized&quot;,
-		})
+	c.JSON(http.StatusOK, gin.H{
+		&quot;secret&quot;: &quot;The secret url need to be authorized&quot;,
 	})
+})
 </code></pre>
 
-<p>这样当我们访问 /auth/secret 的时候，就需要经过Basic Auth的认证。如果我们在浏览器端访问，会弹出一个提示框，要求输入账号和密码； 如果是在 postman 等工具中访问， 需要在header中添加一个 Authorization 字段，字段的值是 “Basic 账号：密码的base64编码”。 比如账号是admin， 密码是password， 那么“admin:password” 经过base64编码的结果是“YWRtaW46cGFzc3dvcmQ=”， 所以对应的Authorization填的值应该是 “Basic YWRtaW46cGFzc3dvcmQ=”。</p>
+<p>这样当我们访问 /auth/secret 的时候，就需要经过Basic Auth的认证。如果我们在浏览器端访问，会弹出一个提示框，要求输入账号和密码； 如果是在 postman 等工具中访问， 需要在header中添加一个 Authorization 字段，字段的值是 “Basic 账号:密码的base64编码”。 比如账号是admin， 密码是password， 那么“admin:password” 经过base64编码的结果是“YWRtaW46cGFzc3dvcmQ=”， 所以对应的Authorization填的值应该是 “Basic YWRtaW46cGFzc3dvcmQ=”。</p>
 
 <h1 id="recovery">Recovery</h1>
 
