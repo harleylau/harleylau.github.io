@@ -220,6 +220,64 @@
     
     <div class="postShorten-header">
       <h1 class="postShorten-title" itemprop="headline">
+        <a class="link-unstyled" href="https://harleylau.github.io/2018/05/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90quicklist/">
+          Redis源码剖析–quicklist
+        </a>
+      </h1>
+      
+  <div class="postShorten-meta post-meta">
+    
+      <time itemprop="datePublished" datetime="2018-05-31T09:43:09&#43;08:00">
+        
+  五月 31, 2018
+
+      </time>
+    
+    
+  
+  
+    <span>发布在</span>
+    
+      <a class="category-link" href="https://harleylau.github.io/categories/redis">redis</a>, 
+    
+      <a class="category-link" href="https://harleylau.github.io/categories/%e6%ba%90%e7%a0%81">源码</a>
+    
+  
+
+  </div>
+
+    </div>
+    <div class="postShorten-excerpt" itemprop="articleBody">
+      
+        <!--toc-->
+      
+      <p>
+        <a href="https://harleylau.github.io/2018/05/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90quicklist/" class="postShorten-excerpt_link link">阅读全文</a>
+        
+      </p>
+    </div>
+  </div>
+  
+</article>
+
+          
+            
+  
+    
+      
+        
+      
+    
+  
+
+
+  
+
+<article class="postShorten postShorten--thumbnailimg-bottom" itemscope itemType="http://schema.org/BlogPosting">
+  <div class="postShorten-wrap">
+    
+    <div class="postShorten-header">
+      <h1 class="postShorten-title" itemprop="headline">
         <a class="link-unstyled" href="https://harleylau.github.io/2018/05/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E7%9A%84cap%E7%90%86%E8%AE%BA%E5%92%8Cbase%E7%90%86%E8%AE%BA/">
           分布式系统的CAP理论和BASE理论
         </a>
@@ -556,64 +614,6 @@ nginx 可以使用ngx_http_limit_req对服务器资源请求进行限制。</p>
 </article>
 
           
-            
-  
-    
-      
-        
-      
-    
-  
-
-
-  
-
-<article class="postShorten postShorten--thumbnailimg-bottom" itemscope itemType="http://schema.org/BlogPosting">
-  <div class="postShorten-wrap">
-    
-    <div class="postShorten-header">
-      <h1 class="postShorten-title" itemprop="headline">
-        <a class="link-unstyled" href="https://harleylau.github.io/2018/04/tornado%E5%B9%B6%E8%A1%8C%E6%89%A7%E8%A1%8C%E5%A4%9A%E4%B8%AA%E5%BC%82%E6%AD%A5%E8%AF%B7%E6%B1%82/">
-          Tornado并行执行多个异步请求
-        </a>
-      </h1>
-      
-  <div class="postShorten-meta post-meta">
-    
-      <time itemprop="datePublished" datetime="2018-04-11T11:25:22&#43;08:00">
-        
-  四月 11, 2018
-
-      </time>
-    
-    
-  
-  
-    <span>发布在</span>
-    
-      <a class="category-link" href="https://harleylau.github.io/categories/tornado">Tornado</a>
-    
-  
-
-  </div>
-
-    </div>
-    <div class="postShorten-excerpt" itemprop="articleBody">
-      
-        <!--toc-->
-
-<p>Tornado实现后台逻辑的时候，可能遇到这样的情况： 需要同时请求多个第三方数据，比如同时从多个网址请求数据，而这几个第三方数据相互没有关联。 最简单的方式是写多个yield，第一个yield返回结果之后，继续请求第二个yield。</p>
-      
-      <p>
-        <a href="https://harleylau.github.io/2018/04/tornado%E5%B9%B6%E8%A1%8C%E6%89%A7%E8%A1%8C%E5%A4%9A%E4%B8%AA%E5%BC%82%E6%AD%A5%E8%AF%B7%E6%B1%82/" class="postShorten-excerpt_link link">阅读全文</a>
-        
-      </p>
-    </div>
-  </div>
-  
-</article>
-
-          
           
   <div class="pagination-bar">
     <ul class="pagination">
@@ -689,6 +689,26 @@ nginx 可以使用ngx_http_limit_req对服务器资源请求进行限制。</p>
       <div class="no-result text-color-light text-center"></div>
       <div class="results">
         
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2019/03/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-%E9%9B%86%E5%90%88%E5%AF%B9%E8%B1%A1t_set%E5%AE%9E%E7%8E%B0/">
+                <h3 class="media-heading">Redis源码剖析  集合对象t_set实现</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Mar 3, 2019
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather">从之前的章节“Redis源码剖析&ndash;对象Object” 可以知道，redis中的SET（集合）有两种可能的数据存储方式。分别是整数集合REDIS_ENCODING_INTSET和哈希表REDIS_ENCODING_HT。
+robj *setTypeCreate(sds value) { if (isSdsRepresentableAsLongLong(value,NULL) == C_OK) return createIntsetObject(); return createSetObject(); }  第一个添加到集合的元素决定了出事的存储方式，如果第一个原始是一个整数，初始的编码就会是REDIS_ENCODING_INTSET，否则就是REDIS_ENCODING_HT，所以集合中的数据操作的时候基本都涉及到两个存储方式的判断。
+SET的结构 typedef struct redisObject { unsigned type:4; // 此字段为OBJ_SET unsigned encoding:4; // 如果是set结构，编码为OBJ_ENCODING_INTSET或OBJ_ENCODING_HT unsigned lru:LRU_BITS; int refcount; void *ptr; } robj;  同其他的对象一样， set结构也是存储在redisObject结构体中，通过指定 type=OBJ_SET 来确定这是一个集合对象，当是一个集合对象的时候，配套的endoding只能有对应的两种取值。
+SET命令    命令 说明     sadd 将一个或多个 member 元素加入到集合 key 当中，已经存在于集合的 member 元素将被忽略   scard 返回集合 key 的基数(集合中元素的数量)   spop 移除并返回集合中的一个随机元素   smembers 返回集合 key 中的所有成员   sismember 判断 member 元素是否集合 key 的成员   sinter 返回多个集合的交集，多个集合由 keys 指定   srandmember 返回集合中的一个随机元素   srandmember 返回集合中的 count 个随机元素   srem 移除集合 key 中的一个或多个 member 元素，不存在的 member 元素会被忽略   sunion 返回多个集合的并集，多个集合由 keys 指定   sdiff 返回一个集合的全部成员，该集合是所有给定集合之间的差集    SET命令实现 SET编码转换 如果一个集合使用 REDIS_ENCODING_INTSET 编码， 那么当以下任何一个条件被满足时， 这个集合会被转换成 REDIS_ENCODING_HT 编码：</div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
         
           <div class="media">
             
@@ -845,25 +865,6 @@ nginx 可以使用ngx_http_limit_req对服务器资源请求进行限制。</p>
             <hr>
           </div>
         
-          <div class="media">
-            
-            <div class="media-body">
-              <a class="link-unstyled" href="https://harleylau.github.io/2019/01/%E4%BB%8E%E5%A4%B4%E5%AE%9E%E7%8E%B0lru/">
-                <h3 class="media-heading">从头实现LRU</h3>
-              </a>
-              <span class="media-meta">
-                <span class="media-date text-small">
-                  Jan 1, 2019
-                </span>
-              </span>
-              <div class="media-content hide-xs font-merryweather"><!--toc-->
-
-<p>本文设计和实现一个LRU（最近最少使用）缓存数据结构。</p></div>
-            </div>
-            <div style="clear:both;"></div>
-            <hr>
-          </div>
-        
       </div>
     </div>
     <div class="modal-footer">
@@ -871,7 +872,7 @@ nginx 可以使用ngx_http_limit_req对服务器资源请求进行限制。</p>
          data-message-zero=""
          data-message-one=""
          data-message-other="">
-         44 posts found
+         45 posts found
       </p>
     </div>
   </div>

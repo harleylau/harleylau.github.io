@@ -793,6 +793,26 @@ void zslDeleteNode(zskiplist *zsl, zskiplistNode *x, zskiplistNode **update) {
           <div class="media">
             
             <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2019/03/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-%E9%9B%86%E5%90%88%E5%AF%B9%E8%B1%A1t_set%E5%AE%9E%E7%8E%B0/">
+                <h3 class="media-heading">Redis源码剖析  集合对象t_set实现</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Mar 3, 2019
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather">从之前的章节“Redis源码剖析&ndash;对象Object” 可以知道，redis中的SET（集合）有两种可能的数据存储方式。分别是整数集合REDIS_ENCODING_INTSET和哈希表REDIS_ENCODING_HT。
+robj *setTypeCreate(sds value) { if (isSdsRepresentableAsLongLong(value,NULL) == C_OK) return createIntsetObject(); return createSetObject(); }  第一个添加到集合的元素决定了出事的存储方式，如果第一个原始是一个整数，初始的编码就会是REDIS_ENCODING_INTSET，否则就是REDIS_ENCODING_HT，所以集合中的数据操作的时候基本都涉及到两个存储方式的判断。
+SET的结构 typedef struct redisObject { unsigned type:4; // 此字段为OBJ_SET unsigned encoding:4; // 如果是set结构，编码为OBJ_ENCODING_INTSET或OBJ_ENCODING_HT unsigned lru:LRU_BITS; int refcount; void *ptr; } robj;  同其他的对象一样， set结构也是存储在redisObject结构体中，通过指定 type=OBJ_SET 来确定这是一个集合对象，当是一个集合对象的时候，配套的endoding只能有对应的两种取值。
+SET命令    命令 说明     sadd 将一个或多个 member 元素加入到集合 key 当中，已经存在于集合的 member 元素将被忽略   scard 返回集合 key 的基数(集合中元素的数量)   spop 移除并返回集合中的一个随机元素   smembers 返回集合 key 中的所有成员   sismember 判断 member 元素是否集合 key 的成员   sinter 返回多个集合的交集，多个集合由 keys 指定   srandmember 返回集合中的一个随机元素   srandmember 返回集合中的 count 个随机元素   srem 移除集合 key 中的一个或多个 member 元素，不存在的 member 元素会被忽略   sunion 返回多个集合的并集，多个集合由 keys 指定   sdiff 返回一个集合的全部成员，该集合是所有给定集合之间的差集    SET命令实现 SET编码转换 如果一个集合使用 REDIS_ENCODING_INTSET 编码， 那么当以下任何一个条件被满足时， 这个集合会被转换成 REDIS_ENCODING_HT 编码：</div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
               <a class="link-unstyled" href="https://harleylau.github.io/2019/03/%E8%B7%9Fgin%E4%B8%80%E5%9D%97%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84web%E6%A1%86%E6%9E%B6%E4%B8%83/">
                 <h3 class="media-heading">跟Gin一块搭建自己的web框架(七)</h3>
               </a>
@@ -945,25 +965,6 @@ void zslDeleteNode(zskiplist *zsl, zskiplistNode *x, zskiplistNode **update) {
             <hr>
           </div>
         
-          <div class="media">
-            
-            <div class="media-body">
-              <a class="link-unstyled" href="https://harleylau.github.io/2019/01/%E4%BB%8E%E5%A4%B4%E5%AE%9E%E7%8E%B0lru/">
-                <h3 class="media-heading">从头实现LRU</h3>
-              </a>
-              <span class="media-meta">
-                <span class="media-date text-small">
-                  Jan 1, 2019
-                </span>
-              </span>
-              <div class="media-content hide-xs font-merryweather"><!--toc-->
-
-<p>本文设计和实现一个LRU（最近最少使用）缓存数据结构。</p></div>
-            </div>
-            <div style="clear:both;"></div>
-            <hr>
-          </div>
-        
       </div>
     </div>
     <div class="modal-footer">
@@ -971,7 +972,7 @@ void zslDeleteNode(zskiplist *zsl, zskiplistNode *x, zskiplistNode **update) {
          data-message-zero=""
          data-message-one=""
          data-message-other="">
-         44 posts found
+         45 posts found
       </p>
     </div>
   </div>
