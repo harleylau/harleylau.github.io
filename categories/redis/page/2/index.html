@@ -223,6 +223,66 @@
     
     <div class="postShorten-header">
       <h1 class="postShorten-title" itemprop="headline">
+        <a class="link-unstyled" href="https://harleylau.github.io/2018/05/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%88%97%E8%A1%A8t_list%E5%AE%9E%E7%8E%B0/">
+          Redis源码剖析–列表t_list实现
+        </a>
+      </h1>
+      
+  <div class="postShorten-meta post-meta">
+    
+      <time itemprop="datePublished" datetime="2018-05-10T09:53:08&#43;08:00">
+        
+  五月 10, 2018
+
+      </time>
+    
+    
+  
+  
+    <span>发布在</span>
+    
+      <a class="category-link" href="https://harleylau.github.io/categories/redis">redis</a>, 
+    
+      <a class="category-link" href="https://harleylau.github.io/categories/%e6%ba%90%e7%a0%81">源码</a>
+    
+  
+
+  </div>
+
+    </div>
+    <div class="postShorten-excerpt" itemprop="articleBody">
+      
+        <!--toc-->
+
+<p>Redis中的列表对象比较特殊，在版本3.2之前，列表底层的编码是 ziplist 和 linkedlist 实现的， 但是在版本3.2之后，重新引入了一个 quicklist 的数据结构，列表的底层都由quicklist实现。</p>
+      
+      <p>
+        <a href="https://harleylau.github.io/2018/05/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%88%97%E8%A1%A8t_list%E5%AE%9E%E7%8E%B0/" class="postShorten-excerpt_link link">阅读全文</a>
+        
+      </p>
+    </div>
+  </div>
+  
+</article>
+
+            
+              
+  
+    
+      
+        
+      
+    
+  
+
+
+  
+
+<article class="postShorten postShorten--thumbnailimg-bottom" itemscope itemType="http://schema.org/BlogPosting">
+  <div class="postShorten-wrap">
+    
+    <div class="postShorten-header">
+      <h1 class="postShorten-title" itemprop="headline">
         <a class="link-unstyled" href="https://harleylau.github.io/2018/05/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90%E5%AD%97%E7%AC%A6%E4%B8%B2t_string%E5%AE%9E%E7%8E%B0/">
           Redis源码剖析–字符串t_string实现
         </a>
@@ -567,66 +627,6 @@ Redis的列表键，哈希键，有序集合的底层实现都用到了ziplist�
 </article>
 
             
-              
-  
-    
-      
-        
-      
-    
-  
-
-
-  
-
-<article class="postShorten postShorten--thumbnailimg-bottom" itemscope itemType="http://schema.org/BlogPosting">
-  <div class="postShorten-wrap">
-    
-    <div class="postShorten-header">
-      <h1 class="postShorten-title" itemprop="headline">
-        <a class="link-unstyled" href="https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-dict%E5%AD%97%E5%85%B8/">
-          Redis源码剖析-Dict字典
-        </a>
-      </h1>
-      
-  <div class="postShorten-meta post-meta">
-    
-      <time itemprop="datePublished" datetime="2017-07-31T16:36:53&#43;08:00">
-        
-  七月 31, 2017
-
-      </time>
-    
-    
-  
-  
-    <span>发布在</span>
-    
-      <a class="category-link" href="https://harleylau.github.io/categories/redis">redis</a>, 
-    
-      <a class="category-link" href="https://harleylau.github.io/categories/%e6%ba%90%e7%a0%81">源码</a>
-    
-  
-
-  </div>
-
-    </div>
-    <div class="postShorten-excerpt" itemprop="articleBody">
-      
-        <!--toc-->
-
-<p>改换一下策略，不直接介绍源码，打算先整体介绍一下思路，然后再根据源码解释具体的实现。</p>
-      
-      <p>
-        <a href="https://harleylau.github.io/2017/07/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-dict%E5%AD%97%E5%85%B8/" class="postShorten-excerpt_link link">阅读全文</a>
-        
-      </p>
-    </div>
-  </div>
-  
-</article>
-
-            
             
   <div class="pagination-bar">
     <ul class="pagination">
@@ -703,6 +703,23 @@ Redis的列表键，哈希键，有序集合的底层实现都用到了ziplist�
       <div class="no-result text-color-light text-center"></div>
       <div class="results">
         
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://harleylau.github.io/2019/03/redis%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-%E6%9C%89%E5%BA%8F%E9%9B%86%E5%90%88%E5%AF%B9%E8%B1%A1t_zset%E5%AE%9E%E7%8E%B0/">
+                <h3 class="media-heading">Redis源码剖析  有序集合对象t_zset实现</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Mar 3, 2019
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><!--toc--></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
         
           <div class="media">
             
@@ -857,25 +874,6 @@ Redis的列表键，哈希键，有序集合的底层实现都用到了ziplist�
             <hr>
           </div>
         
-          <div class="media">
-            
-            <div class="media-body">
-              <a class="link-unstyled" href="https://harleylau.github.io/2019/01/%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86redis%E9%9B%86%E7%BE%A4%E4%B8%AD%E7%9A%84hot-key/">
-                <h3 class="media-heading">如何处理redis集群中的hot Key</h3>
-              </a>
-              <span class="media-meta">
-                <span class="media-date text-small">
-                  Jan 1, 2019
-                </span>
-              </span>
-              <div class="media-content hide-xs font-merryweather"><!--toc-->
-
-<p>一般对于单实例的redis或者一主一备的redis来说，不需要考虑hot key的问题。但是随着业务量的上升，redis集群也自然而然的会成为一个选择。</p></div>
-            </div>
-            <div style="clear:both;"></div>
-            <hr>
-          </div>
-        
       </div>
     </div>
     <div class="modal-footer">
@@ -883,7 +881,7 @@ Redis的列表键，哈希键，有序集合的底层实现都用到了ziplist�
          data-message-zero=""
          data-message-one=""
          data-message-other="">
-         45 posts found
+         46 posts found
       </p>
     </div>
   </div>
